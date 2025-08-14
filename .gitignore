@@ -38,6 +38,10 @@ yarn-error.*
 
 app-example
 
-# Firebase files
+# Firebase config files
 google-services.json
 GoogleService-Info.plist
+
+# local development build
+ios/
+android/

@@ -2,7 +2,10 @@
   "expo": {
     "name": "FYP",
     "slug": "FYP",
-		"platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -11,8 +14,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-			"googleServicesFile": "./GoogleService-Info.plist",
-      "bundleIdentifier": "com.fyp"
+      "bundleIdentifier": "com.fyp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +25,6 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-			"googleServicesFile": "./google-services.json",
       "package": "com.fyp"
     },
     "web": {
@@ -30,9 +34,6 @@
     },
     "plugins": [
       "expo-router",
-			"@react-native-firebase/app",
-      "@react-native-firebase/auth",
-      "@react-native-firebase/crashlytics",
       [
         "expo-splash-screen",
         {
@@ -41,18 +42,16 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ],
-			[
-				"expo-build-properties",
-        {
-          "ios": {
-            "useFrameworks": "static"
-          }
-        }
-			]
+      ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ce4a121b-62b0-4a29-a59b-d2540e7f22e5"
+      }
     }
   }
 }
