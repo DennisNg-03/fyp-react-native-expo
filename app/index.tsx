@@ -26,7 +26,7 @@ export default function Index() {
 				password
 			);
 			console.log("Logged in:", userCredential.user.email);
-			// router.replace("/(tabs)/home");
+			router.replace("/(tabs)/home");
 		} catch (err: any) {
 			Alert.alert("Login Failed", err.message);
 		}
