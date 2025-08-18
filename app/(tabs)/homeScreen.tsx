@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
-import { Text, Card, Button, Avatar, Divider, useTheme } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@/hooks/useUser";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Avatar, Button, Card, Divider, Text, useTheme } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function Home() {
+export default function HomeScreen() {
 	const theme = useTheme();
 	const { user, role } = useUser();
 
@@ -135,6 +134,25 @@ function PatientHome() {
           <Text>2 documents awaiting review</Text>
           <Text>Insurance form needs completion</Text>
         </Card.Content>
+      </Card>
+			      <Card style={styles.card}>
+        <Card.Title title="My Medical Records" />
+        <Card.Content>
+          <Text>Access your records for continuity of care.</Text>
+        </Card.Content>
+        <Card.Actions>
+          <Button mode="contained">View Records</Button>
+        </Card.Actions>
+      </Card>
+
+      <Card style={styles.card}>
+        <Card.Title title="Book Appointment" />
+        <Card.Content>
+          <Text>Check doctor availability and book instantly.</Text>
+        </Card.Content>
+        <Card.Actions>
+          <Button mode="outlined">Book Now</Button>
+        </Card.Actions>
       </Card>
     </ScrollView>
 		// <View>

@@ -1,16 +1,16 @@
+import { router } from "expo-router";
 import { useState } from "react";
 import {
-	StyleSheet,
-	View,
+	Alert,
 	KeyboardAvoidingView,
 	Platform,
-	Alert,
+	StyleSheet,
+	View,
 } from "react-native";
-import { TextInput, Button, Text, useTheme } from "react-native-paper";
+import { Button, Text, TextInput, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
 
-import { auth } from "@/firebaseConfig";
+import { auth } from "@/lib/firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 export default function Index() {
@@ -26,14 +26,14 @@ export default function Index() {
 				password
 			);
 			console.log("Logged in:", userCredential.user.email);
-			router.replace("/(tabs)/home");
+			router.replace("/(tabs)/homeScreen");
 		} catch (err: any) {
 			Alert.alert("Login Failed", err.message);
 		}
 	};
 
 	const handleRegister = () => {
-		router.push("/register");
+		router.push("/registerScreen");
 	};
 
 	return (
@@ -76,9 +76,22 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-	container: { flex: 1, justifyContent: "center", paddingHorizontal: 20 },
-	form: { width: "100%" },
-	title: { textAlign: "center", marginBottom: 24 },
-	input: { marginBottom: 16 },
-	button: { marginBottom: 12 },
+	container: { 
+		flex: 1, 
+		justifyContent: "center", 
+		paddingHorizontal: 20 
+	},
+	form: { 
+		width: "100%"
+	},
+	title: { 
+		textAlign: "center",
+		marginBottom: 24 
+	},
+	input: { 
+		marginBottom: 16 
+	},
+	button: { 
+		marginBottom: 12 
+	},
 });

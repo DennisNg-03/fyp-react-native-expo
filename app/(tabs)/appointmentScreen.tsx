@@ -1,38 +1,11 @@
 import { useEffect, useState } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { Text, Card, Button, useTheme } from "react-native-paper";
-import { collection, doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/firebaseConfig";
-import { onAuthStateChanged } from "firebase/auth";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function Schedule() {
+export default function Appointment() {
 	const theme = useTheme();
   const [role, setRole] = useState<string | null>(null);
-  // const [loading, setLoading] = useState(true);
-
-  // Fetch user role from Firestore
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(auth, async (user) => {
-  //     if (user) {
-  //       try {
-  //         const userDoc = await getDoc(doc(collection(db, "users"), user.uid));
-  //         if (userDoc.exists()) {
-  //           setRole(userDoc.data().role);
-  //         } else {
-  //           setRole("patient");
-  //         }
-  //       } catch (err) {
-  //         console.error("Error fetching role:", err);
-  //       }
-  //     } else {
-  //       setRole(null);
-  //     }
-  //     // setLoading(false);
-  //   });
-
-  //   return unsubscribe;
-  // }, []);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>

@@ -1,0 +1,54 @@
+{
+  "version": "5",
+  "remote": {
+    "https://deno.land/std@0.224.0/async/delay.ts": "f90dd685b97c2f142b8069082993e437b1602b8e2561134827eeb7c12b95c499",
+    "https://deno.land/std@0.224.0/http/server.ts": "f9313804bf6467a1704f45f76cb6cd0a3396a3b31c316035e6a4c2035d1ea514"
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@babel/core@^7.25.2",
+        "npm:@expo/vector-icons@^14.1.0",
+        "npm:@google/genai@^1.14.0",
+        "npm:@react-native-async-storage/async-storage@2.1.2",
+        "npm:@react-navigation/bottom-tabs@^7.3.10",
+        "npm:@react-navigation/elements@^2.3.8",
+        "npm:@react-navigation/native@^7.1.6",
+        "npm:@supabase/supabase-js@^2.55.0",
+        "npm:@types/react@~19.0.10",
+        "npm:eas-cli@^16.17.4",
+        "npm:eslint-config-expo@9.2",
+        "npm:eslint@^9.25.0",
+        "npm:expo-blur@~14.1.5",
+        "npm:expo-constants@~17.1.7",
+        "npm:expo-dev-client@~5.2.4",
+        "npm:expo-font@~13.3.2",
+        "npm:expo-haptics@~14.1.4",
+        "npm:expo-image-picker@^16.1.4",
+        "npm:expo-image@2.4",
+        "npm:expo-linking@~7.1.7",
+        "npm:expo-router@~5.1.4",
+        "npm:expo-secure-store@^14.2.3",
+        "npm:expo-splash-screen@~0.30.10",
+        "npm:expo-status-bar@~2.2.3",
+        "npm:expo-symbols@~0.4.5",
+        "npm:expo-system-ui@~5.0.10",
+        "npm:expo-web-browser@14.2",
+        "npm:expo@53.0.20",
+        "npm:firebase@12",
+        "npm:react-dom@19.0.0",
+        "npm:react-native-gesture-handler@2.24",
+        "npm:react-native-paper@^5.14.5",
+        "npm:react-native-reanimated@~3.17.4",
+        "npm:react-native-safe-area-context@^5.4.0",
+        "npm:react-native-screens@~4.11.1",
+        "npm:react-native-url-polyfill@2",
+        "npm:react-native-web@0.20",
+        "npm:react-native-webview@13.13.5",
+        "npm:react-native@0.79.5",
+        "npm:react@19.0.0",
+        "npm:typescript@~5.8.3"
+      ]
+    }
+  }
+}

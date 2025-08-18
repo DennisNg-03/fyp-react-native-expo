@@ -1,19 +1,19 @@
+import { router } from "expo-router";
 import { useState } from "react";
 import {
-	StyleSheet,
-	View,
+	Alert,
 	KeyboardAvoidingView,
 	Platform,
-	Alert,
+	StyleSheet,
+	View,
 } from "react-native";
-import { TextInput, Button, Text, useTheme } from "react-native-paper";
+import { Button, Text, TextInput, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
 
-import { auth } from "@/firebaseConfig";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { createUser } from "@/services/user";
+import { auth } from "@/lib/firebaseConfig";
 import { createPatient } from "@/services/patient";
+import { createUser } from "@/services/user";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
 export default function RegisterScreen() {
 	const theme = useTheme();

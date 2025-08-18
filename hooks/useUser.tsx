@@ -1,20 +1,22 @@
-import {
-	createContext,
-	useContext,
-	useState,
-	useEffect,
-	ReactNode,
-} from "react";
+import { ActivityIndicator } from "@/components/ActivityIndicator";
+import { auth, db } from "@/lib/firebaseConfig";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router, usePathname } from "expo-router";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/firebaseConfig";
-import { router, usePathname } from "expo-router";
-import { ActivityIndicator } from "@/components/ActivityIndicator";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+	createContext,
+	ReactNode,
+	useContext,
+	useEffect,
+	useState,
+} from "react";
+
+export type UserRole = "doctor" | "nurse" | "patient" | "guardian" | null;
 
 interface UserContextProps {
 	user: User | null;
-	role: string | null;
+	role: UserRole;
 }
 
 const UserContext = createContext<UserContextProps>({
@@ -24,7 +26,7 @@ const UserContext = createContext<UserContextProps>({
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
 	const [user, setUser] = useState<User | null>(null);
-	const [role, setRole] = useState<string | null>(null);
+	const [role, setRole] = useState<UserRole>(null);
 	const [initialising, setinitialising] = useState(true);
 	const pathname = usePathname();
 	const [redirected, setRedirected] = useState(false);
@@ -45,7 +47,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 						const fetchedRole = docSnap.data().role as string;
 						console.log("[AuthStateChanged] Role fetched:", fetchedRole);
 						await AsyncStorage.setItem("userRole", fetchedRole); // Save role via reactNativePersistence
-						setRole(fetchedRole);
+						setRole(fetchedRole as UserRole);
 					} else {
 						console.log("docSnap not exist!");
 					}
@@ -75,7 +77,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 		if (!initialising && user && pathname !== "/(tabs)/home" && !redirected) {
 			console.log("[UserProvider] User exists → Navigating to /home");
 			setRedirected(true);
-			router.replace("/(tabs)/home");
+			router.replace("/(tabs)/homeScreen");
 		}
 	}, [user, initialising, pathname, redirected]);
 
@@ -85,7 +87,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 			const cachedRole = await AsyncStorage.getItem("userRole");
 			if (cachedRole) {
 				console.log("[UserProvider] Loaded cached role:", cachedRole);
-				setRole(cachedRole);
+				setRole(cachedRole as UserRole);
 			}
 		};
 		loadCachedRole();

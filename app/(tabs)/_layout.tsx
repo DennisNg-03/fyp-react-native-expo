@@ -1,5 +1,4 @@
 import { Tabs } from 'expo-router';
-import { useState } from 'react';
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
@@ -28,38 +27,46 @@ export default function TabLayout() {
         }),
       }}>
       <Tabs.Screen
-        name="home"
+        name="homeScreen"
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="appointment"
+        name="appointmentScreen"
         options={{
           title: 'My Appointments',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-					href: role === "patient" ? "/appointment" : null,
+					href: role === "patient" ? "/appointmentScreen" : null,
+        }}
+      />
+			<Tabs.Screen
+        name="patientMedicalRecordScreen"
+        options={{
+          title: 'My Records',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+					href: (role === "patient") ? "/patientMedicalRecordScreen" : null,
         }}
       />
       <Tabs.Screen
-        name="schedule"
+        name="scheduleScreen"
         options={{
           title: 'Schedules',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-					href: (role === "doctor" || role === "nurse") ? "/schedule" : null,
+					href: (role === "doctor" || role === "nurse") ? "/scheduleScreen" : null,
         }}
       />
       <Tabs.Screen
-        name="patientRecord"
+        name="doctorMedicalRecordScreen"
         options={{
           title: 'Patient Records',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-					href: (role === "doctor" || role === "nurse") ? "/schedule" : null,
+					href: (role === "doctor" || role === "nurse") ? "/doctorMedicalRecordScreen" : null,
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="profileScreen"
         options={{
           title: 'My Profile',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,

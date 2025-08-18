@@ -4,7 +4,7 @@ import {
 	ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { router, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 
@@ -13,7 +13,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { PaperProvider, MD3DarkTheme, MD3LightTheme } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ActivityIndicator } from "@/components/ActivityIndicator";
-import { UserProvider, useUser } from "@/hooks/useUser";
+import { UserProvider } from "@/hooks/useUser";
 
 export default function RootLayout() {
 	const colorScheme = useColorScheme();

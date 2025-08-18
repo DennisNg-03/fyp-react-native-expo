@@ -1,18 +1,11 @@
 import { StyleSheet, View, ScrollView } from "react-native";
-import {
-	Avatar,
-	Text,
-	List,
-	Divider,
-	useTheme,
-} from "react-native-paper";
+import { Avatar, Text, List, Divider, useTheme } from "react-native-paper";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { signOut } from "firebase/auth";
-import { auth } from "@/firebaseConfig";
+import { auth } from "@/lib/firebaseConfig";
 import { router } from "expo-router";
-
-type UserRole = "doctor" | "nurse" | "patient" | "guardian";
+import { useUser, type UserRole } from "@/hooks/useUser";
 
 interface UserProfile {
 	role: UserRole;
@@ -30,34 +23,59 @@ interface UserProfile {
 	bloodType?: string;
 	allergies?: string;
 	emergencyContact?: string;
+	currentMedications: string;
+	chronicConditions: string;
+	pastSurgeries: string;
+	vaccinationStatus: string;
 }
 
 export default function ProfileScreen() {
 	const theme = useTheme();
+	const { role } = useUser();
+
+	// Doctor user
+	// const user: UserProfile = {
+	// 	role: "doctor",
+	// 	name: "Dr. Sarah Connor",
+	// 	email: "sarah.connor@example.com",
+	// 	phone: "+1 555 123 456",
+	// 	avatar: "",
+	// 	medicalId: "MED-987654",
+	// 	specialisation: "Cardiology",
+	// 	availability: "Mon–Fri, 9am–5pm",
+	// };
 
 	const user: UserProfile = {
-		role: "doctor",
-		name: "Dr. Sarah Connor",
-		email: "sarah.connor@example.com",
-		phone: "+1 555 123 456",
-		avatar: "",
-		medicalId: "MED-987654",
-		specialisation: "Cardiology",
-		availability: "Mon–Fri, 9am–5pm",
-	};
+	role: "patient",
+	name: "John Doe",
+	email: "john.doe@example.com",
+	phone: "+60 12-345 6789",
+	avatar: "",
+	dateOfBirth: "1990-04-15",
+	gender: "Male",
+	bloodType: "O+",
+	allergies: "Penicillin, Peanuts",
+	emergencyContact: "+60 11-987 6543",
+	// If you extend UserProfile later to include more medical records
+	// you can add them here, e.g.:
+	currentMedications: "Metformin, Lisinopril",
+	chronicConditions: "Type 2 Diabetes, Hypertension",
+	pastSurgeries: "Appendectomy (2015)",
+	vaccinationStatus: "Up-to-date"
+};
 
 	const handleLogout = async () => {
 		try {
 			await signOut(auth);
-			console.log("Logged out successfully!")
+			console.log("Logged out successfully!");
 			router.replace("/");
 		} catch (err) {
 			console.error("Error logging out", err);
 		}
-	}
+	};
 
 	const renderRoleSpecificFields = () => {
-		switch (user.role) {
+		switch (role) {
 			case "doctor":
 			case "nurse":
 				return (
@@ -79,7 +97,64 @@ export default function ProfileScreen() {
 						/>
 					</>
 				);
+			// Patient Info
 			case "patient":
+				return (
+					<>
+						{/* Basic personal info */}
+						<List.Item
+							title="Date of Birth"
+							description={user?.dateOfBirth}
+							left={(props) => <List.Icon {...props} icon="calendar" />}
+						/>
+						<List.Item
+							title="Gender"
+							description={user?.gender}
+							left={(props) => (
+								<List.Icon {...props} icon="gender-male-female" />
+							)}
+						/>
+
+						{/* Medical record info */}
+						<List.Item
+							title="Blood Type"
+							description={user?.bloodType}
+							left={(props) => <List.Icon {...props} icon="water" />}
+						/>
+						<List.Item
+							title="Allergies"
+							description={user?.allergies}
+							left={(props) => <List.Icon {...props} icon="alert-circle" />}
+						/>
+						<List.Item
+							title="Current Medications"
+							description={user?.currentMedications || "None"}
+							left={(props) => <List.Icon {...props} icon="pill" />}
+						/>
+						<List.Item
+							title="Chronic Conditions"
+							description={user?.chronicConditions || "None"}
+							left={(props) => <List.Icon {...props} icon="heart-pulse" />}
+						/>
+						<List.Item
+							title="Past Surgeries"
+							description={user?.pastSurgeries || "None"}
+							left={(props) => <List.Icon {...props} icon="hospital" />}
+						/>
+						<List.Item
+							title="Vaccination Status"
+							description={user?.vaccinationStatus || "Unknown"}
+							left={(props) => <List.Icon {...props} icon="needle" />}
+						/>
+
+						{/* Emergency info */}
+						<List.Item
+							title="Emergency Contact"
+							description={user?.emergencyContact}
+							left={(props) => <List.Icon {...props} icon="phone" />}
+						/>
+					</>
+				);
 			case "guardian":
 				return (
 					<>
@@ -119,51 +194,6 @@ export default function ProfileScreen() {
 
 	return (
 		<SafeAreaView>
-			{/* <ScrollView contentContainerStyle={styles.container}>
-				<Card style={styles.card}>
-					<Card.Content style={styles.profileHeader}>
-						<Avatar.Image
-							size={80}
-							source={{ uri: 'https://i.pravatar.cc/150?img=3' }}
-						/>
-						<View style={styles.profileText}>
-							<Text variant="titleMedium">John Doe</Text>
-							<Text variant="bodyMedium">john.doe@example.com</Text>
-						</View>
-					</Card.Content>
-					<Card.Actions>
-						<Button mode="contained" onPress={() => console.log('Edit Profile pressed')}>
-							Edit Profile
-						</Button>
-					</Card.Actions>
-				</Card>
-
-				<List.Section title="Account">
-					<List.Item
-						title="Change Password"
-						left={(props) => <List.Icon {...props} icon="lock" />}
-						onPress={() => console.log('Change Password pressed')}
-					/>
-					<List.Item
-						title="Notifications"
-						left={(props) => <List.Icon {...props} icon="bell" />}
-						onPress={() => console.log('Notifications pressed')}
-					/>
-				</List.Section>
-
-				<List.Section title="App">
-					<List.Item
-						title="About"
-						left={(props) => <List.Icon {...props} icon="information" />}
-						onPress={() => console.log('About pressed')}
-					/>
-					<List.Item
-						title="Logout"
-						left={(props) => <List.Icon {...props} icon="logout" />}
-						onPress={() => console.log('Logout pressed')}
-					/>
-				</List.Section>
-			</ScrollView> */}
 			<ScrollView style={{ backgroundColor: theme.colors.background }}>
 				<View style={styles.header}>
 					<Avatar.Image
@@ -177,7 +207,7 @@ export default function ProfileScreen() {
 					<Text variant="headlineSmall" style={{ marginTop: 10 }}>
 						{user.name}
 					</Text>
-					<Text variant="bodyMedium">{user.role.toUpperCase()}</Text>
+					<Text variant="bodyMedium">{role?.toUpperCase() ?? "Undefined"}</Text>
 				</View>
 
 				<Divider style={{ marginVertical: 10 }} />
