@@ -1,5 +1,6 @@
-import { useUser } from "@/hooks/useUser";
-import { createMedicalRecord, MedicalRecord } from "@/services/medicalRecord";
+import { ActivityIndicator } from "@/components/ActivityIndicator";
+import { useAuth } from "@/providers/AuthProvider";
+import { MedicalRecord } from "@/types/medicalRecord";
 import { blobToBase64 } from "@/utils/fileHelpers";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
@@ -25,9 +26,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PatientMedicalRecordScreen() {
 	const theme = useTheme();
-	const { user } = useUser();
+	const { session, role } = useAuth();
 	const [records, setRecords] = useState<MedicalRecord[]>([]);
-	const [uploading, setUploading] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const [saving, setSaving] = useState(false);
 	const [uploadModalVisible, setUploadModalVisible] = useState(false);
 	const [recordTitle, setRecordTitle] = useState("");
 	const [recordDate, setRecordDate] = useState<Date>(new Date());
@@ -37,27 +39,65 @@ export default function PatientMedicalRecordScreen() {
 		{ uri: string; name: string }[]
 	>([]);
 
-	const [debugOutput, setDebugOutput] = useState<string | null>(null);
-
 	// Placeholder: fetch medical records from backend
+	// useEffect(() => {
+	// 	setRecords([
+	// 		{
+	// 			id: "1",
+	// 			title: "Blood Test - Jan 2025",
+	// 			date: "2025-01-15",
+	// 			file_paths: ["https://via.placeholder.com/150"],
+	// 			signed_urls: ["https://via.placeholder.com/150"],
+	// 			user_id: "Test",
+	// 		},
+	// 		{
+	// 			id: "2",
+	// 			title: "MRI Scan - Feb 2025",
+	// 			date: "2025-02-10",
+	// 			file_paths: ["https://via.placeholder.com/150"],
+	// 			signed_urls: ["https://via.placeholder.com/150"],
+	// 			user_id: "Test",
+	// 		},
+	// 	]);
+	// }, []);
+
 	useEffect(() => {
-		setRecords([
-			{
-				id: "1",
-				title: "Blood Test - Jan 2025",
-				date: "2025-01-15",
-				imageUrls: ["https://via.placeholder.com/150"],
-				userUid: "Test",
-			},
-			{
-				id: "2",
-				title: "MRI Scan - Feb 2025",
-				date: "2025-02-10",
-				imageUrls: ["https://via.placeholder.com/150"],
-				userUid: "Test",
-			},
-		]);
-	}, []);
+		if (!session?.user.id) return;
+
+		const fetchRecords = async () => {
+			try {
+				setLoading(true);
+				const res = await fetch(
+					`https://zxyyegizcgbhctjjoido.functions.supabase.co/getMedicalRecordPatient?uid=${session.user.id}`,
+					{
+						headers: {
+							Authorization: `Bearer ${session.access_token}`,
+						},
+					}
+				);
+
+				if (!res.ok) {
+					const text = await res.text();
+					console.error("Failed to fetch records", text);
+					return;
+				}
+
+				const { recordsWithUrls } = await res.json();
+
+				console.log("Records with Urls:", recordsWithUrls);
+
+				// If you want to keep mapping per record:
+				// (Assuming your Edge Function returns { recordId, signedUrls } per record)
+				setRecords(recordsWithUrls ?? []); // or transform to match your state shape
+			} catch (err) {
+				console.error(err);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchRecords();
+	}, [session?.access_token, session?.user.id]);
 
 	const handleUploadRecord = async () => {
 		setUploadModalVisible(true);
@@ -132,98 +172,112 @@ export default function PatientMedicalRecordScreen() {
 	};
 
 	const handleSaveRecord = async () => {
-		if (!user) {
+		if (!session) {
 			console.error("User not authenticated");
 			return;
 		}
 
 		const images = selectedImages ?? [];
-  	if (images.length === 0) return;
+		if (images.length === 0) return;
 
 		try {
+			setSaving(true);
 			// Loop through all selected images
 			const filesToUpload = await Promise.all(
-      selectedImages.map(async (uri) => {
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        const base64 = await blobToBase64(blob);
-        return {
-          name: uri.split("/").pop()!, // filename
-          blobBase64: base64,
-        };
-      })
-    );
-		console.log("Files to upload:", filesToUpload);
+				selectedImages.map(async (uri) => {
+					const response = await fetch(uri);
+					const blob = await response.blob();
+					const base64 = await blobToBase64(blob);
+					return {
+						name: uri.split("/").pop()!, // filename
+						blobBase64: base64,
+					};
+				})
+			);
+			// console.log("Files to upload:", filesToUpload);
 
-    // Call Edge Function to upload all images and get signed URLs
-    const res = await fetch("https://zxyyegizcgbhctjjoido.functions.supabase.co/uploadMedicalRecord", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        files: filesToUpload,
-        title: recordTitle,
-        date: recordDate.toISOString().split("T")[0],
-        uid: user.uid,
-      }),
-    });
+			// Call Edge Function to upload all images and get signed URLs
+			const res = await fetch(
+				"https://zxyyegizcgbhctjjoido.functions.supabase.co/uploadMedicalRecord",
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${session?.access_token}`,
+					},
+					body: JSON.stringify({
+						files: filesToUpload,
+						title: recordTitle,
+						date: recordDate.toISOString().split("T")[0],
+						uid: session?.user.id,
+					}),
+				}
+			);
 
-		console.log("Uploaded images to Supabase:", res);
+			console.log("Uploaded images to Supabase:", res);
 
-    const { uploadedUrls } = await res.json();
-		console.log("Uploaded Urls:", uploadedUrls);
+			if (!res.ok) {
+				const errorBody = await res.text(); // or res.json() if you know JSON is returned
+				console.error("Upload failed:", res.status, res.statusText, errorBody);
+				return;
+			}
 
-    // Call OCR Edge Function for each uploaded file if needed
-    let combinedOcrText = "";
-    for (const url of uploadedUrls) {
-      const geminiResponse = await fetch(
-        "https://zxyyegizcgbhctjjoido.functions.supabase.co/ocr",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            path: url, // or send fileName if your OCR Edge Function expects path in storage
-            title: recordTitle,
-            date: recordDate,
-          }),
-        }
-      );
+			const { uploadedUrls } = await res.json();
+			console.log("Uploaded Urls:", uploadedUrls);
 
-      const json = await geminiResponse.json();
-			const ocrText = json?.ocrText ?? ""; // fallback to empty string
-			console.log("OCR Text:", ocrText);
-			combinedOcrText += ocrText + "\n\n";
-			console.log("Combined OCR Text:", combinedOcrText);
-    }
+			// Call OCR Edge Function for each uploaded file if needed
+			let combinedOcrText = "";
+			for (const url of uploadedUrls) {
+				console.log("url:", url);
+				const geminiResponse = await fetch(
+					"https://zxyyegizcgbhctjjoido.functions.supabase.co/ocr",
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${session?.access_token}`,
+						},
+						body: JSON.stringify({
+							signedUrl: url,
+							title: recordTitle,
+							date: recordDate,
+						}),
+					}
+				);
 
-			// Save the image metadata in Firebase
-			await createMedicalRecord({
-				title: recordTitle,
-				date: recordDate.toISOString().split("T")[0],
-				imageUrls: uploadedUrls,
-				ocrText: combinedOcrText,
-				userUid: user.uid,
-			});
+				const json = await geminiResponse.json();
+				console.log("Gemini Response json:", json);
+				const ocrText = json?.ocrText ?? ""; // fallback to empty string
+				console.log("OCR Text:", ocrText);
+				combinedOcrText += ocrText + "\n\n";
+				console.log("Combined OCR Text:", combinedOcrText);
+			}
 
-			// Update local state
 			setRecords((prev) => [
-				...prev,
 				{
 					id: Date.now().toString(),
 					title: recordTitle,
 					date: recordDate.toISOString().split("T")[0],
-					imageUrls: images, // Array of local previews
-					userUid: user.uid,
+					file_paths: images,
+					signed_urls: images, // Array of local previews
+					user_id: session.user.id,
 				},
+				...prev,
 			]);
 		} catch (err) {
 			console.error("Error saving record:", err);
 		} finally {
+			setSaving(false);
 			setUploadModalVisible(false);
 			setRecordTitle("");
 			setRecordDate(new Date());
 			setSelectedImages([]);
 		}
 	};
+
+	if (loading) {
+		return <ActivityIndicator />;
+	}
 
 	return (
 		<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -233,7 +287,7 @@ export default function PatientMedicalRecordScreen() {
 					mode="contained"
 					icon="upload"
 					onPress={handleUploadRecord}
-					loading={uploading}
+					loading={loading}
 					style={styles.uploadButton}
 				>
 					Upload Medical Record
@@ -259,9 +313,9 @@ export default function PatientMedicalRecordScreen() {
 							>
 								<Card.Title title={record.title} subtitle={record.date} />
 								<Card.Content>
-									{record.imageUrls.length > 0 && (
+									{record.signed_urls?.length > 0 && (
 										<Image
-											source={{ uri: record.imageUrls[0] }}
+											source={{ uri: record.signed_urls[0] }}
 											style={{
 												width: "100%",
 												height: 150,
@@ -288,11 +342,6 @@ export default function PatientMedicalRecordScreen() {
 						<Text variant="titleMedium" style={styles.modalTitle}>
 							New Medical Record
 						</Text>
-						{debugOutput && (
-							<View style={{ padding: 10, backgroundColor: "#eee" }}>
-								<Text style={{ fontFamily: "monospace" }}>{debugOutput}</Text>
-							</View>
-						)}
 						<TextInput
 							label="Title"
 							mode="outlined"
@@ -309,7 +358,6 @@ export default function PatientMedicalRecordScreen() {
 								readOnly
 							/>
 
-							{/* {showPicker && ( */}
 							<DateTimePicker
 								value={recordDate}
 								mode="date"
@@ -319,7 +367,6 @@ export default function PatientMedicalRecordScreen() {
 									if (selectedDate) setRecordDate(selectedDate);
 								}}
 							/>
-							{/* )} */}
 						</View>
 						{selectedImages && selectedImages.length > 0 && (
 							<ScrollView horizontal style={{ marginBottom: 10 }}>
@@ -374,6 +421,12 @@ export default function PatientMedicalRecordScreen() {
 								Save
 							</Button>
 						</View>
+						{saving && (
+							<View style={styles.loadingOverlay}>
+								<ActivityIndicator />
+								<Text style={styles.savingMsg}>Saving...</Text>
+							</View>
+						)}
 					</View>
 				</View>
 			</Modal>
@@ -403,6 +456,16 @@ const styles = StyleSheet.create({
 		backgroundColor: "white",
 		borderRadius: 8,
 		padding: 20,
+	},
+	loadingOverlay: {
+		...StyleSheet.absoluteFillObject,
+		backgroundColor: "rgba(255,255,255,0.8)",
+		alignItems: "center",
+		justifyContent: "center",
+		borderRadius: 8,
+	},
+	savingMsg: {
+		marginTop: 12,
 	},
 	modalTitle: {
 		textAlign: "center",

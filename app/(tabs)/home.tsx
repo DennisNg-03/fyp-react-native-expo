@@ -1,11 +1,11 @@
-import { useUser } from "@/hooks/useUser";
+import { useAuth } from "@/providers/AuthProvider";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Avatar, Button, Card, Divider, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
 	const theme = useTheme();
-	const { user, role } = useUser();
+	const { role } = useAuth();
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>

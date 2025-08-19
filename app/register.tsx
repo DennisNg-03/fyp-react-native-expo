@@ -10,10 +10,7 @@ import {
 import { Button, Text, TextInput, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { auth } from "@/lib/firebaseConfig";
-import { createPatient } from "@/services/patient";
-import { createUser } from "@/services/user";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { supabase } from "@/lib/supabase";
 
 export default function RegisterScreen() {
 	const theme = useTheme();
@@ -24,41 +21,64 @@ export default function RegisterScreen() {
 	const [loading, setLoading] = useState(false);
 
 	const handleRegister = async () => {
-    if (!name || !email || !password) {
-      Alert.alert("Error", "Please fill all fields.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match!");
-      return;
-    }
+		if (!name || !email || !password) {
+			Alert.alert("Error", "Please fill all fields.");
+			return;
+		}
+		if (password !== confirmPassword) {
+			Alert.alert("Error", "Passwords do not match!");
+			return;
+		}
 
-    try {
-      setLoading(true);
+		try {
+			setLoading(true);
+			const { data, error } = await supabase.auth.signUp({
+				email,
+				password,
+				options: {
+					data: { name: name }, // store name in user metadata
+				},
+			});
 
-      // 1. Create Firebase Auth account
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const uid = userCredential.user.uid;
+			if (error) console.log(error.message);
 
-      // 2. Update Auth displayName
-      await updateProfile(userCredential.user, { displayName: name });
+			const userId = data.user?.id;
+			if (!userId) throw new Error("No user ID returned from Supabase.");
 
-      // 3. Create Firestore records
-      await createUser(uid, name, email);
-      await createPatient(uid);
+			const { data: { session },
+			} = await supabase.auth.getSession();
 
-      Alert.alert("Success", "Account created!");
-      router.replace("/");
-    } catch (err: any) {
-      Alert.alert("Error creating account", err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+			const response = await fetch(
+				"https://zxyyegizcgbhctjjoido.functions.supabase.co/registerUser",
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${session?.access_token}`,
+					},
+					body: JSON.stringify({
+						userId,
+						email,
+						role: "patient",
+						dateOfBirth: null,
+						insuranceInfo: null,
+					}),
+				}
+			);
+			if (!response.ok) {
+				const errorText = await response.text();
+				console.log("Response error:", errorText);
+				Alert.alert("Error:", errorText);
+			}
+
+			Alert.alert("Registration Successful", "Your account has been created!");
+			router.replace("/login");
+		} catch (err: any) {
+			console.log("Error creating account", err.message);
+		} finally {
+			setLoading(false);
+		}
+	};
 
 	return (
 		<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -123,9 +143,22 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-	container: { flex: 1, justifyContent: "center", paddingHorizontal: 20 },
-	form: { width: "100%" },
-	title: { textAlign: "center", marginBottom: 24 },
-	input: { marginBottom: 16 },
-	button: { marginBottom: 12 },
+	container: {
+		flex: 1,
+		justifyContent: "center",
+		paddingHorizontal: 20,
+	},
+	form: {
+		width: "100%",
+	},
+	title: {
+		textAlign: "center",
+		marginBottom: 24,
+	},
+	input: {
+		marginBottom: 16,
+	},
+	button: {
+		marginBottom: 12,
+	},
 });

@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
-import { Text, Card, Button, useTheme } from "react-native-paper";
+import { useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Button, Card, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function Schedule() {
+export default function DoctorMedicalRecordScreen() {
 	const theme = useTheme();
   const [role, setRole] = useState<string | null>(null);
   // const [loading, setLoading] = useState(true);

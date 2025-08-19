@@ -1,11 +1,12 @@
-import { StyleSheet, View, ScrollView } from "react-native";
-import { Avatar, Text, List, Divider, useTheme } from "react-native-paper";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Avatar, Divider, List, Text, useTheme } from "react-native-paper";
 
-import { SafeAreaView } from "react-native-safe-area-context";
-import { signOut } from "firebase/auth";
+import { type UserRole } from "@/hooks/useUser";
 import { auth } from "@/lib/firebaseConfig";
+import { useAuth } from "@/providers/AuthProvider";
 import { router } from "expo-router";
-import { useUser, type UserRole } from "@/hooks/useUser";
+import { signOut } from "firebase/auth";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface UserProfile {
 	role: UserRole;
@@ -31,7 +32,7 @@ interface UserProfile {
 
 export default function ProfileScreen() {
 	const theme = useTheme();
-	const { role } = useUser();
+	const { role } = useAuth();
 
 	// Doctor user
 	// const user: UserProfile = {

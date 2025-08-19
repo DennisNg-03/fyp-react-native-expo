@@ -6,12 +6,13 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { useUser } from "@/hooks/useUser";
+import { useAuth } from "@/providers/AuthProvider";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-	const { role } = useUser();
-	
+	const { role } = useAuth();
+	console.log("Logged in role:", role);
+
   return (
     <Tabs
       screenOptions={{
@@ -27,46 +28,46 @@ export default function TabLayout() {
         }),
       }}>
       <Tabs.Screen
-        name="homeScreen"
+        name="home"
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="appointmentScreen"
+        name="appointment"
         options={{
           title: 'My Appointments',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-					href: role === "patient" ? "/appointmentScreen" : null,
+					href: role === "patient" ? "/appointment" : null,
         }}
       />
 			<Tabs.Screen
-        name="patientMedicalRecordScreen"
+        name="patient-medical-record"
         options={{
           title: 'My Records',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-					href: (role === "patient") ? "/patientMedicalRecordScreen" : null,
+					href: (role === "patient") ? "/patient-medical-record" : null,
         }}
       />
       <Tabs.Screen
-        name="scheduleScreen"
+        name="schedule"
         options={{
           title: 'Schedules',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-					href: (role === "doctor" || role === "nurse") ? "/scheduleScreen" : null,
+					href: (role === "doctor" || role === "nurse") ? "/schedule" : null,
         }}
       />
       <Tabs.Screen
-        name="doctorMedicalRecordScreen"
+        name="doctor-medical-record"
         options={{
           title: 'Patient Records',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-					href: (role === "doctor" || role === "nurse") ? "/doctorMedicalRecordScreen" : null,
+					href: (role === "doctor" || role === "nurse") ? "/doctor-medical-record" : null,
         }}
       />
       <Tabs.Screen
-        name="profileScreen"
+        name="profile"
         options={{
           title: 'My Profile',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
