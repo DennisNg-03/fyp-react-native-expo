@@ -2,10 +2,9 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { Avatar, Divider, List, Text, useTheme } from "react-native-paper";
 
 import { type UserRole } from "@/hooks/useUser";
-import { auth } from "@/lib/firebaseConfig";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
 import { router } from "expo-router";
-import { signOut } from "firebase/auth";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface UserProfile {
@@ -67,7 +66,11 @@ export default function ProfileScreen() {
 
 	const handleLogout = async () => {
 		try {
-			await signOut(auth);
+			supabase.auth.signOut();
+			// if (error) {
+			// 	console.log("Error logging out", error);
+			// 	return;
+			// }
 			console.log("Logged out successfully!");
 			router.replace("/");
 		} catch (err) {
@@ -251,7 +254,7 @@ export default function ProfileScreen() {
 					onPress={handleLogout}
 				/>
 
-				<Divider style={{ marginVertical: 10 }} />
+				<Divider style={{ marginBottom: 50 }} />
 			</ScrollView>
 		</SafeAreaView>
 	);

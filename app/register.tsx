@@ -22,7 +22,7 @@ export default function RegisterScreen() {
 
 	const handleRegister = async () => {
 		if (!name || !email || !password) {
-			Alert.alert("Error", "Please fill all fields.");
+			Alert.alert("Please fill all fields to register!");
 			return;
 		}
 		if (password !== confirmPassword) {
@@ -42,11 +42,10 @@ export default function RegisterScreen() {
 
 			if (error) console.log(error.message);
 
+			console.log("Signup Data:", data);
+
 			const userId = data.user?.id;
 			if (!userId) throw new Error("No user ID returned from Supabase.");
-
-			const { data: { session },
-			} = await supabase.auth.getSession();
 
 			const response = await fetch(
 				"https://zxyyegizcgbhctjjoido.functions.supabase.co/registerUser",
@@ -54,7 +53,6 @@ export default function RegisterScreen() {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: `Bearer ${session?.access_token}`,
 					},
 					body: JSON.stringify({
 						userId,

@@ -48,6 +48,9 @@ export default function AuthProvider({ children }: PropsWithChildren) {
 		};
 
 		fetchSessionAndRole();
+		supabase.auth.onAuthStateChange((_event, session) => {
+			setSession(session);
+		});
 	}, []);
 
 	if (initialising) {

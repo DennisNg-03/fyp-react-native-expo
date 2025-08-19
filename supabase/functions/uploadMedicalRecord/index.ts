@@ -101,6 +101,7 @@ Deno.serve(async (req) => {
 		return new Response(JSON.stringify({ uploadedUrls }), {
 			headers: { "Content-Type": "application/json" },
 		});
+		
 	} catch (err: any) {
 		console.error("Error in Edge Function:", err);
 		return new Response("Error: " + err.message, { status: 500 });

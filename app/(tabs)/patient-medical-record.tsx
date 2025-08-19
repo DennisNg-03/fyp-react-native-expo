@@ -1,4 +1,5 @@
 import { ActivityIndicator } from "@/components/ActivityIndicator";
+import { RecordTypeMenu } from "@/components/RecordTypeMenu";
 import { useAuth } from "@/providers/AuthProvider";
 import { MedicalRecord } from "@/types/medicalRecord";
 import { blobToBase64 } from "@/utils/fileHelpers";
@@ -20,7 +21,7 @@ import {
 	IconButton,
 	Text,
 	TextInput,
-	useTheme,
+	useTheme
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -38,28 +39,6 @@ export default function PatientMedicalRecordScreen() {
 	const [selectedDocuments, setSelectedDocuments] = useState<
 		{ uri: string; name: string }[]
 	>([]);
-
-	// Placeholder: fetch medical records from backend
-	// useEffect(() => {
-	// 	setRecords([
-	// 		{
-	// 			id: "1",
-	// 			title: "Blood Test - Jan 2025",
-	// 			date: "2025-01-15",
-	// 			file_paths: ["https://via.placeholder.com/150"],
-	// 			signed_urls: ["https://via.placeholder.com/150"],
-	// 			user_id: "Test",
-	// 		},
-	// 		{
-	// 			id: "2",
-	// 			title: "MRI Scan - Feb 2025",
-	// 			date: "2025-02-10",
-	// 			file_paths: ["https://via.placeholder.com/150"],
-	// 			signed_urls: ["https://via.placeholder.com/150"],
-	// 			user_id: "Test",
-	// 		},
-	// 	]);
-	// }, []);
 
 	useEffect(() => {
 		if (!session?.user.id) return;
@@ -101,23 +80,6 @@ export default function PatientMedicalRecordScreen() {
 
 	const handleUploadRecord = async () => {
 		setUploadModalVisible(true);
-		// Request permission to access photos
-		// const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images });
-		// if (!result.canceled) {
-		//   setUploading(true);
-		//   // Upload to backend (Firebase/Supabase/etc.)
-		//   // After upload, add to state:
-		//   setRecords(prev => [
-		//     ...prev,
-		//     {
-		//       id: Date.now().toString(),
-		//       title: "New Medical Record",
-		//       date: new Date().toISOString().split("T")[0],
-		//       imageUrl: result.assets[0].uri,
-		//     }
-		//   ]);
-		//   setUploading(false);
-		// }
 	};
 
 	const handleTakePhoto = async () => {
@@ -292,6 +254,7 @@ export default function PatientMedicalRecordScreen() {
 				>
 					Upload Medical Record
 				</Button>
+				<RecordTypeMenu />
 
 				{/* Medical Records List */}
 				<View style={{ marginTop: 20 }}>
@@ -311,7 +274,12 @@ export default function PatientMedicalRecordScreen() {
 								style={styles.card}
 								onPress={() => console.log("Open record:", record.id)}
 							>
-								<Card.Title title={record.title} subtitle={record.date} />
+								<Card.Title
+									title={record.title}
+									subtitle={`${record.date}${
+										"record_type" in record ? " • " + record.record_type : ""
+									}`}
+								/>
 								<Card.Content>
 									{record.signed_urls?.length > 0 && (
 										<Image
@@ -331,6 +299,8 @@ export default function PatientMedicalRecordScreen() {
 					)}
 				</View>
 			</ScrollView>
+
+			{/* Popup Modal for Uploading Medical Records */}
 			<Modal
 				visible={uploadModalVisible}
 				transparent={true}
@@ -349,6 +319,7 @@ export default function PatientMedicalRecordScreen() {
 							onChangeText={setRecordTitle}
 							style={styles.input}
 						/>
+						
 						<View style={styles.dateTimePicker}>
 							<TextInput
 								label="Date"
@@ -368,6 +339,7 @@ export default function PatientMedicalRecordScreen() {
 								}}
 							/>
 						</View>
+
 						{selectedImages && selectedImages.length > 0 && (
 							<ScrollView horizontal style={{ marginBottom: 10 }}>
 								{selectedImages.map((uri, index) => (
@@ -427,6 +399,7 @@ export default function PatientMedicalRecordScreen() {
 								<Text style={styles.savingMsg}>Saving...</Text>
 							</View>
 						)}
+						<RecordTypeMenu />
 					</View>
 				</View>
 			</Modal>
