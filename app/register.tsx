@@ -22,7 +22,7 @@ export default function RegisterScreen() {
 
 	const handleRegister = async () => {
 		if (!name || !email || !password) {
-			Alert.alert("Please fill all fields to register!");
+			Alert.alert("Alert", "Please fill all fields to register!");
 			return;
 		}
 		if (password !== confirmPassword) {
@@ -70,7 +70,7 @@ export default function RegisterScreen() {
 			if (!response.ok) {
 				const errorText = await response.text();
 				console.log("Response error:", errorText);
-				Alert.alert("Error:", errorText);
+				Alert.alert("Registration Failed:", errorText);
 			}
 
 			Alert.alert("Registration Successful", "Your account has been created!");

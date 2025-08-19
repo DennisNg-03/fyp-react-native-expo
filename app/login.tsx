@@ -21,7 +21,7 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     try {
 			if (!email || !password) {
-				Alert.alert("Please enter email and password to login!");
+				Alert.alert("Alert", "Please enter email and password to login!");
 				return;
 			}
       setLoading(true);

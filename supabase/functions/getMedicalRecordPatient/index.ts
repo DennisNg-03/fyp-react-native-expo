@@ -41,6 +41,7 @@ Deno.serve(async (req) => {
 					id: record.id,
 					title: record.title,
 					date: record.date,
+					record_type: record.record_type,
 					user_id: record.user_id,
 					file_paths: record.file_paths,
 					signed_urls: signedUrls,

@@ -8,6 +8,7 @@ import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
 import {
+	Alert,
 	Image,
 	Modal,
 	Platform,
@@ -21,7 +22,7 @@ import {
 	IconButton,
 	Text,
 	TextInput,
-	useTheme
+	useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -32,6 +33,7 @@ export default function PatientMedicalRecordScreen() {
 	const [loading, setLoading] = useState(false);
 	const [saving, setSaving] = useState(false);
 	const [uploadModalVisible, setUploadModalVisible] = useState(false);
+	const [recordType, setRecordType] = useState<string>();
 	const [recordTitle, setRecordTitle] = useState("");
 	const [recordDate, setRecordDate] = useState<Date>(new Date());
 	const [showPicker, setShowPicker] = useState(false);
@@ -62,12 +64,8 @@ export default function PatientMedicalRecordScreen() {
 				}
 
 				const { recordsWithUrls } = await res.json();
-
-				console.log("Records with Urls:", recordsWithUrls);
-
-				// If you want to keep mapping per record:
-				// (Assuming your Edge Function returns { recordId, signedUrls } per record)
-				setRecords(recordsWithUrls ?? []); // or transform to match your state shape
+				// console.log("Records with Urls:", recordsWithUrls);
+				setRecords(recordsWithUrls ?? []);
 			} catch (err) {
 				console.error(err);
 			} finally {
@@ -79,6 +77,10 @@ export default function PatientMedicalRecordScreen() {
 	}, [session?.access_token, session?.user.id]);
 
 	const handleUploadRecord = async () => {
+		if (!recordType) {
+			Alert.alert("Alert", "Please select a record type before proceeding to upload medical record!");
+			return;
+		}
 		setUploadModalVisible(true);
 	};
 
@@ -92,6 +94,7 @@ export default function PatientMedicalRecordScreen() {
 		const result = await ImagePicker.launchCameraAsync({
 			allowsEditing: true,
 			quality: 1,
+			aspect: [16, 9],
 		});
 
 		if (!result.canceled) {
@@ -111,6 +114,7 @@ export default function PatientMedicalRecordScreen() {
 		const result = await ImagePicker.launchImageLibraryAsync({
 			mediaTypes: ["images"],
 			allowsEditing: true,
+			aspect: [16, 9],
 			quality: 1, // highest quality
 		});
 
@@ -172,6 +176,7 @@ export default function PatientMedicalRecordScreen() {
 						title: recordTitle,
 						date: recordDate.toISOString().split("T")[0],
 						uid: session?.user.id,
+						record_type: recordType,
 					}),
 				}
 			);
@@ -203,6 +208,7 @@ export default function PatientMedicalRecordScreen() {
 							signedUrl: url,
 							title: recordTitle,
 							date: recordDate,
+							record_type: recordType,
 						}),
 					}
 				);
@@ -220,9 +226,10 @@ export default function PatientMedicalRecordScreen() {
 					id: Date.now().toString(),
 					title: recordTitle,
 					date: recordDate.toISOString().split("T")[0],
+					record_type: recordType,
+					user_id: session.user.id,
 					file_paths: images,
 					signed_urls: images, // Array of local previews
-					user_id: session.user.id,
 				},
 				...prev,
 			]);
@@ -244,18 +251,22 @@ export default function PatientMedicalRecordScreen() {
 	return (
 		<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
 			<ScrollView style={styles.container}>
-				{/* Upload Button */}
-				<Button
-					mode="contained"
-					icon="upload"
-					onPress={handleUploadRecord}
-					loading={loading}
-					style={styles.uploadButton}
-				>
-					Upload Medical Record
-				</Button>
-				<RecordTypeMenu />
-
+				<View style={styles.uploadForm}>
+					<RecordTypeMenu
+						selectedType={recordType}
+						setSelectedType={setRecordType}
+					/>
+					{/* Upload Button */}
+					<Button
+						mode="contained"
+						icon="upload"
+						onPress={handleUploadRecord}
+						loading={loading}
+						style={styles.uploadButton}
+					>
+						Upload Medical Record
+					</Button>
+				</View>
 				{/* Medical Records List */}
 				<View style={{ marginTop: 20 }}>
 					{records.length === 0 ? (
@@ -319,7 +330,7 @@ export default function PatientMedicalRecordScreen() {
 							onChangeText={setRecordTitle}
 							style={styles.input}
 						/>
-						
+
 						<View style={styles.dateTimePicker}>
 							<TextInput
 								label="Date"
@@ -399,7 +410,6 @@ export default function PatientMedicalRecordScreen() {
 								<Text style={styles.savingMsg}>Saving...</Text>
 							</View>
 						)}
-						<RecordTypeMenu />
 					</View>
 				</View>
 			</Modal>
@@ -419,6 +429,17 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		marginTop: 40,
 	},
+	uploadForm: {
+		padding: 16,
+		backgroundColor: "#fff",
+		borderRadius: 12,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
+		elevation: 3,
+		marginBottom: 20,
+	},
 	modalOverlay: {
 		flex: 1,
 		backgroundColor: "rgba(0,0,0,0.5)",
@@ -435,10 +456,11 @@ const styles = StyleSheet.create({
 		backgroundColor: "rgba(255,255,255,0.8)",
 		alignItems: "center",
 		justifyContent: "center",
+		flex: 1,
 		borderRadius: 8,
 	},
 	savingMsg: {
-		marginTop: 12,
+		marginTop: 2,
 	},
 	modalTitle: {
 		textAlign: "center",

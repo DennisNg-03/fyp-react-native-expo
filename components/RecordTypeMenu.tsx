@@ -1,19 +1,26 @@
 import { recordTypes } from "@/utils/recordTypes";
-import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
+import { useTheme } from "react-native-paper";
 import { Dropdown } from "react-native-paper-dropdown";
 
-export const RecordTypeMenu = () => {
-	const [selectedType, setSelectedType] = useState<string>();
+interface RecordTypeMenuProps {
+	selectedType: string | undefined;
+	setSelectedType: (value?: string) => void;
+}
 
-	// convert your string list into the dropdown's format
+export const RecordTypeMenu = ({
+	selectedType,
+	setSelectedType,
+}: RecordTypeMenuProps) => {
+	const theme = useTheme();
+
 	const dropDownItems = recordTypes.map((type) => ({
-		label: type.replace(/_/g, " "), // prettier label
+		label: type.replace(/_/g, " "),
 		value: type,
 	}));
 
 	return (
-		<View style={styles.dropdownContainer}>
+		<View style={{ marginBottom: 16 }}>
 			<Dropdown
 				label="Record Type"
 				placeholder="Select record type"
@@ -21,13 +28,12 @@ export const RecordTypeMenu = () => {
 				value={selectedType}
 				onSelect={setSelectedType}
 				mode="outlined"
+				menuContentStyle={{
+					backgroundColor: theme.colors.background,
+					borderRadius: 8,
+				}}
+				hideMenuHeader
 			/>
 		</View>
 	);
 };
-
-const styles = StyleSheet.create({
-	dropdownContainer: {
-		marginVertical: 8,
-	},
-});

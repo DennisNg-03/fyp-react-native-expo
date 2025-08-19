@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
 	// if (error) return new Response("Invalid token", { status: 401 });
 
 	try {
-		const { files, title, date, uid } = await req.json();
+		const { files, title, date, uid, record_type } = await req.json();
 		console.log("Parsed request body:", { files, title, date, uid });
 
 		if (!uid) {
@@ -60,9 +60,10 @@ Deno.serve(async (req) => {
 				.from("medical_records")
 				.insert([
 					{
-						user_id: uid,
 						title,
 						date,
+						record_type: record_type,
+						user_id: uid,
 						file_paths: uploadedFileNames,
 						ocr_text: null,
 					},
@@ -101,7 +102,7 @@ Deno.serve(async (req) => {
 		return new Response(JSON.stringify({ uploadedUrls }), {
 			headers: { "Content-Type": "application/json" },
 		});
-		
+
 	} catch (err: any) {
 		console.error("Error in Edge Function:", err);
 		return new Response("Error: " + err.message, { status: 500 });
