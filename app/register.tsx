@@ -32,20 +32,23 @@ export default function RegisterScreen() {
 
 		try {
 			setLoading(true);
+
 			const { data, error } = await supabase.auth.signUp({
 				email,
 				password,
 				options: {
-					data: { name: name }, // store name in user metadata
+					data: { full_name: name }, // store name in user metadata
 				},
 			});
 
-			if (error) console.log(error.message);
+			if (error) console.log("Sign Up Error:", error.message);
 
 			console.log("Signup Data:", data);
 
 			const userId = data.user?.id;
 			if (!userId) throw new Error("No user ID returned from Supabase.");
+
+			const { data: { session }} = await supabase.auth.getSession();
 
 			const response = await fetch(
 				"https://zxyyegizcgbhctjjoido.functions.supabase.co/registerUser",
@@ -53,6 +56,7 @@ export default function RegisterScreen() {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
+						Authorization: `Bearer ${session?.access_token}`,
 					},
 					body: JSON.stringify({
 						userId,

@@ -26,31 +26,56 @@ export default function AuthProvider({ children }: PropsWithChildren) {
 
 	useEffect(() => {
 		console.log("Auth Provider is mounted!");
+
+		// fetch initial session and role
 		const fetchSessionAndRole = async () => {
 			const { data } = await supabase.auth.getSession();
-			console.log("Fetched session data:", data);
 			setSession(data.session);
-			setInitialising(false);
 
 			if (data.session?.user) {
-				const { data: profile, error } = await supabase
-					.from("profiles")
-					.select("role")
-					.eq("id", data.session.user.id)
-					.single();
+				await fetchRole(data.session.user.id);
+			} else {
+				setRole(null);
+			}
+			setInitialising(false);
+		};
 
-				if (error) {
-					console.error("Error fetching profile role:", error);
-				} else {
-					setRole(profile?.role ?? null);
-				}
+		const fetchRole = async (userId: string) => {
+			const { data: profile, error } = await supabase
+				.from("profiles")
+				.select("role")
+				.eq("id", userId)
+				.single();
+
+			if (error) {
+				console.error("Error fetching profile role:", error);
+				setRole(null);
+			} else {
+				setRole(profile?.role ?? null);
 			}
 		};
 
+		// call it once on mount
 		fetchSessionAndRole();
-		supabase.auth.onAuthStateChange((_event, session) => {
-			setSession(session);
-		});
+
+		// subscribe to auth changes
+		const { data: listener } = supabase.auth.onAuthStateChange(
+			(_event, newSession) => {
+				console.log("Auth state changed:", _event, newSession);
+				setSession(newSession);
+
+				if (newSession?.user) {
+					fetchRole(newSession.user.id);
+				} else {
+					setRole(null); // this is key! reset role on logout
+				}
+			}
+		);
+
+		// cleanup listener on unmount
+		return () => {
+			listener.subscription.unsubscribe();
+		};
 	}, []);
 
 	if (initialising) {

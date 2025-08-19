@@ -4,7 +4,6 @@ import { Avatar, Divider, List, Text, useTheme } from "react-native-paper";
 import { type UserRole } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
-import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface UserProfile {
@@ -67,12 +66,8 @@ export default function ProfileScreen() {
 	const handleLogout = async () => {
 		try {
 			supabase.auth.signOut();
-			// if (error) {
-			// 	console.log("Error logging out", error);
-			// 	return;
-			// }
 			console.log("Logged out successfully!");
-			router.replace("/");
+			// router.replace("/login");
 		} catch (err) {
 			console.error("Error logging out", err);
 		}

@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
@@ -10,9 +10,14 @@ import { useAuth } from "@/providers/AuthProvider";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-	const { role } = useAuth();
+	const { session, role } = useAuth();
 	console.log("Logged in role:", role);
 
+	// Redirect user to login page whenever session is null
+	if (!session) {
+			return <Redirect href={"/login"} />;
+		}
+		
   return (
     <Tabs
       screenOptions={{

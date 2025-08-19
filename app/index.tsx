@@ -5,7 +5,7 @@ import { Redirect } from "expo-router";
 const Index = () => {
 	const { session, role } = useAuth();
 
-	console.log("Session", session);
+	console.log("Index Session Data:", session);
 
 	if (!session) {
 		return <Redirect href={"/login"} />;
