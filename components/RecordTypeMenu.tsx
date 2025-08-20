@@ -1,4 +1,4 @@
-import { recordTypes } from "@/utils/recordTypes";
+import { recordTypes } from "@/types/medicalRecord";
 import { View } from "react-native";
 import { useTheme } from "react-native-paper";
 import { Dropdown } from "react-native-paper-dropdown";

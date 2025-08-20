@@ -1,9 +1,9 @@
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Avatar, Divider, List, Text, useTheme } from "react-native-paper";
 
-import { type UserRole } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
+import { UserRole } from "@/types/user";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface UserProfile {

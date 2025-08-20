@@ -1,6 +1,8 @@
 // eslint-disable-next-line import/no-unresolved
 import { createClient } from "npm:@supabase/supabase-js";
 
+import { SelectedFile } from "../../../types/file.ts";
+
 Deno.serve(async (req) => {
 	const supabase = createClient(
 		Deno.env.get("SUPABASE_URL")!,
@@ -16,8 +18,8 @@ Deno.serve(async (req) => {
 		const { data: records, error } = await supabase
 			.from("medical_records")
 			.select("*")
-			.eq("user_id", uid)
-			.order("date", { ascending: false }) // sort in descending order
+			.eq("patient_id", uid)
+			.order("date", { ascending: false })
 			.order("updated_at", { ascending: false });
 
 		if (error)
@@ -27,13 +29,20 @@ Deno.serve(async (req) => {
 
 		const recordsWithUrls = await Promise.all(
 			records.map(async (record) => {
-				const signedUrls: string[] = await Promise.all(
-					record.file_paths.map(async (path: string) => {
+				const files: SelectedFile[] = record.file_paths ?? [];
+				console.log("Record.file_paths:", files);
+
+				// Get signed URLs for all the files
+				const signedUrls = await Promise.all(
+					files.map(async (file) => {
 						const { data, error } = await supabase.storage
 							.from("medical-records")
-							.createSignedUrl(path, 60 * 60);
-						if (error || !data)
-							throw new Error(`Failed to create signed URL for ${path}`);
+							.createSignedUrl(file.uri, 60 * 60);
+						if (error || !data) {
+							console.error("Error creating signed URL:", error);
+							return new Response(`Failed to create signed URL for ${file}.` + error.message, { status: 500 });										
+						}
+						
 						return data.signedUrl;
 					})
 				);
@@ -42,8 +51,8 @@ Deno.serve(async (req) => {
 					title: record.title,
 					date: record.date,
 					record_type: record.record_type,
-					user_id: record.user_id,
-					file_paths: record.file_paths,
+					patient_id: record.patient_id,
+					file_paths: record.file_paths as SelectedFile,
 					signed_urls: signedUrls,
 				};
 			})

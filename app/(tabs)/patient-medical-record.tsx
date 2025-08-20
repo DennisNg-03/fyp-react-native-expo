@@ -1,6 +1,7 @@
 import { ActivityIndicator } from "@/components/ActivityIndicator";
 import { RecordTypeMenu } from "@/components/RecordTypeMenu";
 import { useAuth } from "@/providers/AuthProvider";
+import { SelectedFile } from "@/types/file";
 import { MedicalRecord } from "@/types/medicalRecord";
 import { blobToBase64 } from "@/utils/fileHelpers";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -37,10 +38,12 @@ export default function PatientMedicalRecordScreen() {
 	const [recordTitle, setRecordTitle] = useState("");
 	const [recordDate, setRecordDate] = useState<Date>(new Date());
 	const [showPicker, setShowPicker] = useState(false);
-	const [selectedImages, setSelectedImages] = useState<string[]>([]);
-	const [selectedDocuments, setSelectedDocuments] = useState<
-		{ uri: string; name: string }[]
-	>([]);
+	// const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+	// const [selectedDocuments, setSelectedDocuments] = useState<
+	// 	{ uri: string; name: string }[]
+	// >([]);
+
+	const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
 
 	useEffect(() => {
 		if (!session?.user.id) return;
@@ -64,7 +67,8 @@ export default function PatientMedicalRecordScreen() {
 				}
 
 				const { recordsWithUrls } = await res.json();
-				// console.log("Records with Urls:", recordsWithUrls);
+				console.log("Records with Urls:", recordsWithUrls);
+				// console.log("Records with Urls (Signed URLs):", JSON.stringify(recordsWithUrls.signed_urls, null, 2));
 				setRecords(recordsWithUrls ?? []);
 			} catch (err) {
 				console.error(err);
@@ -78,7 +82,10 @@ export default function PatientMedicalRecordScreen() {
 
 	const handleUploadRecord = async () => {
 		if (!recordType) {
-			Alert.alert("Alert", "Please select a record type before proceeding to upload medical record!");
+			Alert.alert(
+				"Alert",
+				"Please select a record type before proceeding to upload medical record!"
+			);
 			return;
 		}
 		setUploadModalVisible(true);
@@ -98,7 +105,14 @@ export default function PatientMedicalRecordScreen() {
 		});
 
 		if (!result.canceled) {
-			setSelectedImages((prev) => [...prev, result.assets[0].uri]);
+			setSelectedFiles((prev) => [
+				...prev,
+				{
+					uri: result.assets[0].uri,
+					name: result.assets[0].uri.split("/").pop() ?? "photo.jpg",
+					type: "image",
+				},
+			]);
 		}
 	};
 
@@ -119,47 +133,79 @@ export default function PatientMedicalRecordScreen() {
 		});
 
 		if (!result.canceled) {
-			setSelectedImages((prev) => [...prev, result.assets[0].uri]);
+			setSelectedFiles((prev) => [
+				...prev,
+				{
+					uri: result.assets[0].uri,
+					name: result.assets[0].uri.split("/").pop() ?? "photo.jpg",
+					type: "image",
+				},
+			]);
 		}
 	};
 
 	const handleAttachFile = async () => {
 		const result = await DocumentPicker.getDocumentAsync({
-			type: ["application/pdf", "application/msword", "text/plain"],
+			type: [
+				"application/pdf",
+				"application/msword",
+				"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+				"text/plain",
+			], // Allowed document types
 			copyToCacheDirectory: true,
 		});
 
 		if (!result.canceled && result.assets.length > 0) {
-			setSelectedDocuments((prev) => [
+			setSelectedFiles((prev) => [
 				...prev,
-				...result.assets.map((asset) => ({ uri: asset.uri, name: asset.name })),
+				...result.assets.map((asset) => ({
+					uri: asset.uri,
+					name: asset.name,
+					type: "document" as const, // makes it a literal type
+				})),
 			]);
 		}
 	};
 
+	const handleCancel = () => {
+		setRecordTitle("");
+		setRecordDate(new Date());
+		setSelectedFiles([]);
+		setUploadModalVisible(false);
+	};
+
 	const handleSaveRecord = async () => {
 		if (!session) {
-			console.error("User not authenticated");
+			console.error("User not authenticated!");
+			return;
+		}
+		if (!recordTitle || !recordDate) {
+			Alert.alert("Alert", "Please fill up all the fields!");
 			return;
 		}
 
-		const images = selectedImages ?? [];
-		if (images.length === 0) return;
+		const files = selectedFiles ?? [];
+		if (files.length === 0) {
+			Alert.alert("Alert", "Please attach at least one images/documents!");
+			return;
+		}
 
 		try {
 			setSaving(true);
-			// Loop through all selected images
+			// Loop through all selected files
 			const filesToUpload = await Promise.all(
-				selectedImages.map(async (uri) => {
-					const response = await fetch(uri);
+				selectedFiles.map(async (file) => {
+					const response = await fetch(file.uri);
 					const blob = await response.blob();
 					const base64 = await blobToBase64(blob);
 					return {
-						name: uri.split("/").pop()!, // filename
+						name: file.name,
 						blobBase64: base64,
+						type: file.type, // optional: keep track if image/doc
 					};
 				})
 			);
+
 			// console.log("Files to upload:", filesToUpload);
 
 			// Call Edge Function to upload all images and get signed URLs
@@ -181,45 +227,39 @@ export default function PatientMedicalRecordScreen() {
 				}
 			);
 
-			console.log("Uploaded images to Supabase:", res);
+			console.log("Uploaded medical records to Supabase:", res);
 
 			if (!res.ok) {
-				const errorBody = await res.text(); // or res.json() if you know JSON is returned
+				const errorBody = await res.text(); // or res.json()
 				console.error("Upload failed:", res.status, res.statusText, errorBody);
 				return;
 			}
 
 			const { uploadedUrls } = await res.json();
 			console.log("Uploaded Urls:", uploadedUrls);
+			console.log("Uploaded Signed URLs:", uploadedUrls);
 
 			// Call OCR Edge Function for each uploaded file if needed
-			let combinedOcrText = "";
-			for (const url of uploadedUrls) {
-				console.log("url:", url);
-				const geminiResponse = await fetch(
-					"https://zxyyegizcgbhctjjoido.functions.supabase.co/ocr",
-					{
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							Authorization: `Bearer ${session?.access_token}`,
-						},
-						body: JSON.stringify({
-							signedUrl: url,
-							title: recordTitle,
-							date: recordDate,
-							record_type: recordType,
-						}),
-					}
-				);
+			const geminiResponse = await fetch(
+				"https://zxyyegizcgbhctjjoido.functions.supabase.co/ocr",
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${session?.access_token}`,
+					},
+					body: JSON.stringify({
+						signedUrls: uploadedUrls, // send the whole array of signed urls
+						title: recordTitle,
+						date: recordDate,
+						record_type: recordType,
+					}),
+				}
+			);
 
-				const json = await geminiResponse.json();
-				console.log("Gemini Response json:", json);
-				const ocrText = json?.ocrText ?? ""; // fallback to empty string
-				console.log("OCR Text:", ocrText);
-				combinedOcrText += ocrText + "\n\n";
-				console.log("Combined OCR Text:", combinedOcrText);
-			}
+			const json = await geminiResponse.json();
+			const ocrText = json?.ocrText ?? "";
+			console.log("OCR Text:", ocrText);
 
 			setRecords((prev) => [
 				{
@@ -227,9 +267,9 @@ export default function PatientMedicalRecordScreen() {
 					title: recordTitle,
 					date: recordDate.toISOString().split("T")[0],
 					record_type: recordType,
-					user_id: session.user.id,
-					file_paths: images,
-					signed_urls: images, // Array of local previews
+					patient_id: session.user.id,
+					file_paths: files,
+					signed_urls: uploadedUrls, // Array of local previews
 				},
 				...prev,
 			]);
@@ -240,7 +280,7 @@ export default function PatientMedicalRecordScreen() {
 			setUploadModalVisible(false);
 			setRecordTitle("");
 			setRecordDate(new Date());
-			setSelectedImages([]);
+			setSelectedFiles([]);
 		}
 	};
 
@@ -292,9 +332,18 @@ export default function PatientMedicalRecordScreen() {
 									}`}
 								/>
 								<Card.Content>
-									{record.signed_urls?.length > 0 && (
+									{record.file_paths?.some(
+										(f) => typeof f !== "string" && f.type === "image"
+									) && (
 										<Image
-											source={{ uri: record.signed_urls[0] }}
+											source={{
+												uri:
+													record.signed_urls?.[
+														record.file_paths.findIndex(
+															(f): f is SelectedFile => typeof f !== "string" && f.type === "image"
+														)
+													] ?? "",
+											}}
 											style={{
 												width: "100%",
 												height: 150,
@@ -344,30 +393,52 @@ export default function PatientMedicalRecordScreen() {
 								value={recordDate}
 								mode="date"
 								display={Platform.OS === "ios" ? "spinner" : "default"}
-								onChange={(event, selectedDate) => {
+								maximumDate={new Date()}
+								onChange={(_event, selectedDate) => {
 									setShowPicker(false);
-									if (selectedDate) setRecordDate(selectedDate);
+									if (selectedDate) {
+										setRecordDate(selectedDate);
+										console.log("Selected Date:", selectedDate);
+									}
 								}}
 							/>
 						</View>
 
-						{selectedImages && selectedImages.length > 0 && (
+						{selectedFiles && selectedFiles.length > 0 && (
 							<ScrollView horizontal style={{ marginBottom: 10 }}>
-								{selectedImages.map((uri, index) => (
-									<Image
-										key={index}
-										source={{ uri }}
-										style={{
-											width: 150,
-											height: 150,
-											borderRadius: 8,
-											marginRight: 10,
-										}}
-										resizeMode="cover"
-									/>
-								))}
+								{selectedFiles.map((file, index) =>
+									file.type === "image" ? (
+										<Image
+											key={index}
+											source={{ uri: file.uri }}
+											style={{
+												width: 150,
+												height: 150,
+												borderRadius: 8,
+												marginRight: 10,
+											}}
+											resizeMode="cover"
+										/>
+									) : (
+										<View
+											key={index}
+											style={{
+												width: 150,
+												height: 150,
+												borderRadius: 8,
+												marginRight: 10,
+												backgroundColor: "#f0f0f0",
+												alignItems: "center",
+												justifyContent: "center",
+											}}
+										>
+											<Text>{file.name.toUpperCase()}</Text>
+										</View>
+									)
+								)}
 							</ScrollView>
 						)}
+
 						<View style={styles.uploadButtonRow}>
 							<IconButton
 								mode="outlined"
@@ -391,7 +462,7 @@ export default function PatientMedicalRecordScreen() {
 						<View style={styles.actionButtonRow}>
 							<Button
 								mode="outlined"
-								onPress={() => setUploadModalVisible(false)}
+								onPress={handleCancel}
 								style={styles.actionButton}
 							>
 								Cancel

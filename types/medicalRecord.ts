@@ -1,14 +1,25 @@
-export type RecordType = "Lab Results" | "Prescriptions" | "Imaging Reports" | "Discharge Summary" | "Others";
+import { SelectedFile } from "./file";
+export type RecordType = "Lab Result" | "Prescription" | "Imaging Report" | "Discharge Summary" | "Others";
+
+export const recordTypes: RecordType[] = [
+  "Lab Result",
+  "Prescription",
+  "Imaging Report",
+  "Discharge Summary",
+  "Others",
+];
 
 export interface BaseMedicalRecord {
   id: string;
-  user_id: string;
+  patient_id: string;
   title: string;
   date: string;
-  file_paths: string[];
+  file_paths: string[] | SelectedFile[];
   signed_urls: string[];
   ocr_text?: string;
   updated_at?: string;
+	doctor_name?: string;
+  facility_name?: string;
 }
 
 export interface LabResultsRecord extends BaseMedicalRecord {
@@ -83,3 +94,55 @@ export interface DischargeSummary {
   follow_up_date?: string;        // Suggested follow-up appointment date
   notes?: string;  
 }
+
+export const LabResultFields = [
+  "id",
+  "record_id",
+  "test_name",
+  "result_value",
+  "unit",
+  "reference_range",
+  "confidence",
+] as const;
+
+export const PrescriptionFields = [
+  "id",
+  "record_id",
+  "medicine_name",
+  "dosage",
+  "frequency",
+  "duration",
+  "notes",
+] as const;
+
+export const ImagingReportFields = [
+  "id",
+  "record_id",
+  "modality",
+  "body_part",
+  "findings",
+  "impression",
+  "notes",
+] as const;
+
+export const DischargeSummaryFields = [
+  "id",
+  "record_id",
+  "admission_date",
+  "discharge_date",
+  "admitting_diagnosis",
+  "final_diagnosis",
+  "procedures",
+  "hospital_course",
+  "condition_at_discharge",
+  "medications",
+  "follow_up_instructions",
+  "follow_up_date",
+  "notes",
+] as const;
+
+
+export type LabResultField = (typeof LabResultFields)[number];
+export type PrescriptionField = (typeof PrescriptionFields)[number];
+export type ImagingReportField = (typeof ImagingReportFields)[number];
+export type DischargeSummaryField = (typeof DischargeSummaryFields)[number];
