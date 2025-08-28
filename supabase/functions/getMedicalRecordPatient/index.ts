@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-unresolved
 import { createClient } from "npm:@supabase/supabase-js";
 
-import { SelectedFile } from "../../../types/file.ts";
+import { SelectedFile } from "../../../types/medicalRecord.ts";
 
 Deno.serve(async (req) => {
 	const supabase = createClient(

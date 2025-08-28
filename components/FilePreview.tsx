@@ -13,7 +13,7 @@ type FilePreviewProps = {
   onRemove: () => void;
 };
 
-const FilePreview: FC<FilePreviewProps> = ({ file, onRemove }) => {
+export const FilePreview: FC<FilePreviewProps> = ({ file, onRemove }) => {
 	const { colors } = useTheme();
   const isImage = file.type === "image";
 
@@ -62,5 +62,3 @@ const FilePreview: FC<FilePreviewProps> = ({ file, onRemove }) => {
     </View>
   );
 };
-
-export default FilePreview;

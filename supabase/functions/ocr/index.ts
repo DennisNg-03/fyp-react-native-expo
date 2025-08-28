@@ -18,6 +18,51 @@ Deno.serve(async (req) => {
 	// 		},
 	// 	}
 	// );
+	// const LabResultFields: LabResultField[] = [
+	// 	"id",
+	// 	"record_id",
+	// 	"test_name",
+	// 	"result_value",
+	// 	"unit",
+	// 	"reference_range",
+	// 	"confidence",
+	// ];
+
+	// const PrescriptionFields: PrescriptionField[] = [
+	// 	"id",
+	// 	"record_id",
+	// 	"medicine_name",
+	// 	"dosage",
+	// 	"frequency",
+	// 	"duration",
+	// 	"notes",
+	// ];
+
+	// const ImagingReportFields: ImagingReportField[] = [
+	// 	"id",
+	// 	"record_id",
+	// 	"modality",
+	// 	"body_part",
+	// 	"findings",
+	// 	"impression",
+	// 	"notes",
+	// ];
+
+	// const DischargeSummaryFields: DischargeSummaryField[] = [
+	// 	"id",
+	// 	"record_id",
+	// 	"admission_date",
+	// 	"discharge_date",
+	// 	"admitting_diagnosis",
+	// 	"final_diagnosis",
+	// 	"procedures",
+	// 	"hospital_course",
+	// 	"condition_at_discharge",
+	// 	"medications",
+	// 	"follow_up_instructions",
+	// 	"follow_up_date",
+	// 	"notes",
+	// ];
 
 	try {
 		const { signedUrls, title, date, record_type } = await req.json();
@@ -28,6 +73,8 @@ Deno.serve(async (req) => {
 			record_type,
 		});
 
+		// let fieldsToExtract: LabResultField[] | PrescriptionField[] | ImagingReportField[] | DischargeSummaryField[];
+		// let fieldsToExtract: string[] = [];
 		let fieldsToExtract;
 
 		switch (record_type) {
@@ -83,7 +130,7 @@ Deno.serve(async (req) => {
 			model: "gemini-2.5-pro",
 			config: {
 				temperature: 1,
-				maxOutputTokens: 2000,
+				maxOutputTokens: 3000,
 			},
 			contents: prompt,
 		});

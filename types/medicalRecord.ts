@@ -1,4 +1,9 @@
-import { SelectedFile } from "./file";
+export type SelectedFile = {
+	uri: string; // This attribute can be the local URI for Expo image picker preview or Database's file path
+	name: string;
+	type: "image" | "document";
+};
+
 export type RecordType = "Lab Result" | "Prescription" | "Imaging Report" | "Discharge Summary" | "Others";
 
 export const recordTypes: RecordType[] = [
@@ -13,6 +18,7 @@ export interface BaseMedicalRecord {
   id: string;
   patient_id: string;
   title: string;
+	record_type?: string,
   date: string;
   file_paths: string[] | SelectedFile[];
   signed_urls: string[];
