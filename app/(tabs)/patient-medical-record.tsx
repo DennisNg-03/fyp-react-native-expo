@@ -1,29 +1,25 @@
 import { ActivityIndicator } from "@/components/ActivityIndicator";
 import { RecordTypeMenu } from "@/components/RecordTypeMenu";
+import UploadRecordModal from "@/components/UploadRecordModal";
 import { useAuth } from "@/providers/AuthProvider";
 import { SelectedFile } from "@/types/file";
 import { MedicalRecord } from "@/types/medicalRecord";
 import { blobToBase64 } from "@/utils/fileHelpers";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
 import {
 	Alert,
 	Image,
-	Modal,
-	Platform,
 	ScrollView,
 	StyleSheet,
-	View,
+	View
 } from "react-native";
 import {
 	Button,
 	Card,
-	IconButton,
 	Text,
-	TextInput,
-	useTheme,
+	useTheme
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -37,7 +33,6 @@ export default function PatientMedicalRecordScreen() {
 	const [recordType, setRecordType] = useState<string>();
 	const [recordTitle, setRecordTitle] = useState("");
 	const [recordDate, setRecordDate] = useState<Date>(new Date());
-	const [showPicker, setShowPicker] = useState(false);
 	// const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 	// const [selectedDocuments, setSelectedDocuments] = useState<
 	// 	{ uri: string; name: string }[]
@@ -259,7 +254,7 @@ export default function PatientMedicalRecordScreen() {
 
 			const json = await geminiResponse.json();
 			const ocrText = json?.ocrText ?? "";
-			console.log("OCR Text:", ocrText);
+			console.log("OCR Response Text:", ocrText);
 
 			setRecords((prev) => [
 				{
@@ -302,7 +297,7 @@ export default function PatientMedicalRecordScreen() {
 						icon="upload"
 						onPress={handleUploadRecord}
 						loading={loading}
-						style={styles.uploadButton}
+						// style={styles.uploadButton}
 					>
 						Upload Medical Record
 					</Button>
@@ -340,7 +335,8 @@ export default function PatientMedicalRecordScreen() {
 												uri:
 													record.signed_urls?.[
 														record.file_paths.findIndex(
-															(f): f is SelectedFile => typeof f !== "string" && f.type === "image"
+															(f): f is SelectedFile =>
+																typeof f !== "string" && f.type === "image"
 														)
 													] ?? "",
 											}}
@@ -361,7 +357,7 @@ export default function PatientMedicalRecordScreen() {
 			</ScrollView>
 
 			{/* Popup Modal for Uploading Medical Records */}
-			<Modal
+			{/* <Modal
 				visible={uploadModalVisible}
 				transparent={true}
 				animationType="slide"
@@ -405,37 +401,52 @@ export default function PatientMedicalRecordScreen() {
 						</View>
 
 						{selectedFiles && selectedFiles.length > 0 && (
+							// <ScrollView horizontal style={{ marginBottom: 10 }}>
+							// 	{selectedFiles.map((file, index) =>
+							// 		file.type === "image" ? (
+							// 			// Attached images
+							// 			<Image
+							// 				key={index}
+							// 				source={{ uri: file.uri }}
+							// 				style={{
+							// 					width: 150,
+							// 					height: 150,
+							// 					borderRadius: 8,
+							// 					marginRight: 10,
+							// 				}}
+							// 				resizeMode="cover"
+							// 			/>
+							// 		) : (
+							// 			// Attached documents
+							// 			<View
+							// 				key={index}
+							// 				style={{
+							// 					width: 150,
+							// 					height: 150,
+							// 					borderRadius: 8,
+							// 					marginRight: 10,
+							// 					backgroundColor: "#f0f0f0",
+							// 					alignItems: "center",
+							// 					justifyContent: "center",
+							// 				}}
+							// 			>
+							// 				<Text>{file.name.toUpperCase()}</Text>
+							// 			</View>
+							// 		)
+							// 	)}
+							// </ScrollView>
 							<ScrollView horizontal style={{ marginBottom: 10 }}>
-								{selectedFiles.map((file, index) =>
-									file.type === "image" ? (
-										<Image
-											key={index}
-											source={{ uri: file.uri }}
-											style={{
-												width: 150,
-												height: 150,
-												borderRadius: 8,
-												marginRight: 10,
-											}}
-											resizeMode="cover"
-										/>
-									) : (
-										<View
-											key={index}
-											style={{
-												width: 150,
-												height: 150,
-												borderRadius: 8,
-												marginRight: 10,
-												backgroundColor: "#f0f0f0",
-												alignItems: "center",
-												justifyContent: "center",
-											}}
-										>
-											<Text>{file.name.toUpperCase()}</Text>
-										</View>
-									)
-								)}
+								{selectedFiles.map((file, index) => (
+									<FilePreview
+										key={index}
+										file={file}
+										onRemove={() =>
+											setSelectedFiles((prev) =>
+												prev.filter((_, i) => i !== index)
+											)
+										}
+									/>
+								))}
 							</ScrollView>
 						)}
 
@@ -483,7 +494,23 @@ export default function PatientMedicalRecordScreen() {
 						)}
 					</View>
 				</View>
-			</Modal>
+			</Modal> */}
+			<UploadRecordModal
+				visible={uploadModalVisible}
+				onClose={() => setUploadModalVisible(false)}
+				selectedFiles={selectedFiles}
+				setSelectedFiles={setSelectedFiles}
+				recordTitle={recordTitle}
+				setRecordTitle={setRecordTitle}
+				recordDate={recordDate}
+				setRecordDate={setRecordDate}
+				// recordType={recordType}
+				handleTakePhoto={handleTakePhoto}
+				handleUploadImage={handleUploadImage}
+				handleAttachFile={handleAttachFile}
+				handleSaveRecord={handleSaveRecord}
+				saving={saving}
+			/>
 		</SafeAreaView>
 	);
 }
@@ -511,17 +538,17 @@ const styles = StyleSheet.create({
 		elevation: 3,
 		marginBottom: 20,
 	},
-	modalOverlay: {
-		flex: 1,
-		backgroundColor: "rgba(0,0,0,0.5)",
-		justifyContent: "center",
-		padding: 20,
-	},
-	modalContainer: {
-		backgroundColor: "white",
-		borderRadius: 8,
-		padding: 20,
-	},
+	// modalOverlay: {
+	// 	flex: 1,
+	// 	backgroundColor: "rgba(0,0,0,0.5)",
+	// 	justifyContent: "center",
+	// 	padding: 20,
+	// },
+	// modalContainer: {
+	// 	backgroundColor: "white",
+	// 	borderRadius: 8,
+	// 	padding: 20,
+	// },
 	loadingOverlay: {
 		...StyleSheet.absoluteFillObject,
 		backgroundColor: "rgba(255,255,255,0.8)",
@@ -533,38 +560,35 @@ const styles = StyleSheet.create({
 	savingMsg: {
 		marginTop: 2,
 	},
-	modalTitle: {
-		textAlign: "center",
-		marginBottom: 5,
-	},
-	dateTimePicker: {
-		marginBottom: 10,
-	},
-	input: {
-		marginBottom: 16,
-	},
-	button: {
-		marginBottom: 10,
-	},
-	uploadButtonRow: {
-		flexDirection: "row",
-		flexWrap: "wrap", // allows buttons to wrap to next line
-		justifyContent: "space-between",
-		gap: 10, // spacing between buttons (RN >= 0.70 supports gap)
-		marginBottom: 10,
-	},
-	uploadButton: {
-		flex: 1,
-		minWidth: 100,
-		marginVertical: 5,
-	},
-	actionButtonRow: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		marginTop: 16,
-	},
-	actionButton: {
-		flex: 1,
-		marginHorizontal: 4,
-	},
+	// modalTitle: {
+	// 	textAlign: "center",
+	// 	marginBottom: 5,
+	// },
+	// dateTimePicker: {
+	// 	marginBottom: 10,
+	// },
+	// input: {
+	// 	marginBottom: 16,
+	// },
+	// uploadButtonRow: {
+	// 	flexDirection: "row",
+	// 	flexWrap: "wrap", // allows buttons to wrap to next line
+	// 	justifyContent: "space-between",
+	// 	gap: 10, // spacing between buttons (RN >= 0.70 supports gap)
+	// 	marginBottom: 10,
+	// },
+	// uploadButton: {
+	// 	flex: 1,
+	// 	minWidth: 100,
+	// 	marginVertical: 5,
+	// },
+	// actionButtonRow: {
+	// 	flexDirection: "row",
+	// 	justifyContent: "space-between",
+	// 	marginTop: 16,
+	// },
+	// actionButton: {
+	// 	flex: 1,
+	// 	marginHorizontal: 4,
+	// },
 });
