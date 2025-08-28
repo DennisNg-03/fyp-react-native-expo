@@ -7,6 +7,7 @@ import { Image, ScrollView, StyleSheet, View } from "react-native";
 import {
 	Button,
 	Card,
+	Portal,
 	Text,
 	TextInput,
 	useTheme
@@ -150,25 +151,14 @@ export default function PatientMedicalRecordScreen() {
 			</ScrollView>
 
 			{/* Popup Modal for Uploading Medical Records */}
-			<UploadRecordModal
+			<Portal>
+				<UploadRecordModal
 				visible={uploadModalVisible}
 				onClose={() => setUploadModalVisible(false)}
 				session={session}
 				onRecordSaved={(record) => setRecords((prev) => [record, ...prev])}
-				// selectedFiles={selectedFiles}
-				// setSelectedFiles={setSelectedFiles}
-				// recordTitle={recordTitle}
-				// setRecordTitle={setRecordTitle}
-				// recordDate={recordDate}
-				// setRecordDate={setRecordDate}
-				// recordType={recordType}
-				// handleTakePhoto={handleTakePhoto}
-				// handleUploadImage={handleUploadImage}
-				// handleAttachFile={handleAttachFile}
-				// handleSaveRecord={handleSaveRecord}
-				// handleCancel={handleCancel}
-				// saving={saving}
 			/>
+			</Portal>
 		</SafeAreaView>
 	);
 }

@@ -16,19 +16,6 @@ interface UploadRecordModalProps {
 	onClose: () => void;
 	session: Session | null;
 	onRecordSaved: (record: MedicalRecord) => void;
-	//   selectedFiles: SelectedFile[];
-	//   setSelectedFiles: (files: SelectedFile[]) => void;
-	//   recordTitle: string;
-	//   setRecordTitle: (title: string) => void;
-	//   recordDate: Date;
-	//   setRecordDate: (date: Date) => void;
-	//   recordType?: string;
-	//   handleTakePhoto: () => void;
-	//   handleUploadImage: () => void;
-	//   handleAttachFile: () => void;
-	// 	handleCancel: () => void;
-	//   handleSaveRecord: () => void;
-	//   saving: boolean;
 }
 
 export default function UploadRecordModal({
@@ -36,25 +23,12 @@ export default function UploadRecordModal({
 	onClose,
 	session,
 	onRecordSaved,
-}: // selectedFiles,
-// setSelectedFiles,
-// recordTitle,
-// setRecordTitle,
-// recordDate,
-// setRecordDate,
-// recordType,
-// handleTakePhoto,
-// handleUploadImage,
-// handleAttachFile,
-// handleCancel,
-// handleSaveRecord,
-// saving,
-UploadRecordModalProps) {
+}: UploadRecordModalProps) {
 	const [showPicker, setShowPicker] = useState(false);
 	// const [files, setFiles] = useState<SelectedFile[]>([]);
 	const [recordType, setRecordType] = useState<string>();
 	const [ocrData, setOcrData] = useState<any>(null);
-	const [step, setStep] = useState<"upload" | "review">("upload");
+	const [step, setStep] = useState<"upload" | "confirm" | "prefill">("upload");
 	const [recordTitle, setRecordTitle] = useState("");
 	const [recordDate, setRecordDate] = useState<Date>(new Date());
 	const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
@@ -145,7 +119,25 @@ UploadRecordModalProps) {
 		setStep("upload");
 	};
 
-	const handleSaveRecord = async () => {
+	const handleNext = () => {
+		if (!session) {
+			console.error("User not authenticated!");
+			return;
+		}
+		if (!recordTitle || !recordDate || !recordType) {
+			Alert.alert("Alert", "Please fill up all the fields!");
+			return;
+		}
+		const files = selectedFiles ?? [];
+		if (files.length === 0) {
+			Alert.alert("Alert", "Please attach at least one image/document!");
+			return;
+		}
+
+		setStep("confirm");
+	}
+
+	const handleSaveAndContinue = async () => {
 		if (!session) {
 			console.error("User not authenticated!");
 			return;
@@ -157,7 +149,7 @@ UploadRecordModalProps) {
 
 		const files = selectedFiles ?? [];
 		if (files.length === 0) {
-			Alert.alert("Alert", "Please attach at least one images/documents!");
+			Alert.alert("Alert", "Please attach at least one image/document!");
 			return;
 		}
 
@@ -257,120 +249,206 @@ UploadRecordModalProps) {
 		} catch (err) {
 			console.error("Error saving record:", err);
 		} finally {
+			setStep("prefill");
+			handleCancel();
 			setSaving(false);
-			setRecordTitle("");
-			setRecordDate(new Date());
-			setSelectedFiles([]);
-			onClose();
-			setStep("upload");
 		}
 	};
 
 	return (
-		// <Portal>
 		<Modal
 			visible={visible}
 			dismissable={false}
 			onDismiss={onClose}
 			contentContainerStyle={styles.modalContainer}
 		>
+			<ScrollView>
 			<Text variant="titleMedium" style={styles.modalTitle}>
 				New Medical Record
 			</Text>
 
-			<TextInput
-				label="Title"
-				mode="outlined"
-				value={recordTitle}
-				onChangeText={setRecordTitle}
-				style={styles.input}
-				// render={props => <NativeTextInput {...props} />} // Force native input
-				autoComplete="off"
-			/>
-			{/* <CustomTextInput
-					label="Title"
-					value={recordTitle}
-					onChange={setRecordTitle}
-				/> */}
+			{step === "upload" && (
+				<>
+					<TextInput
+						label="Title"
+						mode="outlined"
+						value={recordTitle}
+						onChangeText={setRecordTitle}
+						style={styles.input}
+						// render={props => <NativeTextInput {...props} />} // Force native input
+						autoComplete="off"
+					/>
+					<RecordTypeMenu
+						selectedType={recordType}
+						setSelectedType={setRecordType}
+					/>
 
-			<RecordTypeMenu
-				selectedType={recordType}
-				setSelectedType={setRecordType}
-			/>
-
-			<View style={styles.dateTimePicker}>
-				<TextInput
-					label="Date"
-					mode="outlined"
-					value={recordDate.toDateString()}
-					onFocus={() => setShowPicker(true)}
-					readOnly
-				/>
-				<DateTimePicker
-					value={recordDate}
-					mode="date"
-					display={Platform.OS === "ios" ? "spinner" : "default"}
-					maximumDate={new Date()}
-					onChange={(_e, selected) => {
-						setShowPicker(false);
-						if (selected) setRecordDate(selected);
-					}}
-				/>
-			</View>
-
-			{selectedFiles.length > 0 && (
-				<ScrollView horizontal style={styles.filePreviewHorizontalScroll}>
-					{selectedFiles.map((file, index) => (
-						<FilePreview
-							key={index}
-							file={file}
-							onRemove={() =>
-								setSelectedFiles((prev: SelectedFile[]) =>
-									prev.filter((f) => f.uri !== file.uri)
-								)
-							}
+					<View style={styles.dateTimePicker}>
+						<TextInput
+							label="Date"
+							mode="outlined"
+							value={recordDate.toDateString()}
+							onFocus={() => setShowPicker(true)}
+							readOnly
 						/>
-					))}
-				</ScrollView>
+						<DateTimePicker
+							value={recordDate}
+							mode="date"
+							display={Platform.OS === "ios" ? "spinner" : "default"}
+							maximumDate={new Date()}
+							onChange={(_e, selected) => {
+								setShowPicker(false);
+								if (selected) setRecordDate(selected);
+							}}
+						/>
+					</View>
+
+					{selectedFiles.length > 0 && (
+						<ScrollView horizontal style={styles.filePreviewHorizontalScroll}>
+							{selectedFiles.map((file, index) => (
+								<FilePreview
+									key={index}
+									file={file}
+									onRemove={() =>
+										setSelectedFiles((prev: SelectedFile[]) =>
+											prev.filter((f) => f.uri !== file.uri)
+										)
+									}
+								/>
+							))}
+						</ScrollView>
+					)}
+
+					<View style={styles.uploadButtonRow}>
+						<IconButton
+							mode="outlined"
+							icon="camera"
+							onPress={handleTakePhoto}
+							style={styles.uploadButton}
+						/>
+						<IconButton
+							mode="outlined"
+							icon="image-multiple"
+							onPress={handleUploadImage}
+							style={styles.uploadButton}
+						/>
+						<IconButton
+							mode="outlined"
+							icon="file-document-multiple"
+							onPress={handleAttachFile}
+							style={styles.uploadButton}
+						/>
+					</View>
+
+					<View style={styles.actionButtonRow}>
+						<Button
+							mode="outlined"
+							onPress={handleCancel}
+							style={styles.actionButton}
+						>
+							Cancel
+						</Button>
+						<Button
+							mode="contained"
+							onPress={handleNext}
+							style={styles.actionButton}
+						>
+							Next
+						</Button>
+					</View>
+
+					{saving && (
+						<View
+							style={{
+								...StyleSheet.absoluteFillObject,
+								backgroundColor: "rgba(255,255,255,0.8)",
+								alignItems: "center",
+								justifyContent: "center",
+								flex: 1,
+								borderRadius: 8,
+							}}
+						>
+							<ActivityIndicator loadingMsg="Extracting text with OCR" />
+						</View>
+					)}
+				</>
+			)} 
+			{step === "confirm" && (
+				<View style={{ padding: 16 }}>
+					<Text style={{ fontSize: 16, marginBottom: 16 }}>
+						<Text style={{ fontSize: 16, marginBottom: 16 }}>
+							The uploaded document will now be saved to your record and sent to our service for text extraction.{"\n\n"}
+							On the next screen, you’ll be able to review and edit the extracted details before finalising.{"\n\n"}
+							If you need to change the uploaded document, you can go back and replace it before continuing.
+						</Text>
+					</Text>
+
+					<View style={styles.actionButtonRow}>
+						<Button
+							mode="outlined"
+							onPress={() => {
+								// Go back to upload
+								setStep("upload");
+							}}
+							style={styles.actionButton}
+						>
+							Back & Edit
+						</Button>
+						<Button
+							mode="contained"
+							onPress={handleSaveAndContinue}
+							style={styles.actionButton}
+						>
+							Save & Continue
+						</Button>
+					</View>
+				</View>
 			)}
 
-			<View style={styles.uploadButtonRow}>
-				<IconButton
-					mode="outlined"
-					icon="camera"
-					onPress={handleTakePhoto}
-					style={styles.uploadButton}
-				/>
-				<IconButton
-					mode="outlined"
-					icon="image-multiple"
-					onPress={handleUploadImage}
-					style={styles.uploadButton}
-				/>
-				<IconButton
-					mode="outlined"
-					icon="file-document-multiple"
-					onPress={handleAttachFile}
-					style={styles.uploadButton}
-				/>
-			</View>
+			{step === "prefill" && (
+				<>
+					<Text variant="titleMedium" style={{ marginBottom: 10 }}>
+						Review Record
+					</Text>
 
-			<View style={styles.actionButtonRow}>
-				<Button
-					mode="outlined"
-					onPress={handleCancel}
-					style={styles.actionButton}
-				>
-					Cancel
-				</Button>
-				<Button
-					mode="contained"
-					onPress={handleSaveRecord}
-					style={styles.actionButton}
-				>
-					Save
-				</Button>
-			</View>
+					<Text>Title: {recordTitle}</Text>
+					<Text>Type: {recordType}</Text>
+					<Text>Date: {recordDate.toDateString()}</Text>
+
+					{selectedFiles.length > 0 && (
+						<ScrollView horizontal style={styles.filePreviewHorizontalScroll}>
+							{selectedFiles.map((file, index) => (
+								<FilePreview 
+									key={index} 
+									file={file} 
+									onRemove={() =>
+										setSelectedFiles((prev: SelectedFile[]) =>
+											prev.filter((f) => f.uri !== file.uri)
+										)
+									} 
+								/>
+							))}
+						</ScrollView>
+					)}
+
+					<View style={styles.actionButtonRow}>
+						<Button
+							mode="outlined"
+							onPress={() => setStep("upload")}
+							style={styles.actionButton}
+						>
+							Back
+						</Button>
+						<Button
+							mode="contained"
+							onPress={handleSaveAndContinue}
+							style={styles.actionButton}
+						>
+							Save
+						</Button>
+					</View>
+				</>
+			)}
 
 			{saving && (
 				<View
@@ -383,12 +461,11 @@ UploadRecordModalProps) {
 						borderRadius: 8,
 					}}
 				>
-					<ActivityIndicator />
-					<Text style={{ marginTop: 2 }}>Saving...</Text>
+					<ActivityIndicator loadingMsg="Extracting text with OCR" />
 				</View>
 			)}
+			</ScrollView>
 		</Modal>
-		// </Portal>
 	);
 }
 
@@ -398,6 +475,8 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		padding: 20,
 		marginHorizontal: 15,
+		zIndex: 9999, // works on iOS
+  	elevation: 10, // works on Android
 	},
 	modalTitle: {
 		textAlign: "center",
@@ -421,7 +500,7 @@ const styles = StyleSheet.create({
 	},
 	uploadButton: {
 		flex: 1,
-		minWidth: 100,
+		minWidth: 90,
 		marginVertical: 5,
 	},
 	actionButtonRow: {
