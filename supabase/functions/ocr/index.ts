@@ -78,16 +78,16 @@ Deno.serve(async (req) => {
 		let fieldsToExtract;
 
 		switch (record_type) {
-			case "Lab Result":
+			case "lab_result":
 				fieldsToExtract = LabResultFields;
 				break;
-			case "Prescription":
+			case "prescription":
 				fieldsToExtract = PrescriptionFields;
 				break;
-			case "Imaging Report":
+			case "imaging_report":
 				fieldsToExtract = ImagingReportFields;
 				break;
-			case "Discharge Summary":
+			case "discharge_summary":
 				fieldsToExtract = DischargeSummaryFields;
 				break;
 			default:

@@ -19,9 +19,9 @@ function getMimeType(
 	fileName: string,
 	fallback: string = "application/octet-stream"
 ): string {
-	const ext = fileName.split(".").pop()?.toLowerCase();
+	const extension = fileName.split(".").pop()?.toLowerCase();
 
-	switch (ext) {
+	switch (extension) {
 		case "jpg":
 		case "jpeg":
 			return "image/jpeg";
@@ -65,18 +65,22 @@ Deno.serve(async (req) => {
 			console.log("Processing file:", name);
 
 			const filePath = `${uid}/${Date.now()}-${name}`;
+			console.log("Processed file path:", filePath);
 
-			// Convert base64 → Uint8Array
+			// Convert base64 to Uint8Array (Supabase emphasises using Array buffer from Base64 file data)
 			const fileBytes = Uint8Array.from(atob(blobBase64), (c) =>
 				c.charCodeAt(0)
 			);
 
 			// Upload files to Supabase storage
 			const mimeType = getMimeType(name);
+			console.log("MIME type:", mimeType);
+
 			const { error: fileUploadError } = await supabase.storage
 				.from("medical-records")
 				.upload(filePath, fileBytes, {
 					contentType: mimeType,
+					metadata: { mime_type: mimeType },
 				});
 
 			if (fileUploadError) {

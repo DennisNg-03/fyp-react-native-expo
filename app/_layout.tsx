@@ -12,6 +12,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 
 import { ActivityIndicator } from "@/components/ActivityIndicator";
 import AuthProvider from "@/providers/AuthProvider";
+import { KeyboardAvoidingView, Platform } from "react-native";
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -70,19 +71,24 @@ export default function RootLayout() {
 
 	return (
 		<SafeAreaProvider>
-			<PaperProvider theme={theme}>
-				<ThemeProvider
-					value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-				>
-					<AuthProvider>
-						<Stack>
-							<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-							<Stack.Screen name="+not-found" />
-						</Stack>
-						<StatusBar style="auto" />
-					</AuthProvider>
-				</ThemeProvider>
-			</PaperProvider>
+			<KeyboardAvoidingView
+				style={{ flex: 1 }}
+				behavior={Platform.OS === "ios" ? "padding" : "height"}
+			>
+				<PaperProvider theme={theme}>
+					<ThemeProvider
+						value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+					>
+						<AuthProvider>
+							<Stack>
+								<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+								<Stack.Screen name="+not-found" />
+							</Stack>
+							<StatusBar style="auto" />
+						</AuthProvider>
+					</ThemeProvider>
+				</PaperProvider>
+			</KeyboardAvoidingView>
 		</SafeAreaProvider>
 	);
 }

@@ -11,7 +11,7 @@ export function ActivityIndicator({ loadingMsg = "Loading..." }: ActivityIndicat
 	return (
 		<View style={styles.container}>
 			<Indicator animating={true} color={theme.colors.primary} size="large" />
-			<Text style={{ marginTop: 15 }}>{loadingMsg}</Text>
+			<Text style={{ marginTop: 15, textAlign: "center" }}>{loadingMsg}</Text>
 		</View>
 	);
 };

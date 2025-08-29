@@ -1,4 +1,4 @@
-// Helper function to convert Blob to Base64
+// Helper function to convert Blob to Base64 (for sending files to backend)
 export const blobToBase64 = (blob: Blob): Promise<string> =>
 	new Promise((resolve, reject) => {
 		const reader = new FileReader();

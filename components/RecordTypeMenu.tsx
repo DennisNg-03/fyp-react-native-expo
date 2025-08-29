@@ -15,8 +15,8 @@ export const RecordTypeMenu = ({
 	const theme = useTheme();
 
 	const dropDownItems = recordTypes.map((type) => ({
-		label: type.replace(/_/g, " "),
-		value: type,
+		label: type, // Lab Result
+		value: type.toLowerCase().replace(/ /g, "_"), // lab_result
 	}));
 
 	return (

@@ -1,13 +1,25 @@
-import { MedicalRecord, SelectedFile } from "@/types/medicalRecord";
+import {
+	DischargeSummaryFields,
+	ImagingReportFields,
+	LabResultFields,
+	MedicalRecord,
+	PrescriptionFields,
+	SelectedFile,
+} from "@/types/medicalRecord";
 import { blobToBase64 } from "@/utils/fileHelpers";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { Session } from "@supabase/supabase-js";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { Alert, Platform, ScrollView, StyleSheet, View } from "react-native";
+import {
+	Alert,
+	ScrollView,
+	StyleSheet,
+	View
+} from "react-native";
 import { Button, IconButton, Modal, Text, TextInput } from "react-native-paper";
 import { ActivityIndicator } from "./ActivityIndicator";
+import CustomDatePicker from "./CustomDatePicker";
 import { FilePreview } from "./FilePreview";
 import { RecordTypeMenu } from "./RecordTypeMenu";
 
@@ -24,10 +36,9 @@ export default function UploadRecordModal({
 	session,
 	onRecordSaved,
 }: UploadRecordModalProps) {
-	const [showPicker, setShowPicker] = useState(false);
 	// const [files, setFiles] = useState<SelectedFile[]>([]);
 	const [recordType, setRecordType] = useState<string>();
-	const [ocrData, setOcrData] = useState<any>(null);
+	const [ocrData, setOcrData] = useState<Record<string, string>>({});
 	const [step, setStep] = useState<"upload" | "confirm" | "prefill">("upload");
 	const [recordTitle, setRecordTitle] = useState("");
 	const [recordDate, setRecordDate] = useState<Date>(new Date());
@@ -135,7 +146,7 @@ export default function UploadRecordModal({
 		}
 
 		setStep("confirm");
-	}
+	};
 
 	const handleSaveAndContinue = async () => {
 		if (!session) {
@@ -219,11 +230,25 @@ export default function UploadRecordModal({
 					}),
 				}
 			);
+
+			if (!geminiResponse.ok) {
+				const errorBody = await geminiResponse.text(); // or res.json()
+				console.error(
+					"OCR Edge function failed:",
+					geminiResponse.status,
+					geminiResponse.statusText,
+					errorBody
+				);
+				return;
+			}
+
 			// console.log("Gemini Response:", geminiResponse);
 
 			const json = await geminiResponse.json();
 			const ocrText = json?.ocrText ?? "";
 			console.log("OCR Response Text:", ocrText);
+
+			setOcrData(json?.fields ?? {});
 
 			// const geminiText = await geminiResponse.text();
 			// let ocrJson: { ocrText?: string } = {};
@@ -249,10 +274,15 @@ export default function UploadRecordModal({
 		} catch (err) {
 			console.error("Error saving record:", err);
 		} finally {
-			setStep("prefill");
-			handleCancel();
 			setSaving(false);
+			setStep("prefill");
 		}
+	};
+
+	const handleFinaliseRecord = async () => {
+		// return;
+		handleCancel();
+		setSaving(false);
 	};
 
 	return (
@@ -262,208 +292,266 @@ export default function UploadRecordModal({
 			onDismiss={onClose}
 			contentContainerStyle={styles.modalContainer}
 		>
-			<ScrollView>
-			<Text variant="titleMedium" style={styles.modalTitle}>
-				New Medical Record
-			</Text>
+			<ScrollView
+				contentContainerStyle={{
+					paddingBottom: 32,
+					paddingHorizontal: 8,
+				}}
+				keyboardShouldPersistTaps="handled"
+			>
+				<Text variant="titleMedium" style={styles.modalTitle}>
+					{step === "upload" && "New Medical Record"}
+					{step === "confirm" && "Confirm Upload"}
+					{step === "prefill" && "Review Record"}
+				</Text>
 
-			{step === "upload" && (
-				<>
-					<TextInput
-						label="Title"
-						mode="outlined"
-						value={recordTitle}
-						onChangeText={setRecordTitle}
-						style={styles.input}
-						// render={props => <NativeTextInput {...props} />} // Force native input
-						autoComplete="off"
-					/>
-					<RecordTypeMenu
-						selectedType={recordType}
-						setSelectedType={setRecordType}
-					/>
-
-					<View style={styles.dateTimePicker}>
+				{step === "upload" && (
+					<>
 						<TextInput
-							label="Date"
+							label="Title"
 							mode="outlined"
-							value={recordDate.toDateString()}
-							onFocus={() => setShowPicker(true)}
-							readOnly
+							value={recordTitle}
+							onChangeText={setRecordTitle}
+							style={styles.input}
+							autoComplete="off"
 						/>
-						<DateTimePicker
+						<RecordTypeMenu
+							selectedType={recordType}
+							setSelectedType={setRecordType}
+						/>
+
+						<CustomDatePicker
+							label="Record Date"
 							value={recordDate}
-							mode="date"
-							display={Platform.OS === "ios" ? "spinner" : "default"}
-							maximumDate={new Date()}
-							onChange={(_e, selected) => {
-								setShowPicker(false);
-								if (selected) setRecordDate(selected);
-							}}
+							onChange={setRecordDate}
 						/>
-					</View>
 
-					{selectedFiles.length > 0 && (
-						<ScrollView horizontal style={styles.filePreviewHorizontalScroll}>
-							{selectedFiles.map((file, index) => (
-								<FilePreview
-									key={index}
-									file={file}
-									onRemove={() =>
-										setSelectedFiles((prev: SelectedFile[]) =>
-											prev.filter((f) => f.uri !== file.uri)
-										)
-									}
-								/>
-							))}
-						</ScrollView>
-					)}
+						{selectedFiles.length > 0 && (
+							<ScrollView horizontal style={styles.filePreviewHorizontalScroll}>
+								{selectedFiles.map((file, index) => (
+									<FilePreview
+										key={index}
+										file={file}
+										onRemove={() =>
+											setSelectedFiles((prev: SelectedFile[]) =>
+												prev.filter((f) => f.uri !== file.uri)
+											)
+										}
+									/>
+								))}
+							</ScrollView>
+						)}
 
-					<View style={styles.uploadButtonRow}>
-						<IconButton
-							mode="outlined"
-							icon="camera"
-							onPress={handleTakePhoto}
-							style={styles.uploadButton}
-						/>
-						<IconButton
-							mode="outlined"
-							icon="image-multiple"
-							onPress={handleUploadImage}
-							style={styles.uploadButton}
-						/>
-						<IconButton
-							mode="outlined"
-							icon="file-document-multiple"
-							onPress={handleAttachFile}
-							style={styles.uploadButton}
-						/>
-					</View>
-
-					<View style={styles.actionButtonRow}>
-						<Button
-							mode="outlined"
-							onPress={handleCancel}
-							style={styles.actionButton}
-						>
-							Cancel
-						</Button>
-						<Button
-							mode="contained"
-							onPress={handleNext}
-							style={styles.actionButton}
-						>
-							Next
-						</Button>
-					</View>
-
-					{saving && (
-						<View
-							style={{
-								...StyleSheet.absoluteFillObject,
-								backgroundColor: "rgba(255,255,255,0.8)",
-								alignItems: "center",
-								justifyContent: "center",
-								flex: 1,
-								borderRadius: 8,
-							}}
-						>
-							<ActivityIndicator loadingMsg="Extracting text with OCR" />
+						<View style={styles.uploadButtonRow}>
+							<IconButton
+								mode="outlined"
+								icon="camera"
+								onPress={handleTakePhoto}
+								style={styles.uploadButton}
+							/>
+							<IconButton
+								mode="outlined"
+								icon="image-multiple"
+								onPress={handleUploadImage}
+								style={styles.uploadButton}
+							/>
+							<IconButton
+								mode="outlined"
+								icon="file-document-multiple"
+								onPress={handleAttachFile}
+								style={styles.uploadButton}
+							/>
 						</View>
-					)}
-				</>
-			)} 
-			{step === "confirm" && (
-				<View style={{ padding: 16 }}>
-					<Text style={{ fontSize: 16, marginBottom: 16 }}>
-						<Text style={{ fontSize: 16, marginBottom: 16 }}>
-							The uploaded document will now be saved to your record and sent to our service for text extraction.{"\n\n"}
-							On the next screen, you’ll be able to review and edit the extracted details before finalising.{"\n\n"}
-							If you need to change the uploaded document, you can go back and replace it before continuing.
+
+						<View style={styles.actionButtonRow}>
+							<Button
+								mode="outlined"
+								onPress={handleCancel}
+								style={styles.actionButton}
+							>
+								Cancel
+							</Button>
+							<Button
+								mode="contained"
+								onPress={handleNext}
+								style={styles.actionButton}
+							>
+								Next
+							</Button>
+						</View>
+					</>
+				)}
+				{step === "confirm" && (
+					<View style={{ padding: 16 }}>
+						<Text style={[styles.confirmationText, { marginBottom: 12 }]}>
+							The uploaded document will be:
 						</Text>
-					</Text>
 
-					<View style={styles.actionButtonRow}>
-						<Button
-							mode="outlined"
-							onPress={() => {
-								// Go back to upload
-								setStep("upload");
-							}}
-							style={styles.actionButton}
-						>
-							Back & Edit
-						</Button>
-						<Button
-							mode="contained"
-							onPress={handleSaveAndContinue}
-							style={styles.actionButton}
-						>
-							Save & Continue
-						</Button>
+						<View style={{ marginLeft: 12, marginBottom: 16 }}>
+							<Text style={styles.confirmationText}>
+								• Saved to your record
+							</Text>
+							<Text style={styles.confirmationText}>
+								• Sent to our service for text extraction
+							</Text>
+							<Text style={styles.confirmationText}>
+								• Ready for review and editing on the next screen
+							</Text>
+						</View>
+
+						<Text style={[styles.confirmationText, { marginBottom: 20 }]}>
+							If you need to change the uploaded document, you can go back and
+							replace it before continuing.
+						</Text>
+
+						<View style={styles.actionButtonRow}>
+							<Button
+								mode="outlined"
+								onPress={() => {
+									setStep("upload");
+								}}
+								style={styles.actionButton}
+							>
+								Back
+							</Button>
+							<Button
+								mode="contained"
+								onPress={handleSaveAndContinue}
+								style={styles.actionButton}
+							>
+								Continue
+							</Button>
+						</View>
 					</View>
-				</View>
-			)}
+				)}
 
-			{step === "prefill" && (
-				<>
-					<Text variant="titleMedium" style={{ marginBottom: 10 }}>
-						Review Record
-					</Text>
+				{step === "prefill" && (
+					<>
+						<TextInput
+							label="Title"
+							mode="outlined"
+							value={recordTitle}
+							onChangeText={setRecordTitle}
+							style={styles.input}
+							autoComplete="off"
+						/>
+						<RecordTypeMenu
+							selectedType={recordType}
+							setSelectedType={setRecordType}
+						/>
 
-					<Text>Title: {recordTitle}</Text>
-					<Text>Type: {recordType}</Text>
-					<Text>Date: {recordDate.toDateString()}</Text>
+						<CustomDatePicker
+							label="Record Date"
+							value={recordDate}
+							onChange={setRecordDate}
+						/>
 
-					{selectedFiles.length > 0 && (
-						<ScrollView horizontal style={styles.filePreviewHorizontalScroll}>
-							{selectedFiles.map((file, index) => (
-								<FilePreview 
-									key={index} 
-									file={file} 
-									onRemove={() =>
-										setSelectedFiles((prev: SelectedFile[]) =>
-											prev.filter((f) => f.uri !== file.uri)
-										)
-									} 
+						{recordType === "lab_result" &&
+							LabResultFields.map((field) => (
+								<TextInput
+									key={field}
+									label={field.replace("_", " ")}
+									mode="outlined"
+									value={ocrData[field] ?? ""}
+									onChangeText={(text) =>
+										setOcrData((prev) => ({ ...prev, [field]: text }))
+									}
+									style={{ marginBottom: 10 }}
 								/>
 							))}
-						</ScrollView>
-					)}
 
-					<View style={styles.actionButtonRow}>
-						<Button
-							mode="outlined"
-							onPress={() => setStep("upload")}
-							style={styles.actionButton}
-						>
-							Back
-						</Button>
-						<Button
-							mode="contained"
-							onPress={handleSaveAndContinue}
-							style={styles.actionButton}
-						>
-							Save
-						</Button>
+						{recordType === "prescription" &&
+							PrescriptionFields.map((field) => (
+								<TextInput
+									key={field}
+									label={field.replace("_", " ")}
+									mode="outlined"
+									value={ocrData[field] ?? ""}
+									onChangeText={(text) =>
+										setOcrData((prev) => ({ ...prev, [field]: text }))
+									}
+									style={{ marginBottom: 10 }}
+								/>
+							))}
+
+						{recordType === "imaging_report" &&
+							ImagingReportFields.map((field) => (
+								<TextInput
+									key={field}
+									label={field.replace("_", " ")}
+									mode="outlined"
+									value={ocrData[field] ?? ""}
+									onChangeText={(text) =>
+										setOcrData((prev) => ({ ...prev, [field]: text }))
+									}
+									style={{ marginBottom: 10 }}
+								/>
+							))}
+
+						{recordType === "discharge_summary" &&
+							DischargeSummaryFields.map((field) => (
+								<TextInput
+									key={field}
+									label={field.replace("_", " ")}
+									mode="outlined"
+									value={ocrData[field] ?? ""}
+									onChangeText={(text) =>
+										setOcrData((prev) => ({ ...prev, [field]: text }))
+									}
+									style={{ marginBottom: 10 }}
+								/>
+							))}
+
+						{/* {selectedFiles.length > 0 && (
+							<ScrollView horizontal style={styles.filePreviewHorizontalScroll}>
+								{selectedFiles.map((file, index) => (
+									<FilePreview 
+										key={index} 
+										file={file} 
+										onRemove={() =>
+											setSelectedFiles((prev: SelectedFile[]) =>
+												prev.filter((f) => f.uri !== file.uri)
+											)
+										} 
+									/>
+								))}
+							</ScrollView>
+						)} */}
+
+						<View style={styles.actionButtonRow}>
+							<Button
+								mode="contained"
+								onPress={handleFinaliseRecord}
+								style={styles.actionButton}
+							>
+								Finalise Record
+							</Button>
+						</View>
+					</>
+				)}
+
+				{saving && (
+					<View
+						style={{
+							...StyleSheet.absoluteFillObject,
+							backgroundColor: "rgba(255,255,255,0.8)",
+							alignItems: "center",
+							justifyContent: "center",
+							flex: 1,
+							borderRadius: 8,
+						}}
+					>
+						<ActivityIndicator
+							loadingMsg={
+								step === "confirm"
+									? "Saving and extracting data with OCR..."
+									: step === "prefill"
+									? "Saving extracted data..."
+									: "Loading..."
+							}
+						/>
 					</View>
-				</>
-			)}
-
-			{saving && (
-				<View
-					style={{
-						...StyleSheet.absoluteFillObject,
-						backgroundColor: "rgba(255,255,255,0.8)",
-						alignItems: "center",
-						justifyContent: "center",
-						flex: 1,
-						borderRadius: 8,
-					}}
-				>
-					<ActivityIndicator loadingMsg="Extracting text with OCR" />
-				</View>
-			)}
+				)}
 			</ScrollView>
 		</Modal>
 	);
@@ -475,8 +563,6 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		padding: 20,
 		marginHorizontal: 15,
-		zIndex: 9999, // works on iOS
-  	elevation: 10, // works on Android
 	},
 	modalTitle: {
 		textAlign: "center",
@@ -484,9 +570,6 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		marginBottom: 16,
-	},
-	dateTimePicker: {
-		marginBottom: 10,
 	},
 	filePreviewHorizontalScroll: {
 		marginBottom: 10,
@@ -511,5 +594,9 @@ const styles = StyleSheet.create({
 	actionButton: {
 		flex: 1,
 		marginHorizontal: 4,
+	},
+	confirmationText: {
+		fontSize: 16,
+		lineHeight: 22,
 	},
 });
