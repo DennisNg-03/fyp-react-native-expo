@@ -30,44 +30,9 @@ export default function RootLayout() {
 		...themeMode,
 	};
 
-	// Listen for auth state changes
-	// useEffect(() => {
-	//   const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-	//     setUser(currentUser);
-	//     if (initialising) setInitialising(false);
-	//   });
-	//   return unsubscribe;
-	// }, []);
-
-	// // Redirect if logged in successfully
-	// useEffect(() => {
-	//   if (user) {
-	//     router.replace("/(tabs)/home");
-	//   }
-	// }, [user]);
-
-	// useEffect(() => {
-	// 	console.log("[UserProvider] useEffect on 'user' change:", user);
-
-	// 	if (user) {
-	// 		console.log("[UserProvider] User exists → Navigating to /home");
-	// 		router.replace("/(tabs)/home");
-	// 	} else {
-	// 		console.log(
-	// 			"[UserProvider] No user → Staying on current route or go to login"
-	// 		);
-	// 	}
-	// }, [user]);
-
-	// useEffect(() => {
-	// 	if (user) {
-	// 		router.replace("/(tabs)/home");
-	// 	}
-	// }, [user]);
-
-	if (!loaded) {
-		return <ActivityIndicator />;
-	}
+	// if (!loaded) {
+	// 	return <ActivityIndicator />;
+	// }
 
 	return (
 		<SafeAreaProvider>
@@ -86,6 +51,9 @@ export default function RootLayout() {
 							</Stack>
 							<StatusBar style="auto" />
 						</AuthProvider>
+						{!loaded && (
+							<ActivityIndicator />
+						)}
 					</ThemeProvider>
 				</PaperProvider>
 			</KeyboardAvoidingView>

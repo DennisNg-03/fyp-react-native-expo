@@ -1,4 +1,5 @@
 import { ActivityIndicator } from "@/components/ActivityIndicator";
+import { formatLabel } from "@/components/RecordTypeMenu";
 import UploadRecordModal from "@/components/UploadRecordModal";
 import { useAuth } from "@/providers/AuthProvider";
 import { MedicalRecord, SelectedFile } from "@/types/medicalRecord";
@@ -10,7 +11,7 @@ import {
 	Portal,
 	Text,
 	TextInput,
-	useTheme
+	useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -43,10 +44,17 @@ export default function PatientMedicalRecordScreen() {
 					return;
 				}
 
-				const { recordsWithUrls } = await res.json();
+				const { recordsWithUrls } = (await res.json()) as {
+					recordsWithUrls: MedicalRecord[];
+				};
 				console.log("Records with Urls:", recordsWithUrls);
-				// console.log("Records with Urls (Signed URLs):", JSON.stringify(recordsWithUrls.signed_urls, null, 2));
-				setRecords(recordsWithUrls ?? []);
+
+				const formattedRecords = (recordsWithUrls ?? []).map((record) => ({
+					...record,
+					record_type: formatLabel(record.record_type ?? ""),
+				}));
+
+				setRecords(formattedRecords);
 			} catch (err) {
 				console.error(err);
 			} finally {
@@ -59,7 +67,7 @@ export default function PatientMedicalRecordScreen() {
 
 	const handleSearch = async () => {
 		return;
-	}
+	};
 
 	const handleUploadRecord = async () => {
 		// if (!recordType) {
@@ -79,7 +87,6 @@ export default function PatientMedicalRecordScreen() {
 	return (
 		<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
 			<ScrollView style={styles.container}>
-				
 				<View style={styles.searchForm}>
 					<TextInput
 						placeholder="Search records..."
@@ -88,12 +95,20 @@ export default function PatientMedicalRecordScreen() {
 						onChangeText={setSearchQuery}
 						style={styles.searchInput}
 					/>
-					<Button mode="contained" onPress={handleSearch} style={styles.searchButton}>
+					<Button
+						mode="contained"
+						onPress={handleSearch}
+						style={styles.searchButton}
+					>
 						Search
 					</Button>
-					
 				</View>
-				<Button mode="elevated" icon="upload" onPress={handleUploadRecord} style={styles.uploadButton}>
+				<Button
+					mode="elevated"
+					icon="upload"
+					onPress={handleUploadRecord}
+					style={styles.uploadButton}
+				>
 					Upload
 				</Button>
 				{/* Medical Records List */}
@@ -116,9 +131,13 @@ export default function PatientMedicalRecordScreen() {
 							>
 								<Card.Title
 									title={record.title}
-									subtitle={`${record.date}${
-										"record_type" in record ? " • " + record.record_type : ""
-									}`}
+									subtitle={
+										"record_date" in record && record.record_date
+											? `${record.record_date}${
+													record.record_type ? " • " + record.record_type : ""
+											  }`
+											: record.record_type ?? "No date"
+									}
 								/>
 								<Card.Content>
 									{record.file_paths?.some(
@@ -153,11 +172,11 @@ export default function PatientMedicalRecordScreen() {
 			{/* Popup Modal for Uploading Medical Records */}
 			<Portal>
 				<UploadRecordModal
-				visible={uploadModalVisible}
-				onClose={() => setUploadModalVisible(false)}
-				session={session}
-				onRecordSaved={(record) => setRecords((prev) => [record, ...prev])}
-			/>
+					visible={uploadModalVisible}
+					onClose={() => setUploadModalVisible(false)}
+					session={session}
+					onRecordSaved={(record) => setRecords((prev) => [record, ...prev])}
+				/>
 			</Portal>
 		</SafeAreaView>
 	);
@@ -183,7 +202,7 @@ const styles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.1,
 		shadowRadius: 4,
-		gap: 10, 
+		gap: 10,
 		elevation: 3,
 		marginBottom: 20,
 	},
@@ -193,13 +212,13 @@ const styles = StyleSheet.create({
 		gap: 10,
 		marginBottom: 10,
 	},
-	searchInput: { 
+	searchInput: {
 		marginBottom: 10,
 	},
-	searchButton: { 
+	searchButton: {
 		marginBottom: 10,
 	},
-	uploadButton: { 
+	uploadButton: {
 		alignSelf: "flex-end",
 		// padding: 0,
 	},

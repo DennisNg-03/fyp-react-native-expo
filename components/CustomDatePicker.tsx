@@ -5,7 +5,7 @@ import { Button, TextInput } from "react-native-paper";
 
 type CustomDatePickerProps = {
   label?: string;
-  value: Date;
+  value?: Date | undefined;
   onChange: (date: Date) => void;
 };
 
@@ -17,7 +17,7 @@ export default function CustomDatePicker({ label = "Date", value, onChange }: Cu
       <TextInput
         label={label}
         mode="outlined"
-        value={value.toDateString()}
+        value={value ? value.toDateString() : ""} // To handle the case where sometimes the value is empty/null
         onPress={() => setShowPicker(true)}
         readOnly
       />
@@ -52,7 +52,7 @@ export default function CustomDatePicker({ label = "Date", value, onChange }: Cu
               }}
             >
               <DateTimePicker
-                value={value}
+                value={value ?? new Date()}  // To handle the case where sometimes the value is empty/null
                 mode="date"
                 display="spinner"
                 maximumDate={new Date()}

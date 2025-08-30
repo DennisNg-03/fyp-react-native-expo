@@ -8,6 +8,12 @@ interface RecordTypeMenuProps {
 	setSelectedType: (value?: string) => void;
 }
 
+export const formatLabel = (field: string) => {
+	return field
+    .replace(/_/g, " ") // replace underscores with spaces
+    .replace(/\b\w/g, (char) => char.toUpperCase()); // capitalise first letter of each word
+}
+
 export const RecordTypeMenu = ({
 	selectedType,
 	setSelectedType,

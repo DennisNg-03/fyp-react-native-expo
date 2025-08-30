@@ -1,145 +1,89 @@
 // eslint-disable-next-line import/no-unresolved
 import { GoogleGenAI } from "npm:@google/genai";
 
-import {
-	DischargeSummaryFields,
-	ImagingReportFields,
-	LabResultFields,
-	PrescriptionFields,
-} from "../../../types/medicalRecord.ts";
+import { AdditionalMedicalRecordFields } from "../../../types/medicalRecord.ts";
+
+type IncomingFile = {
+	name: string;
+	blobBase64: string;
+	type: string; // Expect to be blob.type (MIME format)
+};
 
 Deno.serve(async (req) => {
-	// const supabase = createClient(
-	// 	Deno.env.get("SUPABASE_URL")!,
-	// 	Deno.env.get("SUPABASE_ANON_KEY")!,
-	// 	{
-	// 		global: {
-	// 			headers: { Authorization: req.headers.get("Authorization")! },
-	// 		},
-	// 	}
-	// );
-	// const LabResultFields: LabResultField[] = [
-	// 	"id",
-	// 	"record_id",
-	// 	"test_name",
-	// 	"result_value",
-	// 	"unit",
-	// 	"reference_range",
-	// 	"confidence",
-	// ];
-
-	// const PrescriptionFields: PrescriptionField[] = [
-	// 	"id",
-	// 	"record_id",
-	// 	"medicine_name",
-	// 	"dosage",
-	// 	"frequency",
-	// 	"duration",
-	// 	"notes",
-	// ];
-
-	// const ImagingReportFields: ImagingReportField[] = [
-	// 	"id",
-	// 	"record_id",
-	// 	"modality",
-	// 	"body_part",
-	// 	"findings",
-	// 	"impression",
-	// 	"notes",
-	// ];
-
-	// const DischargeSummaryFields: DischargeSummaryField[] = [
-	// 	"id",
-	// 	"record_id",
-	// 	"admission_date",
-	// 	"discharge_date",
-	// 	"admitting_diagnosis",
-	// 	"final_diagnosis",
-	// 	"procedures",
-	// 	"hospital_course",
-	// 	"condition_at_discharge",
-	// 	"medications",
-	// 	"follow_up_instructions",
-	// 	"follow_up_date",
-	// 	"notes",
-	// ];
-
 	try {
-		const { signedUrls, title, date, record_type } = await req.json();
+		const { files, title, record_type } = (await req.json()) as {
+			files: IncomingFile[];
+			title: string;
+			record_date: string;
+			record_type: string;
+		};
 		console.log("Parsed request body:", {
-			signedUrls,
+			files,
 			title,
-			date,
 			record_type,
 		});
 
-		// let fieldsToExtract: LabResultField[] | PrescriptionField[] | ImagingReportField[] | DischargeSummaryField[];
-		// let fieldsToExtract: string[] = [];
-		let fieldsToExtract;
-
-		switch (record_type) {
-			case "lab_result":
-				fieldsToExtract = LabResultFields;
-				break;
-			case "prescription":
-				fieldsToExtract = PrescriptionFields;
-				break;
-			case "imaging_report":
-				fieldsToExtract = ImagingReportFields;
-				break;
-			case "discharge_summary":
-				fieldsToExtract = DischargeSummaryFields;
-				break;
-			default:
-				fieldsToExtract = [];
-		}
-
-		console.log("fields to Extract:", fieldsToExtract);
-
-		const urlsList = signedUrls
-			.map((url: string, i: number) => `Image ${i + 1}: ${url}`)
-			.join("\n");
-		console.log("URLs List:", urlsList);
-
-		if (!signedUrls || signedUrls.length === 0) {
-			return new Response("Missing signedUrls", { status: 400 });
-		}
-
-		if (!fieldsToExtract || fieldsToExtract.length === 0) {
-			return new Response("Missing fieldsToExtract", { status: 400 });
-		}
-
 		const prompt = `
-		Extract all text from the medical record image(s) using the URLs given.
+Extract the following fields from the medical record document(s).
+If a field is not present, return null.
 
-		Identify the following fields: ${fieldsToExtract.join(", ")}.
+Fields to extract:
+${AdditionalMedicalRecordFields.map(field =>
+  field.toLowerCase().includes("date")
+    ? `- ${field} (YYYY-MM-DD)`
+    : `- ${field}`
+).join("\n")}
 
-		Strict rules:
-		- Only extract information that is explicitly present in the document(s).
-		- Do NOT invent or guess values.
-		- If a field is not found, set its value to null.
-		- Output MUST be valid JSON with keys matching the requested fields, and no extra keys.
-		
-		Input images:
-		${urlsList}`;
+Rules:
+- Only extract information explicitly present in the document(s).
+- Do NOT guess or infer missing data.
+- Always format date fields as YYYY-MM-DD.
+- Return valid JSON with these keys only.
+`;
+		console.log("Fields to extract:", AdditionalMedicalRecordFields.join("\n- "));
 
-		// Call Gemini OCR directly using the signed URL
+		// Call Gemini API
 		const genAI = new GoogleGenAI({ apiKey: Deno.env.get("GEMINI_API_KEY")! });
 		console.log("Gemini API Key:", Deno.env.get("GEMINI_API_KEY")!);
 		const result = await genAI.models.generateContent({
 			model: "gemini-2.5-pro",
 			config: {
-				temperature: 1,
+				temperature: 0,
 				maxOutputTokens: 3000,
 			},
-			contents: prompt,
+			contents: [
+				{
+					role: "user",
+					parts: [
+						{ text: prompt },
+						...files.map((file) => ({
+							inlineData: {
+								data: file.blobBase64, // already base64
+								mimeType: file.type, // pass blob.type received from request
+							},
+						})),
+					],
+				},
+			],
 		});
+		
+		console.log("Sent request to Gemini with prompt:", prompt);
 		console.log("OCR result:", result);
 
 		const ocrText = result.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 		console.log("OCR Text:", ocrText);
 
-		return new Response(JSON.stringify({ ocrText }), {
+		// Remove code fences if present
+		const cleanedOcrText = ocrText.replace(/```json|```/g, "").trim();
+		let parsed: Record<string, string> | { raw: string };
+
+		try {
+			parsed = JSON.parse(cleanedOcrText);
+		} catch {
+			parsed = { raw: cleanedOcrText }; // fallback
+		}
+
+		return new Response(JSON.stringify({ extracted_data: parsed }), {
 			headers: { "Content-Type": "application/json" },
 		});
 	} catch (err: any) {

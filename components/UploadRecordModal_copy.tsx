@@ -1,29 +1,23 @@
 import {
-	AdditionalMedicalRecordField,
-	CompulsoryFields,
+	DischargeSummaryFields,
+	ImagingReportFields,
+	LabResultFields,
 	MedicalRecord,
-	PatientFields,
-	ProviderFields,
-	RecordFields,
+	PrescriptionFields,
 	SelectedFile,
 } from "@/types/medicalRecord";
-import { parseDateToISO } from "@/utils/dateHelpers";
 import { blobToBase64 } from "@/utils/fileHelpers";
 import { Session } from "@supabase/supabase-js";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import {
-	Button,
-	Divider,
-	IconButton,
-	Modal,
-	ProgressBar,
-	Text,
-	TextInput,
-	useTheme,
-} from "react-native-paper";
+	Alert,
+	ScrollView,
+	StyleSheet,
+	View
+} from "react-native";
+import { Button, IconButton, Modal, Text, TextInput } from "react-native-paper";
 import { ActivityIndicator } from "./ActivityIndicator";
 import CustomDatePicker from "./CustomDatePicker";
 import { FilePreview } from "./FilePreview";
@@ -43,29 +37,13 @@ export default function UploadRecordModal({
 	onRecordSaved,
 }: UploadRecordModalProps) {
 	// const [files, setFiles] = useState<SelectedFile[]>([]);
-	const theme = useTheme();
 	const [recordType, setRecordType] = useState<string>();
-	const [ocrData, setOcrData] = useState<
-		Partial<Record<AdditionalMedicalRecordField, string>>
-	>({});
+	const [ocrData, setOcrData] = useState<Record<string, string>>({});
 	const [step, setStep] = useState<"upload" | "confirm" | "prefill">("upload");
 	const [recordTitle, setRecordTitle] = useState("");
-	// const [recordDate, setRecordDate] = useState<Date>(new Date());
+	const [recordDate, setRecordDate] = useState<Date>(new Date());
 	const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
 	const [saving, setSaving] = useState(false);
-	const multilineFields = new Set([
-		"diagnosis",
-		"procedures",
-		"medications",
-		"address",
-		"healthcare_provider_address",
-	]);
-	const isDateField = (field: string) => field.toLowerCase().includes("date");
-
-	// useEffect(() => {
-	// 	console.log("recordDate (Date object):", recordDate);
-	// 	console.log("recordDate.toISOString():", formatLocalDateToISO(recordDate));
-	// }, [recordDate]);
 
 	const handleTakePhoto = async () => {
 		const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -122,7 +100,12 @@ export default function UploadRecordModal({
 
 	const handleAttachFile = async () => {
 		const result = await DocumentPicker.getDocumentAsync({
-			type: ["application/pdf", "text/plain"], // Allowed document types
+			type: [
+				"application/pdf",
+				"application/msword",
+				"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+				"text/plain",
+			], // Allowed document types
 			copyToCacheDirectory: true,
 		});
 
@@ -141,6 +124,7 @@ export default function UploadRecordModal({
 	const handleCancel = () => {
 		setRecordTitle("");
 		setRecordType("");
+		setRecordDate(new Date());
 		setSelectedFiles([]);
 		onClose(); // Call parent to hide this modal
 		setStep("upload");
@@ -151,13 +135,13 @@ export default function UploadRecordModal({
 			console.error("User not authenticated!");
 			return;
 		}
-		if (!recordTitle || !recordType) {
+		if (!recordTitle || !recordDate || !recordType) {
 			Alert.alert("Alert", "Please fill up all the fields!");
 			return;
 		}
 		const files = selectedFiles ?? [];
 		if (files.length === 0) {
-			Alert.alert("Alert", "Please attach at least one image / document!");
+			Alert.alert("Alert", "Please attach at least one image/document!");
 			return;
 		}
 
@@ -169,33 +153,33 @@ export default function UploadRecordModal({
 			console.error("User not authenticated!");
 			return;
 		}
-		if (!recordTitle || !recordType) {
+		if (!recordTitle || !recordDate || !recordType) {
 			Alert.alert("Alert", "Please fill up all the fields!");
 			return;
 		}
 
 		const files = selectedFiles ?? [];
 		if (files.length === 0) {
-			Alert.alert("Alert", "Please attach at least one image / document!");
+			Alert.alert("Alert", "Please attach at least one image/document!");
 			return;
 		}
 
-		try {
-			setSaving(true);
-			const filesToUpload = await Promise.all(
-				selectedFiles.map(async (file) => {
-					const response = await fetch(file.uri);
-					const blob = await response.blob();
-					const base64 = await blobToBase64(blob);
-					return {
-						name: file.name,
-						blobBase64: base64,
-						type: blob.type, // to be passed to Gemini API
-					};
-				})
-			);
+		setSaving(true);
 
-			const ocrRes = await fetch(
+		const filesToUpload = await Promise.all(
+			selectedFiles.map(async (file) => {
+				const response = await fetch(file.uri);
+				const blob = await response.blob();
+				const base64 = await blobToBase64(blob);
+				return {
+					name: file.name,
+					blobBase64: base64,
+					type: blob.type, // optional: keep track if image/doc
+				};
+			})
+		);
+
+		const ocrRes = await fetch(
 				"https://zxyyegizcgbhctjjoido.functions.supabase.co/ocr",
 				{
 					method: "POST",
@@ -206,47 +190,31 @@ export default function UploadRecordModal({
 					body: JSON.stringify({
 						files: filesToUpload,
 						title: recordTitle,
-						record_type: recordType, // No need to format as label when calling OCR
+						date: recordDate,
+						record_type: recordType,
 					}),
 				}
 			);
 
-			if (!ocrRes.ok) {
-				const errorBody = await ocrRes.text(); // or res.json()
-				console.error(
-					"OCR Edge function failed:",
-					ocrRes.status,
-					ocrRes.statusText,
-					errorBody
-				);
-				return;
-			}
+		const data = await ocrRes.json();
+		console.log("OCR Test backend response:", data);
 
-			const data = await ocrRes.json();
-			console.log("OCR Extracted Data:", data?.extracted_data);
-
-			setOcrData(data?.extracted_data ?? {});
-		} catch (err) {
-			console.error("Error saving record:", err);
-		} finally {
-			setSaving(false);
-			setStep("prefill");
-		}
-	};
+		setSaving(false);
+	}
 
 	const handleSave = async () => {
 		if (!session) {
 			console.error("User not authenticated!");
 			return;
 		}
-		if (!recordTitle || !recordType) {
+		if (!recordTitle || !recordDate || !recordType) {
 			Alert.alert("Alert", "Please fill up all the fields!");
 			return;
 		}
 
 		const files = selectedFiles ?? [];
 		if (files.length === 0) {
-			Alert.alert("Alert", "Please attach at least one image / document!");
+			Alert.alert("Alert", "Please attach at least one image/document!");
 			return;
 		}
 
@@ -261,39 +229,12 @@ export default function UploadRecordModal({
 					return {
 						name: file.name,
 						blobBase64: base64,
-						type: blob.type,
+						type: file.type, // optional: keep track if image/doc
 					};
 				})
 			);
 
 			// console.log("Files to upload:", filesToUpload);
-
-			const processedOcrData = Object.fromEntries(
-				Object.entries(ocrData).map(([key, value]) => {
-					if (!value) return [key, value]; // keep null/undefined data as-is
-
-					// Handle date fields
-					// if (isDateField(key)) {
-					// 	try {
-					// 		const dateObj = new Date(value);
-					// 		return [key, parseDateToISO(dateObj)];
-					// 	} catch {
-					// 		return [key, value]; // fallback if parsing fails
-					// 	}
-					// }
-
-					// These fields would be arrays split by newline
-					if (["diagnosis", "procedures", "medications"].includes(key)) {
-						const arr = value
-							.split("\n")
-							.map((s) => s.trim())
-							.filter(Boolean);
-						return [key, arr];
-					}
-
-					return [key, value]; // straight return other fields
-				})
-			);
 
 			// Call Edge Function to upload all images and get signed URLs
 			const res = await fetch(
@@ -307,9 +248,9 @@ export default function UploadRecordModal({
 					body: JSON.stringify({
 						files: filesToUpload,
 						title: recordTitle,
+						date: recordDate.toISOString().split("T")[0],
 						uid: session?.user.id,
-						record_type: formatLabel(recordType),
-						...processedOcrData,
+						record_type: recordType,
 					}),
 				}
 			);
@@ -326,22 +267,77 @@ export default function UploadRecordModal({
 			console.log("Uploaded Urls:", uploadedUrls);
 			console.log("Uploaded Signed URLs:", uploadedUrls);
 
+			// Call OCR Edge Function for each uploaded file if needed
+			const ocrRes = await fetch(
+				"https://zxyyegizcgbhctjjoido.functions.supabase.co/ocr",
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${session?.access_token}`,
+					},
+					body: JSON.stringify({
+						signedUrls: uploadedUrls, // send the whole array of signed urls
+						title: recordTitle,
+						date: recordDate,
+						record_type: recordType,
+					}),
+				}
+			);
+
+			if (!ocrRes.ok) {
+				const errorBody = await ocrRes.text(); // or res.json()
+				console.error(
+					"OCR Edge function failed:",
+					ocrRes.status,
+					ocrRes.statusText,
+					errorBody
+				);
+				return;
+			}
+
+			// console.log("OCR Response:", ocrRes);
+
+			const json = await ocrRes.json();
+			const ocrText = json?.ocrText ?? "";
+			console.log("OCR Response Text:", ocrText);
+
+			setOcrData(json?.fields ?? {});
+			console.log("OCR Data:", ocrData);
+
+			// const ocrText = await ocrRes.text();
+			// let ocrJson: { ocrText?: string } = {};
+
+			// try {
+			// 	ocrJson = JSON.parse(geminiText);
+			// } catch (err) {
+			// 	console.error("Failed to parse OCR JSON:", ocrText);
+			// }
+
+			// const ocrText = ocrJson?.ocrText ?? "";
+			// console.log("OCR Text:", ocrText);
+
 			onRecordSaved({
 				id: Date.now().toString(),
 				title: recordTitle,
+				date: recordDate.toISOString().split("T")[0],
 				record_type: recordType,
 				patient_id: session.user.id,
 				file_paths: files,
 				signed_urls: uploadedUrls, // Array of local previews
-				...ocrData,
 			});
 		} catch (err) {
 			console.error("Error saving record:", err);
 		} finally {
-			handleCancel();
 			setSaving(false);
-			setStep("upload");
+			setStep("prefill");
 		}
+	};
+
+	const handleFinaliseRecord = async () => {
+		// return;
+		handleCancel();
+		setSaving(false);
 	};
 
 	return (
@@ -366,11 +362,6 @@ export default function UploadRecordModal({
 
 				{step === "upload" && (
 					<>
-						<ProgressBar
-							progress={0}
-							color={theme.colors.primary}
-							style={styles.progressBar}
-						/>
 						<TextInput
 							label="Title"
 							mode="outlined"
@@ -384,11 +375,11 @@ export default function UploadRecordModal({
 							setSelectedType={setRecordType}
 						/>
 
-						{/* <CustomDatePicker
+						<CustomDatePicker
 							label="Record Date"
 							value={recordDate}
 							onChange={setRecordDate}
-						/> */}
+						/>
 
 						{selectedFiles.length > 0 && (
 							<ScrollView horizontal style={styles.filePreviewHorizontalScroll}>
@@ -447,11 +438,6 @@ export default function UploadRecordModal({
 				)}
 				{step === "prefill" && (
 					<>
-						<ProgressBar
-							progress={0.33}
-							color={theme.colors.primary}
-							style={styles.progressBar}
-						/>
 						<TextInput
 							label="Title"
 							mode="outlined"
@@ -465,117 +451,13 @@ export default function UploadRecordModal({
 							setSelectedType={setRecordType}
 						/>
 
-						{CompulsoryFields.map((field) => (
-							<CustomDatePicker
-								key={field}
-								label={formatLabel(field)}
-								value={ocrData[field] ? new Date(ocrData[field]) : undefined}
-								onChange={(date) =>
-									setOcrData((prev) => ({
-										...prev,
-										[field]: parseDateToISO(date),
-									}))
-								}
-							/>
-						))}
+						<CustomDatePicker
+							label="Record Date"
+							value={recordDate}
+							onChange={setRecordDate}
+						/>
 
-						{/* Patient Section */}
-						<Text style={styles.sectionTitle}>Patient Details</Text>
-						<Divider style={styles.divider} />
-						{PatientFields.map((field) =>
-							isDateField(field) ? (
-								<CustomDatePicker
-									key={field}
-									label={formatLabel(field)}
-									value={ocrData[field] ? new Date(ocrData[field]) : undefined}
-									onChange={(date) =>
-										setOcrData((prev) => ({
-											...prev,
-											[field]: parseDateToISO(date),
-										}))
-									}
-								/>
-							) : (
-								<TextInput
-									key={field}
-									label={formatLabel(field)}
-									mode="outlined"
-									value={ocrData[field] ?? ""}
-									onChangeText={(text) =>
-										setOcrData((prev) => ({ ...prev, [field]: text }))
-									}
-									style={styles.input}
-									multiline={multilineFields.has(field)}
-									numberOfLines={multilineFields.has(field) ? 5 : 1}
-								/>
-							)
-						)}
-
-						{/* Provider Section */}
-						<Text style={styles.sectionTitle}>Healthcare Provider Details</Text>
-						<Divider style={styles.divider} />
-						{ProviderFields.map((field) =>
-							isDateField(field) ? (
-								<CustomDatePicker
-									key={field}
-									label={formatLabel(field)}
-									value={ocrData[field] ? new Date(ocrData[field]) : undefined}
-									onChange={(date) =>
-										setOcrData((prev) => ({
-											...prev,
-											[field]: parseDateToISO(date),
-										}))
-									}
-								/>
-							) : (
-								<TextInput
-									key={field}
-									label={formatLabel(field)}
-									mode="outlined"
-									value={ocrData[field] ?? ""}
-									onChangeText={(text) =>
-										setOcrData((prev) => ({ ...prev, [field]: text }))
-									}
-									style={styles.input}
-									multiline={multilineFields.has(field)}
-									numberOfLines={multilineFields.has(field) ? 5 : 1}
-								/>
-							)
-						)}
-
-						{/* Record Section */}
-						<Text style={styles.sectionTitle}>Record Details</Text>
-						<Divider style={styles.divider} />
-						{RecordFields.map((field) =>
-							isDateField(field) ? (
-								<CustomDatePicker
-									key={field}
-									label={formatLabel(field)}
-									value={ocrData[field] ? new Date(ocrData[field]) : undefined}
-									onChange={(date) =>
-										setOcrData((prev) => ({
-											...prev,
-											[field]: parseDateToISO(date),
-										}))
-									}
-								/>
-							) : (
-								<TextInput
-									key={field}
-									label={formatLabel(field)}
-									mode="outlined"
-									value={ocrData[field] ?? ""}
-									onChangeText={(text) =>
-										setOcrData((prev) => ({ ...prev, [field]: text }))
-									}
-									style={styles.input}
-									multiline={multilineFields.has(field)}
-									numberOfLines={multilineFields.has(field) ? 10 : 1}
-								/>
-							)
-						)}
-
-						{/* {recordType === "lab_result" &&
+						{recordType === "lab_result" &&
 							LabResultFields.map((field) => (
 								<TextInput
 									key={field}
@@ -629,7 +511,7 @@ export default function UploadRecordModal({
 									}
 									style={styles.input}
 								/>
-							))} */}
+							))}
 
 						{/* {selectedFiles.length > 0 && (
 							<ScrollView horizontal style={styles.filePreviewHorizontalScroll}>
@@ -659,7 +541,7 @@ export default function UploadRecordModal({
 							</Button>
 							<Button
 								mode="contained"
-								onPress={handleNext}
+								onPress={() => setStep("confirm")}
 								style={styles.actionButton}
 							>
 								Next
@@ -668,43 +550,35 @@ export default function UploadRecordModal({
 					</>
 				)}
 				{step === "confirm" && (
-					<>
-						<ProgressBar
-							progress={0.67}
-							color={theme.colors.primary}
-							style={styles.progressBar}
-						/>
-						<View style={{ padding: 16 }}>
-							<Text style={[styles.confirmationText, { marginBottom: 12 }]}>
-								The uploaded image(s), file(s) and form data will be saved into
-								your record.
-							</Text>
+					<View style={{ padding: 16 }}>
+						<Text style={[styles.confirmationText, { marginBottom: 12 }]}>
+							The uploaded document(s) and form data will be saved into your record.
+						</Text>
 
-							<Text style={[styles.confirmationText, { marginBottom: 20 }]}>
-								If you need to make changes, you can go back and edit it before
-								continuing.
-							</Text>
+						<Text style={[styles.confirmationText, { marginBottom: 20 }]}>
+							If you need to make changes, you can go back and
+							edit it before continuing.
+						</Text>
 
-							<View style={styles.actionButtonRow}>
-								<Button
-									mode="outlined"
-									onPress={() => {
-										setStep("prefill");
-									}}
-									style={styles.actionButton}
-								>
-									Back
-								</Button>
-								<Button
-									mode="contained"
-									onPress={handleSave}
-									style={styles.actionButton}
-								>
-									Save
-								</Button>
-							</View>
+						<View style={styles.actionButtonRow}>
+							<Button
+								mode="outlined"
+								onPress={() => {
+									setStep("prefill");
+								}}
+								style={styles.actionButton}
+							>
+								Back
+							</Button>
+							<Button
+								mode="contained"
+								onPress={handleSave}
+								style={styles.actionButton}
+							>
+								Save
+							</Button>
 						</View>
-					</>
+					</View>
 				)}
 
 				{saving && (
@@ -721,7 +595,7 @@ export default function UploadRecordModal({
 						<ActivityIndicator
 							loadingMsg={
 								step === "upload"
-									? "Extracting data..."
+									? "Saving and extracting data with OCR..."
 									: step === "confirm"
 									? "Saving extracted data..."
 									: "Loading..."
@@ -774,20 +648,5 @@ const styles = StyleSheet.create({
 	confirmationText: {
 		fontSize: 16,
 		lineHeight: 22,
-	},
-	sectionTitle: {
-		marginTop: 20,
-		marginBottom: 6,
-		fontSize: 16,
-		fontWeight: "600",
-	},
-	divider: {
-		marginBottom: 12,
-	},
-	progressBar: {
-		height: 6,
-		borderRadius: 3,
-		marginTop: 8,
-		marginBottom: 16,
 	},
 });

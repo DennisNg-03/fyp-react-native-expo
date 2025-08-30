@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
 			.from("medical_records")
 			.select("*")
 			.eq("patient_id", uid)
-			.order("date", { ascending: false })
+			.order("record_date", { ascending: false })
 			.order("updated_at", { ascending: false });
 
 		if (error)
@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
 				return {
 					id: record.id,
 					title: record.title,
-					date: record.date,
+					record_date: record.record_date,
 					record_type: record.record_type,
 					patient_id: record.patient_id,
 					file_paths: record.file_paths as SelectedFile,

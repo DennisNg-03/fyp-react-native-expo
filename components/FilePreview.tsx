@@ -1,12 +1,7 @@
+import { SelectedFile } from "@/types/medicalRecord";
 import { FC } from "react";
 import { Image, Text, View } from "react-native";
 import { IconButton, useTheme } from "react-native-paper";
-
-export type SelectedFile = {
-  uri: string;
-  type: "image" | "document";
-  name: string;
-};
 
 type FilePreviewProps = {
   file: SelectedFile;
@@ -18,7 +13,7 @@ export const FilePreview: FC<FilePreviewProps> = ({ file, onRemove }) => {
   const isImage = file.type === "image";
 
   return (
-    <View style={{ position: "relative", marginRight: 10 }}>
+    <View style={{ position: "relative", marginTop: 15, marginRight: 10 }}>
       {isImage ? (
         <Image
           source={{ uri: file.uri }}

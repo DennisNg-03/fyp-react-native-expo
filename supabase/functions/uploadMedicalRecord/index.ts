@@ -1,44 +1,21 @@
 // eslint-disable-next-line import/no-unresolved
 import { createClient } from "npm:@supabase/supabase-js";
 
+import { AdditionalMedicalRecordField } from "../../../types/medicalRecord.ts";
+
 type IncomingFile = {
 	name: string;
 	blobBase64: string;
-	type: "image" | "document";
+	type: string;
 };
 
 type RequestBody = {
 	files: IncomingFile[];
 	title: string;
-	date: string;
+	record_date: string;
 	uid: string;
 	record_type: string;
-};
-
-function getMimeType(
-	fileName: string,
-	fallback: string = "application/octet-stream"
-): string {
-	const extension = fileName.split(".").pop()?.toLowerCase();
-
-	switch (extension) {
-		case "jpg":
-		case "jpeg":
-			return "image/jpeg";
-		case "png":
-			return "image/png";
-		case "pdf":
-			return "application/pdf";
-		case "doc":
-			return "application/msword";
-		case "docx":
-			return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-		case "txt":
-			return "text/plain";
-		default:
-			return fallback;
-	}
-}
+} & Partial<Record<AdditionalMedicalRecordField, string>>;
 
 Deno.serve(async (req) => {
 	const supabase = createClient(
@@ -47,9 +24,10 @@ Deno.serve(async (req) => {
 	);
 
 	try {
-		const { files, title, date, uid, record_type } =
+		const { files, title, record_date, uid, record_type, ...ocrData } =
 			(await req.json()) as RequestBody;
-		console.log("Parsed request body:", { files, title, date, uid });
+		console.log("Parsed request body:", { files, title, record_date, uid });
+		console.log("OCR Data:", ocrData);
 
 		if (!uid) {
 			console.log("Missing UID in request");
@@ -58,7 +36,10 @@ Deno.serve(async (req) => {
 
 		const filePaths: { uri: string; name: string; type: string }[] = [];
 		const uploadedUrls: string[] = []; // For passing to client to call OCR function
-		// const uploadedFileNames: string[] = []; // For storing in database for future retrieval
+
+		// const safeOcrData = Object.fromEntries(
+		// 	Object.entries(ocrData).filter(([_, v]) => v !== null && v !== undefined && v !== "")
+		// );
 
 		for (const file of files) {
 			const { name, blobBase64, type } = file;
@@ -73,14 +54,14 @@ Deno.serve(async (req) => {
 			);
 
 			// Upload files to Supabase storage
-			const mimeType = getMimeType(name);
-			console.log("MIME type:", mimeType);
+			// const mimeType = getMimeType(name);
+			// console.log("MIME type:", mimeType);
 
 			const { error: fileUploadError } = await supabase.storage
 				.from("medical-records")
 				.upload(filePath, fileBytes, {
-					contentType: mimeType,
-					metadata: { mime_type: mimeType },
+					contentType: file.type,
+					metadata: { mime_type: file.type },
 				});
 
 			if (fileUploadError) {
@@ -128,11 +109,11 @@ Deno.serve(async (req) => {
 			.insert([
 				{
 					title,
-					date,
+					record_date,
 					record_type,
 					patient_id: uid,
 					file_paths: filePaths,
-					ocr_text: null,
+					...ocrData,
 				},
 			]);
 
