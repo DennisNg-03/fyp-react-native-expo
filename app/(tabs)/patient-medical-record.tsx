@@ -3,7 +3,14 @@ import UploadRecordModal from "@/components/UploadRecordModal";
 import { useAuth } from "@/providers/AuthProvider";
 import { MedicalRecord, SelectedFile } from "@/types/medicalRecord";
 import { useEffect, useState } from "react";
-import { FlatList, Image, StyleSheet, View } from "react-native";
+import {
+	FlatList,
+	Image,
+	Keyboard,
+	StyleSheet,
+	TouchableWithoutFeedback,
+	View,
+} from "react-native";
 import {
 	Button,
 	Card,
@@ -23,7 +30,7 @@ export default function PatientMedicalRecordScreen() {
 	const [hasMore, setHasMore] = useState(true);
 	const [uploadModalVisible, setUploadModalVisible] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
-	const RECORDS_PER_PAGE = 10;
+	const RECORDS_PER_PAGE = 8;
 
 	useEffect(() => {
 		if (!session?.user.id) return;
@@ -68,11 +75,13 @@ export default function PatientMedicalRecordScreen() {
 	}, [session?.user.id]);
 
 	useEffect(() => {
-		console.log("Use effect Records:", records);
+		records.map((record) => {
+			console.log("Use Effect Record Title:", record.title);
+		});
 	}, [records]);
 
-	const fetchRecords = async (pageNumber = 1) => {
-		if (!session?.user.id || !hasMore) return;
+	const fetchRecords = async (pageNumber = 1, ignoreHasMore = false) => {
+		if (!session?.user.id || (!hasMore && !ignoreHasMore)) return;
 		try {
 			setLoading(true);
 			const res = await fetch(
@@ -101,7 +110,6 @@ export default function PatientMedicalRecordScreen() {
 
 			if (pageNumber === 1) {
 				setRecords(formattedRecords); // Refresh and First page
-				setHasMore(true); // reset infinite scroll
 				setPage(1); // reset page counter
 			} else {
 				setRecords((prev) => [...prev, ...formattedRecords]); // Append the records for infinite scroll
@@ -119,8 +127,21 @@ export default function PatientMedicalRecordScreen() {
 		fetchRecords(1);
 	};
 
-	const handleSearch = async () => {
-		return;
+	const handleSearch = () => {
+		if (!searchQuery) {
+			fetchRecords(1, true); // // If query is empty, show all records, and ignore hasMore when refreshing
+			return;
+		}
+		const filtered = records.filter(
+			(record) =>
+				record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				record.record_type?.toLowerCase().includes(searchQuery.toLowerCase())
+		);
+		console.log(
+			"Filtered record titles:",
+			filtered.map((r) => r.title)
+		);
+		setRecords(filtered);
 	};
 
 	const handleUploadRecord = async () => {
@@ -175,80 +196,87 @@ export default function PatientMedicalRecordScreen() {
 	);
 
 	return (
-		<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-			<FlatList
-				contentContainerStyle={{ paddingBottom: 50, paddingHorizontal: 16 }}
-				data={records}
-				keyExtractor={(item) => item.id}
-				refreshing={loading}
-				onRefresh={handleRefresh}
-				renderItem={renderRecord}
-				ListHeaderComponent={
-					<>
-						<View style={styles.searchForm}>
-							<Searchbar
-								placeholder="Search records..."
-								value={searchQuery}
-								onChangeText={setSearchQuery}
-								style={{
-									marginBottom: 10,
-									backgroundColor: theme.colors.onPrimary,
-									color: theme.colors.primary,
-									borderRadius: 8,
-									borderColor: theme.colors.primary,
-								}}
-								elevation={2}
-							/>
+		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+			<SafeAreaView
+				style={{ flex: 1, backgroundColor: theme.colors.background }}
+			>
+				<FlatList
+					contentContainerStyle={{ paddingBottom: 50, paddingHorizontal: 16 }}
+					data={records}
+					keyExtractor={(item) => item.id}
+					refreshing={loading}
+					onRefresh={handleRefresh}
+					renderItem={renderRecord}
+					ListHeaderComponent={
+						<>
+							<View style={styles.searchForm}>
+								<Searchbar
+									placeholder="Search records..."
+									value={searchQuery}
+									onChangeText={setSearchQuery}
+									style={{
+										marginBottom: 10,
+										backgroundColor: theme.colors.onPrimary,
+										color: theme.colors.primary,
+										borderRadius: 8,
+										borderColor: theme.colors.primary,
+									}}
+									elevation={2}
+									autoComplete="off"
+									autoCorrect={false}
+									spellCheck={false}
+								/>
+								<Button
+									mode="contained"
+									onPress={handleSearch}
+									style={styles.searchButton}
+								>
+									Search
+								</Button>
+							</View>
 							<Button
-								mode="contained"
-								onPress={handleSearch}
-								style={styles.searchButton}
+								mode="elevated"
+								icon="upload"
+								onPress={handleUploadRecord}
+								style={styles.uploadButton}
 							>
-								Search
+								Upload
 							</Button>
-						</View>
-						<Button
-							mode="elevated"
-							icon="upload"
-							onPress={handleUploadRecord}
-							style={styles.uploadButton}
-						>
-							Upload
-						</Button>
-					</>
-				}
-				onEndReached={() => {
-					if (!loading && hasMore) {
-						fetchRecords(page + 1);
-						setPage((prev) => prev + 1);
+						</>
 					}
-				}}
-				onEndReachedThreshold={0}
-				// ListFooterComponent={loading ? <ActivityIndicator /> : null}
-				ListEmptyComponent={
-					!loading ? (
-						<View style={styles.center}>
-							<Text
-								variant="bodyMedium"
-								style={{ color: theme.colors.onSurface }}
-							>
-								No medical records uploaded yet.
-							</Text>
-						</View>
-					) : null
-				}
-			/>
-
-			{/* Popup Modal for Uploading Medical Records */}
-			<Portal>
-				<UploadRecordModal
-					visible={uploadModalVisible}
-					onClose={() => setUploadModalVisible(false)}
-					session={session}
-					onRecordSaved={(record) => setRecords((prev) => [record, ...prev])}
+					onEndReached={() => {
+						if (!loading && hasMore) {
+							fetchRecords(page + 1);
+							setPage((prev) => prev + 1);
+						}
+					}}
+					onEndReachedThreshold={0}
+					// ListFooterComponent={loading ? <ActivityIndicator /> : null}
+					ListEmptyComponent={
+						!loading ? (
+							<View style={styles.center}>
+								<Text
+									variant="bodyLarge"
+									style={{ color: theme.colors.onSurface }}
+								>
+									No medical records uploaded yet.
+								</Text>
+							</View>
+						) : null
+					}
 				/>
-			</Portal>
-		</SafeAreaView>
+
+				{/* Popup Modal for Uploading Medical Records */}
+				<Portal>
+					<UploadRecordModal
+						visible={uploadModalVisible}
+						onClose={() => setUploadModalVisible(false)}
+						session={session}
+						onRecordSaved={(record) => setRecords((prev) => [record, ...prev])}
+					/>
+				</Portal>
+			</SafeAreaView>
+		</TouchableWithoutFeedback>
 	);
 }
 

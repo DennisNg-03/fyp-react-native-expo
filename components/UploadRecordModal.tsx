@@ -13,7 +13,7 @@ import { Session } from "@supabase/supabase-js";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, Platform, ScrollView, StyleSheet, View } from "react-native";
 import {
 	Button,
 	Divider,
@@ -62,12 +62,8 @@ export default function UploadRecordModal({
 		"notes",
 	]);
 	const isDateField = (field: string) => field.toLowerCase().includes("date");
-	const ALLOWED_IMAGE_TYPES = ["png", "jpg", "jpeg", "webp", "heic", "heif"];
-
-	// useEffect(() => {
-	// 	console.log("recordDate (Date object):", recordDate);
-	// 	console.log("recordDate.toISOString():", formatLocalDateToISO(recordDate));
-	// }, [recordDate]);
+	const ALLOWED_IMAGE_TYPES = ["png", "jpg", "jpeg", "webp", "heic", "heif"]; // These are the supported image types by Gemini
+	const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 	const handleTakePhoto = async () => {
 		const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -77,19 +73,47 @@ export default function UploadRecordModal({
 		}
 
 		const result = await ImagePicker.launchCameraAsync({
-			allowsEditing: true,
-			quality: 1,
-			aspect: [16, 9],
+			quality: 0.8,
+			selectionLimit: 20,
+			...(Platform.OS === "android"
+				? {
+						allowsEditing: true,
+						aspect: [16, 9],
+				  }
+				: {}), // The aspect attribute doesnt work on IOS, so disable it on IOS
 		});
 
 		if (!result.canceled) {
+			for (const file of result.assets) {
+				const ext = file.uri.split(".").pop()?.toLowerCase();
+				const fileName =
+					file.fileName ?? file.uri.split("/").pop() ?? "unknown";
+				console.log("Camera image file size:", fileName, file.fileSize);
+
+				if (!ext || !ALLOWED_IMAGE_TYPES.includes(ext)) {
+					alert(
+						"Unsupported file type. Only JPG, PNG, WEBP, HEIC, HEIF are allowed."
+					);
+					return;
+				}
+
+				if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
+					alert("File too large. Maximum allowed size per file is 10 MB.");
+					return; // stop if any file is too big
+				}
+			}
+
+			// If all files passed, then only add them
 			setSelectedFiles((prev) => [
 				...prev,
-				{
-					uri: result.assets[0].uri,
-					name: result.assets[0].uri.split("/").pop() ?? "photo.jpg",
-					type: "image",
-				},
+				...result.assets.map((file) => {
+					const ext = file.uri.split(".").pop()?.toLowerCase();
+					return {
+						uri: file.uri,
+						name: file.fileName ?? file.uri.split("/").pop() ?? "photo.jpeg",
+						type: `image/${ext}` as string,
+					};
+				}),
 			]);
 		}
 	};
@@ -105,19 +129,67 @@ export default function UploadRecordModal({
 		// Open image picker
 		const result = await ImagePicker.launchImageLibraryAsync({
 			mediaTypes: ["images"],
-			allowsEditing: true,
-			aspect: [16, 9],
-			quality: 1, // highest quality
+			quality: 0.8,
+			selectionLimit: 20,
+			...(Platform.OS === "android"
+				? {
+						allowsEditing: true,
+						aspect: [16, 9],
+				  }
+				: {}), // The aspect attribute doesnt work on IOS, so disable it on IOS
 		});
 
 		if (!result.canceled) {
+			for (const file of result.assets) {
+				const ext = file.uri.split(".").pop()?.toLowerCase();
+				for (const file of result.assets) {
+					const ext = file.uri.split(".").pop()?.toLowerCase();
+
+					const fileName =
+						file.fileName ?? file.uri.split("/").pop() ?? "unknown";
+					console.log(
+						"Media library image file size:",
+						fileName,
+						file.fileSize
+					);
+
+					if (!ext || !ALLOWED_IMAGE_TYPES.includes(ext)) {
+						alert(
+							"Unsupported file type. Only JPG, PNG, WEBP, HEIC, HEIF are allowed."
+						);
+						return;
+					}
+
+					if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
+						alert("File too large. Maximum allowed size per file is 10 MB.");
+						return; // stop if any file is too big
+					}
+				}
+
+				if (!ext || !ALLOWED_IMAGE_TYPES.includes(ext)) {
+					alert(
+						"Unsupported file type. Only JPG, PNG, WEBP, HEIC, HEIF are allowed."
+					);
+					return;
+				}
+
+				if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
+					alert("File too large. Maximum allowed size per file is 10 MB.");
+					return; // stop if any file is too big
+				}
+			}
+
+			// If all files passed, then only add them
 			setSelectedFiles((prev) => [
 				...prev,
-				{
-					uri: result.assets[0].uri,
-					name: result.assets[0].uri.split("/").pop() ?? "photo.jpg",
-					type: "image",
-				},
+				...result.assets.map((file) => {
+					const ext = file.uri.split(".").pop()?.toLowerCase();
+					return {
+						uri: file.uri,
+						name: file.fileName ?? file.uri.split("/").pop() ?? "photo.jpeg",
+						type: `image/${ext}` as string,
+					};
+				}),
 			]);
 		}
 	};
@@ -129,12 +201,25 @@ export default function UploadRecordModal({
 		});
 
 		if (!result.canceled && result.assets.length > 0) {
+			const filteredAssets = result.assets.filter(
+				(asset) => asset.size && asset.size <= MAX_FILE_SIZE
+			);
+
+			filteredAssets.forEach((file) => {
+				const fileName = file.name ?? file.uri.split("/").pop() ?? "unknown";
+				console.log("File size:", fileName, file.size);
+			});
+
+			if (filteredAssets.length < result.assets.length) {
+				alert("File too large. Maximum allowed size per file is 10 MB.");
+				return;
+			}
 			setSelectedFiles((prev) => [
 				...prev,
 				...result.assets.map((asset) => ({
 					uri: asset.uri,
 					name: asset.name,
-					type: "document" as const, // makes it a literal type
+					type: "document" as string,
 				})),
 			]);
 		}
@@ -181,7 +266,7 @@ export default function UploadRecordModal({
 			Alert.alert("Alert", "Please attach at least one image / document!");
 			return;
 		}
-		
+
 		try {
 			setSaving(true);
 			const filesToUpload = await Promise.all(
@@ -241,7 +326,9 @@ export default function UploadRecordModal({
 			console.error("User not authenticated!");
 			return;
 		}
-		if (!recordTitle || !recordType) {
+
+		const missingField = CompulsoryFields.find((field) => !ocrData[field]); // It's only record_date now
+		if (!recordTitle || !recordType || missingField) {
 			Alert.alert("Alert", "Please fill up all the fields!");
 			return;
 		}
@@ -273,16 +360,6 @@ export default function UploadRecordModal({
 			const processedOcrData = Object.fromEntries(
 				Object.entries(ocrData).map(([key, value]) => {
 					if (!value) return [key, value]; // keep null/undefined data as-is
-
-					// Handle date fields
-					// if (isDateField(key)) {
-					// 	try {
-					// 		const dateObj = new Date(value);
-					// 		return [key, parseDateToISO(dateObj)];
-					// 	} catch {
-					// 		return [key, value]; // fallback if parsing fails
-					// 	}
-					// }
 
 					// These fields would be arrays split by newline
 					if (["diagnosis", "procedures", "medications"].includes(key)) {
@@ -428,6 +505,16 @@ export default function UploadRecordModal({
 								style={styles.uploadButton}
 							/>
 						</View>
+						<Text
+							style={{
+								marginVertical: 10,
+								fontSize: 12,
+								color: theme.colors.onSurfaceVariant, // muted color
+							}}
+						>
+							Supported image types:{"\n"}PNG, JPG, JPEG, WEBP, HEIC, HEIF.{"\n"}{"\n"}
+							For attached files (PDF or TXT), PDFs usually give higher text extraction accuracy.
+						</Text>
 
 						<View style={styles.actionButtonRow}>
 							<Button
@@ -758,7 +845,7 @@ const styles = StyleSheet.create({
 		flexWrap: "wrap",
 		justifyContent: "space-between",
 		gap: 10,
-		marginTop: 10,
+		marginTop: 0,
 	},
 	uploadButton: {
 		flex: 1,

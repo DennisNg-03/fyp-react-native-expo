@@ -15,8 +15,8 @@ export default function TabLayout() {
 
 	// Redirect user to login page whenever session is null
 	if (!session) {
-			return <Redirect href={"/login"} />;
-		}
+		return <Redirect href={"/login"} />;
+	}
 		
   return (
     <Tabs

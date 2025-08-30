@@ -61,6 +61,9 @@ export default function LoginScreen() {
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
+						autoComplete="off"
+						autoCorrect={false}
+						spellCheck={false}
             style={styles.input}
           />
           <TextInput

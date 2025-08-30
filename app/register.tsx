@@ -98,6 +98,9 @@ export default function RegisterScreen() {
 						value={name}
 						onChangeText={setName}
 						mode="outlined"
+						autoComplete="off"
+						autoCorrect={false}
+						spellCheck={false}
 						style={styles.input}
 					/>
 					<TextInput
@@ -107,6 +110,9 @@ export default function RegisterScreen() {
 						mode="outlined"
 						autoCapitalize="none"
 						keyboardType="email-address"
+						autoComplete="off"
+						autoCorrect={false}
+						spellCheck={false}
 						style={styles.input}
 					/>
 					<TextInput

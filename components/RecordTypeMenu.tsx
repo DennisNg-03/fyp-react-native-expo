@@ -26,7 +26,7 @@ export const RecordTypeMenu = ({
 	}));
 
 	return (
-		<View style={{ marginBottom: 16 }}>
+		<View style={{ marginBottom: 10 }}>
 			<Dropdown
 				label="Record Type"
 				placeholder="Select record type"
