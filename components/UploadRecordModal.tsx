@@ -229,6 +229,7 @@ export default function UploadRecordModal({
 		setRecordTitle("");
 		setRecordType("");
 		setSelectedFiles([]);
+		setOcrData({});
 		onClose(); // Call parent to hide this modal
 		setStep("upload");
 	};
@@ -263,7 +264,8 @@ export default function UploadRecordModal({
 
 		const files = selectedFiles ?? [];
 		if (files.length === 0) {
-			Alert.alert("Alert", "Please attach at least one image / document!");
+			setStep("prefill");
+			// Alert.alert("Alert", "Please attach at least one image / document!");
 			return;
 		}
 
@@ -506,13 +508,24 @@ export default function UploadRecordModal({
 							/>
 						</View>
 						<Text
+							variant="labelSmall"
 							style={{
-								marginVertical: 10,
-								fontSize: 12,
+								marginTop: 10,
+								marginBottom: 5,
+								marginHorizontal: 5,
 								color: theme.colors.onSurfaceVariant, // muted color
 							}}
 						>
-							Supported image types:{"\n"}PNG, JPG, JPEG, WEBP, HEIC, HEIF.{"\n"}{"\n"}
+							Supported image types:{"\n"}PNG, JPG, JPEG, WEBP, HEIC, HEIF.
+						</Text>
+						<Text
+							variant="labelSmall"
+							style={{
+								marginBottom: 10,
+								marginHorizontal: 5,
+								color: theme.colors.onSurfaceVariant, // muted color
+							}}
+						>
 							For attached files (PDF or TXT), PDFs usually give higher text extraction accuracy.
 						</Text>
 
@@ -845,7 +858,7 @@ const styles = StyleSheet.create({
 		flexWrap: "wrap",
 		justifyContent: "space-between",
 		gap: 10,
-		marginTop: 0,
+		marginTop: 5,
 	},
 	uploadButton: {
 		flex: 1,

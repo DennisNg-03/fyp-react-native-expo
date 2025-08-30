@@ -1,3 +1,4 @@
+import { ActivityIndicator } from "@/components/ActivityIndicator";
 import { formatLabel } from "@/components/RecordTypeMenu";
 import UploadRecordModal from "@/components/UploadRecordModal";
 import { useAuth } from "@/providers/AuthProvider";
@@ -25,59 +26,43 @@ export default function PatientMedicalRecordScreen() {
 	const theme = useTheme();
 	const { session, role } = useAuth();
 	const [records, setRecords] = useState<MedicalRecord[]>([]);
+	const [filteredRecords, setFilteredRecords] = useState<MedicalRecord[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [page, setPage] = useState(0);
 	const [hasMore, setHasMore] = useState(true);
 	const [uploadModalVisible, setUploadModalVisible] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
-	const RECORDS_PER_PAGE = 8;
+	const [imageLoading, setImageLoading] = useState(true);
+	const RECORDS_PER_PAGE = 4;
 
 	useEffect(() => {
 		if (!session?.user.id) return;
 
-		// const fetchRecords = async () => {
-		// 	try {
-		// 		setLoading(true);
-		// 		const res = await fetch(
-		// 			`https://zxyyegizcgbhctjjoido.functions.supabase.co/getMedicalRecord?uid=${session.user.id}&role=${role}`,
-		// 			{
-		// 				headers: {
-		// 					Authorization: `Bearer ${session.access_token}`,
-		// 				},
-		// 			}
-		// 		);
-
-		// 		if (!res.ok) {
-		// 			const text = await res.text();
-		// 			console.error("Failed to fetch records", text);
-		// 			return;
-		// 		}
-
-		// 		const { recordsWithUrls } = (await res.json()) as {
-		// 			recordsWithUrls: MedicalRecord[];
-		// 		};
-		// 		// console.log("Records with Urls:", recordsWithUrls);
-
-		// 		const formattedRecords = (recordsWithUrls ?? []).map((record) => ({
-		// 			...record,
-		// 			record_type: formatLabel(record.record_type ?? ""),
-		// 		}));
-
-		// 		setRecords(formattedRecords);
-		// 	} catch (err) {
-		// 		console.error(err);
-		// 	} finally {
-		// 		setLoading(false);
-		// 	}
-		// };
-
 		fetchRecords(1);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [session?.user.id]);
 
+	// useEffect(() => {
+	// 	records.map((record) => {
+	// 		console.log("Use Effect Record Title:", record.title);
+	// 		console.log("Use Effect Record SignedUrl:", record.signed_urls);
+	// 	});
+	// }, [records]);
+
+	// This useEffect is crucial for preventing excessive re-rendering issue in Flatlist due to modiying "records" directly
 	useEffect(() => {
-		records.map((record) => {
-			console.log("Use Effect Record Title:", record.title);
-		});
+		if (!searchQuery) {
+			setFilteredRecords(records);
+		} else {
+			setFilteredRecords(
+				records.filter(
+					(record) =>
+						record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+						record.record_type?.toLowerCase().includes(searchQuery.toLowerCase())
+				)
+			);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [records]);
 
 	const fetchRecords = async (pageNumber = 1, ignoreHasMore = false) => {
@@ -128,20 +113,31 @@ export default function PatientMedicalRecordScreen() {
 	};
 
 	const handleSearch = () => {
+		// if (!searchQuery) {
+		// 	fetchRecords(1, true); // // If query is empty, show all records, and ignore hasMore when refreshing
+		// 	return;
+		// }
+		// const filtered = records.filter(
+		// 	(record) =>
+		// 		record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+		// 		record.record_type?.toLowerCase().includes(searchQuery.toLowerCase())
+		// );
+		// console.log(
+		// 	"Filtered record titles:",
+		// 	filtered.map((r) => r.title)
+		// );
+		// setFilteredRecords(filtered);
 		if (!searchQuery) {
-			fetchRecords(1, true); // // If query is empty, show all records, and ignore hasMore when refreshing
-			return;
+			setFilteredRecords(records);
+		} else {
+			setFilteredRecords(
+				records.filter(
+					(record) =>
+						record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+						record.record_type?.toLowerCase().includes(searchQuery.toLowerCase())
+				)
+			);
 		}
-		const filtered = records.filter(
-			(record) =>
-				record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-				record.record_type?.toLowerCase().includes(searchQuery.toLowerCase())
-		);
-		console.log(
-			"Filtered record titles:",
-			filtered.map((r) => r.title)
-		);
-		setRecords(filtered);
 	};
 
 	const handleUploadRecord = async () => {
@@ -152,48 +148,93 @@ export default function PatientMedicalRecordScreen() {
 	// 	return <ActivityIndicator />;
 	// }
 
-	const renderRecord = ({ item }: { item: MedicalRecord }) => (
-		<Card
-			key={item.id}
-			style={styles.card}
-			onPress={() => console.log("Open record:", item.id)}
-		>
-			<Card.Title
-				title={item.title}
-				subtitle={
-					item.record_date
-						? `${item.record_date}${
-								item.record_type ? " • " + item.record_type : ""
-						  }`
-						: item.record_type ?? "No date"
-				}
-			/>
-			<Card.Content>
-				{item.file_paths?.some(
-					(f) => typeof f !== "string" && f.type.includes("image")
-				) && (
-					<Image
-						source={{
-							uri:
-								item.signed_urls?.[
-									item.file_paths.findIndex(
-										(f): f is SelectedFile =>
-											typeof f !== "string" && f.type.includes("image")
-									)
-								] ?? "",
-						}}
-						style={{
-							width: "100%",
-							height: 150,
-							borderRadius: 8,
-							marginBottom: 10,
-						}}
-						resizeMode="cover"
-					/>
-				)}
-			</Card.Content>
-		</Card>
-	);
+	const renderRecord = ({ item }: { item: MedicalRecord }) => {
+		const imageIndex = item.file_paths?.findIndex(
+			(f): f is SelectedFile =>
+				typeof f !== "string" && f.type.includes("image")
+		);
+
+		const imageUrl =
+			imageIndex !== undefined && imageIndex >= 0
+				? item.signed_urls?.[imageIndex] ?? ""
+				: "";
+		console.log("Image URL:", imageUrl);
+
+		return (
+			<Card
+				key={item.id}
+				style={styles.card}
+				onPress={() => console.log("Open record:", item.id)}
+				elevation={1}
+			>
+				<Card.Title
+					title={item.title}
+					subtitle={
+						item.record_date
+							? `${item.record_date}${
+									item.record_type ? " • " + item.record_type : ""
+							  }`
+							: item.record_type ?? "No date"
+					}
+				/>
+				<Card.Content>
+					{imageUrl ? (
+					<View style={{ width: "100%", height: 150, marginBottom: 10 }}>
+						{imageLoading && (
+							<ActivityIndicator
+								size="small"
+								loadingMsg=""
+								overlay={false}
+							/>
+						)}
+						<Image
+							source={{ uri: imageUrl }}
+							style={{
+								width: "100%",
+								height: "100%",
+								borderRadius: 8,
+								position: "absolute", // sits on top
+							}}
+							resizeMode="cover"
+							onLoadStart={() => setImageLoading(true)}
+							onLoadEnd={() => setImageLoading(false)}
+							onError={() => setImageLoading(false)}
+						/>
+					</View>
+				) : null}
+
+					{/* Always show all fields */}
+					<View style={{ gap: 6 }}>
+						<Text variant="bodyMedium">
+							Patient:{" "}
+							<Text variant="bodyMedium">{item.patient_name || "—"}</Text>
+						</Text>
+
+						<Text variant="bodyMedium">
+							Doctor:{" "}
+							<Text variant="bodyMedium">{item.doctor_name || "—"}</Text>
+						</Text>
+
+						<Text variant="bodyMedium">
+							Provider:{" "}
+							<Text variant="bodyMedium">
+								{item.healthcare_provider_name || "—"}
+							</Text>
+						</Text>
+
+						<Text variant="bodySmall" style={{ textAlign: "right" }}>
+							Last updated:{" "}
+							<Text variant="bodySmall">
+								{item.updated_at
+									? new Date(item.updated_at).toLocaleDateString()
+									: "—"}
+							</Text>
+						</Text>
+					</View>
+				</Card.Content>
+			</Card>
+		);
+	};
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -202,38 +243,40 @@ export default function PatientMedicalRecordScreen() {
 			>
 				<FlatList
 					contentContainerStyle={{ paddingBottom: 50, paddingHorizontal: 16 }}
-					data={records}
+					data={filteredRecords}
 					keyExtractor={(item) => item.id}
 					refreshing={loading}
 					onRefresh={handleRefresh}
 					renderItem={renderRecord}
 					ListHeaderComponent={
 						<>
-							<View style={styles.searchForm}>
-								<Searchbar
-									placeholder="Search records..."
-									value={searchQuery}
-									onChangeText={setSearchQuery}
-									style={{
-										marginBottom: 10,
-										backgroundColor: theme.colors.onPrimary,
-										color: theme.colors.primary,
-										borderRadius: 8,
-										borderColor: theme.colors.primary,
-									}}
-									elevation={2}
-									autoComplete="off"
-									autoCorrect={false}
-									spellCheck={false}
-								/>
-								<Button
-									mode="contained"
-									onPress={handleSearch}
-									style={styles.searchButton}
-								>
-									Search
-								</Button>
-							</View>
+							<Card style={styles.searchForm} elevation={1}>
+								<Card.Content>
+									<Searchbar
+										placeholder="Search records..."
+										value={searchQuery}
+										onChangeText={setSearchQuery}
+										style={{
+											marginBottom: 10,
+											backgroundColor: theme.colors.onPrimary,
+											color: theme.colors.primary,
+											borderRadius: 8,
+											borderColor: theme.colors.primary,
+										}}
+										elevation={2}
+										autoComplete="off"
+										autoCorrect={false}
+										spellCheck={false}
+									/>
+									<Button
+										mode="contained"
+										onPress={handleSearch}
+										style={styles.searchButton}
+									>
+										Search
+									</Button>
+								</Card.Content>
+							</Card>
 							<Button
 								mode="elevated"
 								icon="upload"
@@ -293,15 +336,7 @@ const styles = StyleSheet.create({
 		marginTop: 40,
 	},
 	searchForm: {
-		padding: 16,
-		backgroundColor: "#fff",
-		borderRadius: 12,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 4,
-		gap: 10,
-		elevation: 3,
+		gap: 20,
 		marginBottom: 20,
 	},
 	searchRow: {
