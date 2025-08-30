@@ -51,32 +51,29 @@ export default function PatientMedicalRecordScreen() {
 		if (!session?.user.id) return;
 
 		fetchRecords(1);
-		handleSearch();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [session?.user.id]);
 
-	useEffect(() => {
-		records.map((record) => {
-			console.log("Use Effect Record Title:", record.title);
-			console.log("Use Effect Record SignedUrl:", record.signed_urls);
-		});
-	}, [records]);
+	// useEffect(() => {
+	// 	records.map((record) => {
+	// 		console.log("Use Effect Record Title:", record.title);
+	// 		console.log("Use Effect Record Type:", record.record_type);
+	// 		console.log("Use Effect Record SignedUrl:", record.signed_urls);
+	// 	});
+	// }, [records]);
 
-	// This useEffect is crucial for preventing refresh to manipulate the search result in Flatlist due to modiying "records" directly
+	// useEffect(() => {
+	// 	filteredRecords.map((record) => {
+	// 		console.log("Use Effect Filtered Record Title:", record.title);
+	// 		console.log("Use Effect Filtered Type:", record.record_type);
+	// 		console.log("Use Effect Filtered Dare:", record.record_date);
+	// 		console.log("Use Effect Filtered SignedUrl:", record.signed_urls);
+	// 	});
+	// }, [filteredRecords]);
+
+	// This useEffect is for triggering the search based on default fields for the first time when records is set
 	useEffect(() => {
-		if (!searchQuery) {
-			setFilteredRecords(records);
-		} else {
-			setFilteredRecords(
-				records.filter(
-					(record) =>
-						record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-						record.record_type
-							?.toLowerCase()
-							.includes(searchQuery.toLowerCase())
-				)
-			);
-		}
+		handleSearch();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [records]);
 
@@ -101,18 +98,18 @@ export default function PatientMedicalRecordScreen() {
 			const recordsWithUrls: MedicalRecord[] = data?.recordsWithUrls ?? [];
 			const more: boolean = data?.hasMore ?? false;
 
-			const formattedRecords = recordsWithUrls.map((record) => ({
-				...record,
-				record_type: formatLabel(record.record_type ?? ""),
-			}));
+			// const formattedRecords = recordsWithUrls.map((record) => ({
+			// 	...record,
+			// 	record_type: formatLabel(record.record_type ?? ""),
+			// }));
 
 			setHasMore(more);
 
 			if (pageNumber === 1) {
-				setRecords(formattedRecords); // Refresh and First page
+				setRecords(recordsWithUrls); // Refresh and First page
 				setPage(1); // reset page counter
 			} else {
-				setRecords((prev) => [...prev, ...formattedRecords]); // Append the records for infinite scroll
+				setRecords((prev) => [...prev, ...recordsWithUrls]); // Append the records for infinite scroll
 			}
 		} catch (err) {
 			console.error(err);
@@ -228,9 +225,9 @@ export default function PatientMedicalRecordScreen() {
 					subtitle={
 						item.record_date
 							? `${item.record_date}${
-									item.record_type ? " • " + item.record_type : ""
+									formatLabel(item.record_type) ? " • " + formatLabel(item.record_type) : ""
 							  }`
-							: item.record_type ?? "No date"
+							: formatLabel(item.record_type) ?? "No date"
 					}
 				/>
 				<Card.Content>

@@ -90,6 +90,7 @@ export default function UploadRecordModal({
 
 				setOcrData(ocrFields);
 			} else if (mode === "new") {
+				setStep("upload");
 				setRecordTitle("");
 				setRecordType("");
 				setOcrData({});
@@ -97,6 +98,11 @@ export default function UploadRecordModal({
 			}
 		}
 	}, [visible, mode, record]);
+
+	useEffect(() => {
+		console.log("Record Type:", recordType);
+	}, [recordType]);
+
 
 	const handleTakePhoto = async () => {
 		const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -299,8 +305,7 @@ export default function UploadRecordModal({
 
 		const files = selectedFiles ?? [];
 		if (files.length === 0) {
-			setStep("prefill");
-			// Alert.alert("Alert", "Please attach at least one image / document!");
+			Alert.alert("Alert", "Please attach at least one image / document!");
 			return;
 		}
 
@@ -429,7 +434,7 @@ export default function UploadRecordModal({
 						files: filesToUpload,
 						title: recordTitle,
 						uid: session?.user.id,
-						record_type: formatLabel(recordType),
+						record_type: recordType,
 						...processedOcrData,
 					}),
 				}
