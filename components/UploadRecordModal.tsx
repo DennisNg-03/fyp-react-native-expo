@@ -59,8 +59,10 @@ export default function UploadRecordModal({
 		"medications",
 		"address",
 		"healthcare_provider_address",
+		"notes",
 	]);
 	const isDateField = (field: string) => field.toLowerCase().includes("date");
+	const ALLOWED_IMAGE_TYPES = ["png", "jpg", "jpeg", "webp", "heic", "heif"];
 
 	// useEffect(() => {
 	// 	console.log("recordDate (Date object):", recordDate);
@@ -179,7 +181,7 @@ export default function UploadRecordModal({
 			Alert.alert("Alert", "Please attach at least one image / document!");
 			return;
 		}
-
+		
 		try {
 			setSaving(true);
 			const filesToUpload = await Promise.all(
@@ -333,7 +335,7 @@ export default function UploadRecordModal({
 				patient_id: session.user.id,
 				file_paths: files,
 				signed_urls: uploadedUrls, // Array of local previews
-				...ocrData,
+				...processedOcrData,
 			});
 		} catch (err) {
 			console.error("Error saving record:", err);

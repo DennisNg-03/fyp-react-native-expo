@@ -1,7 +1,7 @@
 export type SelectedFile = {
 	uri: string; // This attribute can be the local URI for Expo image picker preview or Database's file path
 	name: string;
-	type: string;
+	type: string; // Expect to be MIME type
 };
 
 export type RecordType = "Lab Result" | "Prescription" | "Imaging Report" | "Discharge Summary" | "Others";
@@ -25,7 +25,7 @@ export interface BaseMedicalRecord {
   updated_at?: string;
 }
 
-export interface AdditionalMedicalRecord extends BaseMedicalRecord {
+export interface AdditionalMedicalRecord {
 	record_date?: string; // ISO date string
   patient_name?: string;
   date_of_birth?: string; // ISO date string (yyyy-mm-dd)
@@ -45,8 +45,7 @@ export interface AdditionalMedicalRecord extends BaseMedicalRecord {
 	notes?: string;
 }
 
-export type MedicalRecord =
-	BaseMedicalRecord | AdditionalMedicalRecord;
+export type MedicalRecord = BaseMedicalRecord & Partial<AdditionalMedicalRecord>;
 
 export const CompulsoryFields = [
 	"record_date",

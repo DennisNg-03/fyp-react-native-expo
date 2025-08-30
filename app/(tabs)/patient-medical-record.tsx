@@ -9,8 +9,8 @@ import {
 	Button,
 	Card,
 	Portal,
+	Searchbar,
 	Text,
-	TextInput,
 	useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -30,7 +30,7 @@ export default function PatientMedicalRecordScreen() {
 			try {
 				setLoading(true);
 				const res = await fetch(
-					`https://zxyyegizcgbhctjjoido.functions.supabase.co/getMedicalRecordPatient?uid=${session.user.id}`,
+					`https://zxyyegizcgbhctjjoido.functions.supabase.co/getMedicalRecord?uid=${session.user.id}&role=${role}`,
 					{
 						headers: {
 							Authorization: `Bearer ${session.access_token}`,
@@ -47,7 +47,7 @@ export default function PatientMedicalRecordScreen() {
 				const { recordsWithUrls } = (await res.json()) as {
 					recordsWithUrls: MedicalRecord[];
 				};
-				console.log("Records with Urls:", recordsWithUrls);
+				// console.log("Records with Urls:", recordsWithUrls);
 
 				const formattedRecords = (recordsWithUrls ?? []).map((record) => ({
 					...record,
@@ -63,20 +63,17 @@ export default function PatientMedicalRecordScreen() {
 		};
 
 		fetchRecords();
-	}, [session?.access_token, session?.user.id]);
+	}, [session?.access_token, session?.user.id, role]);
+
+	useEffect(() => {
+		console.log("Use effect Records:", records);
+	}, [records]);
 
 	const handleSearch = async () => {
 		return;
 	};
 
 	const handleUploadRecord = async () => {
-		// if (!recordType) {
-		// 	Alert.alert(
-		// 		"Alert",
-		// 		"Please select a record type before proceeding to upload medical record!"
-		// 	);
-		// 	return;
-		// }
 		setUploadModalVisible(true);
 	};
 
@@ -88,12 +85,18 @@ export default function PatientMedicalRecordScreen() {
 		<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
 			<ScrollView style={styles.container}>
 				<View style={styles.searchForm}>
-					<TextInput
+					<Searchbar
 						placeholder="Search records..."
-						mode="outlined"
 						value={searchQuery}
 						onChangeText={setSearchQuery}
-						style={styles.searchInput}
+						style={{
+							marginBottom: 10,
+							backgroundColor: theme.colors.onPrimary,
+							color: theme.colors.primary,
+							borderRadius: 8,
+							borderColor: theme.colors.primary,
+						}}
+						elevation={2}
 					/>
 					<Button
 						mode="contained"
@@ -132,7 +135,7 @@ export default function PatientMedicalRecordScreen() {
 								<Card.Title
 									title={record.title}
 									subtitle={
-										"record_date" in record && record.record_date
+										record.record_date
 											? `${record.record_date}${
 													record.record_type ? " • " + record.record_type : ""
 											  }`
@@ -141,7 +144,7 @@ export default function PatientMedicalRecordScreen() {
 								/>
 								<Card.Content>
 									{record.file_paths?.some(
-										(f) => typeof f !== "string" && f.type === "image"
+										(f) => typeof f !== "string" && f.type.includes("image")
 									) && (
 										<Image
 											source={{
@@ -149,7 +152,7 @@ export default function PatientMedicalRecordScreen() {
 													record.signed_urls?.[
 														record.file_paths.findIndex(
 															(f): f is SelectedFile =>
-																typeof f !== "string" && f.type === "image"
+																typeof f !== "string" && f.type.includes("image")
 														)
 													] ?? "",
 											}}
@@ -210,9 +213,6 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		alignItems: "center",
 		gap: 10,
-		marginBottom: 10,
-	},
-	searchInput: {
 		marginBottom: 10,
 	},
 	searchButton: {
