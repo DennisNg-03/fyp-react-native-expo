@@ -16,6 +16,10 @@ Deno.serve(async (req) => {
 		if (!uid) return new Response("Missing uid", { status: 400 });
 		if (!role) return new Response("Missing role", { status: 400 });
 
+		const page = Number(url.searchParams.get("page") ?? "1");
+		const limit = Number(url.searchParams.get("limit") ?? "10"); // default 10 per page
+		const offset = (page - 1) * limit;
+
 		// Get data from medical_records table in db
 		if (role === "patient") {
 			const { data: records, error } = await supabase
@@ -23,7 +27,8 @@ Deno.serve(async (req) => {
 				.select("*")
 				.eq("patient_id", uid)
 				.order("record_date", { ascending: false })
-				.order("updated_at", { ascending: false });
+				.order("updated_at", { ascending: false })
+				.range(offset, offset + limit - 1); // For handling pagination of infinite scroll
 
 			if (error)
 				return new Response("DB error: " + error.message, { status: 500 });
@@ -69,14 +74,18 @@ Deno.serve(async (req) => {
 				})
 			);
 
-			return new Response(JSON.stringify({ recordsWithUrls }), {
+			console.log("Page:", page, "Records:", recordsWithUrls.map(r => r.id));
+
+			const hasMore = records.length === limit;
+
+			return new Response(JSON.stringify({ recordsWithUrls, hasMore }), {
 				headers: { "Content-Type": "application/json" },
 			});
 		} else {
 			return new Response("Doctor logic to be handled", { status: 250 });
 		}
 	} catch (err: any) {
-		console.error("Error in getMedicalRecordUrlPatient Edge Function:", err);
+		console.error("Error in getMedicalRecord Edge Function:", err);
 		return new Response("Error: " + err.message, { status: 500 });
 	}
 });
