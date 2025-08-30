@@ -35,7 +35,7 @@ export const RecordTypeMenu = ({
 				onSelect={setSelectedType}
 				mode="outlined"
 				menuContentStyle={{
-					backgroundColor: theme.colors.background,
+					backgroundColor: theme.colors.onPrimary,
 					borderRadius: 8,
 				}}
 				hideMenuHeader

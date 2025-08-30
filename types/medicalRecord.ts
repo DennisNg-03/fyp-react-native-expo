@@ -20,7 +20,7 @@ export interface BaseMedicalRecord {
   title: string;
 	record_type?: string,
   // date: string;
-  file_paths: string[] | SelectedFile[];
+  file_paths: SelectedFile[];
   signed_urls: string[];
   updated_at?: string;
 }

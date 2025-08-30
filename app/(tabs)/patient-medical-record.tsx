@@ -15,6 +15,7 @@ import {
 import {
 	Button,
 	Card,
+	FAB,
 	Portal,
 	Searchbar,
 	Text,
@@ -27,6 +28,10 @@ export default function PatientMedicalRecordScreen() {
 	const { session, role } = useAuth();
 	const [records, setRecords] = useState<MedicalRecord[]>([]);
 	const [filteredRecords, setFilteredRecords] = useState<MedicalRecord[]>([]);
+	const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(
+		null
+	);
+	const [modalMode, setModalMode] = useState<"new" | "edit">("new");
 	const [loading, setLoading] = useState(false);
 	const [page, setPage] = useState(0);
 	const [hasMore, setHasMore] = useState(true);
@@ -50,12 +55,12 @@ export default function PatientMedicalRecordScreen() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [session?.user.id]);
 
-	// useEffect(() => {
-	// 	records.map((record) => {
-	// 		console.log("Use Effect Record Title:", record.title);
-	// 		console.log("Use Effect Record SignedUrl:", record.signed_urls);
-	// 	});
-	// }, [records]);
+	useEffect(() => {
+		records.map((record) => {
+			console.log("Use Effect Record Title:", record.title);
+			console.log("Use Effect Record SignedUrl:", record.signed_urls);
+		});
+	}, [records]);
 
 	// This useEffect is crucial for preventing refresh to manipulate the search result in Flatlist due to modiying "records" directly
 	useEffect(() => {
@@ -189,12 +194,16 @@ export default function PatientMedicalRecordScreen() {
 	};
 
 	const handleUploadRecord = async () => {
+		setSelectedRecord(null);
+		setModalMode("new");
 		setUploadModalVisible(true);
 	};
 
-	// if (loading) {
-	// 	return <ActivityIndicator />;
-	// }
+	const handleCardPress = (record: MedicalRecord) => {
+		setSelectedRecord(record);
+		setModalMode("edit");
+		setUploadModalVisible(true);
+	};
 
 	const keyExtractor = (item: MedicalRecord) => item.id;
 	const renderRecord = ({ item }: { item: MedicalRecord }) => {
@@ -211,7 +220,7 @@ export default function PatientMedicalRecordScreen() {
 			<Card
 				key={item.id}
 				style={styles.card}
-				onPress={() => console.log("Open record:", item.id)}
+				onPress={() => handleCardPress(item)}
 				elevation={1}
 			>
 				<Card.Title
@@ -357,12 +366,21 @@ export default function PatientMedicalRecordScreen() {
 							</Card>
 							<Button
 								mode="elevated"
-								icon="upload"
+								icon="plus"
+								// icon="upload"
 								onPress={handleUploadRecord}
 								style={styles.uploadButton}
 							>
 								Upload
 							</Button>
+							<FAB
+								// style={{ position: 'absolute', right: 16, bottom: 16 }}
+								icon="plus"
+								mode="elevated"
+								label="Add Record"
+								onPress={handleUploadRecord}
+								style={styles.uploadButton}
+							/>
 						</>
 					}
 					onEndReached={() => {
@@ -393,7 +411,19 @@ export default function PatientMedicalRecordScreen() {
 						visible={uploadModalVisible}
 						onClose={() => setUploadModalVisible(false)}
 						session={session}
-						onRecordSaved={(record) => setRecords((prev) => [record, ...prev])}
+						// onRecordSaved={(record) => setRecords((prev) => [record, ...prev])}
+						onRecordSaved={(record) => {
+							if (modalMode === "edit") {
+								setRecords((prev) =>
+									prev.map((r) => (r.id === record.id ? record : r))
+								);
+							} else {
+								setRecords((prev) => [record, ...prev]);
+							}
+							setUploadModalVisible(false);
+						}}
+						record={selectedRecord}
+						mode={modalMode}
 					/>
 				</Portal>
 			</SafeAreaView>

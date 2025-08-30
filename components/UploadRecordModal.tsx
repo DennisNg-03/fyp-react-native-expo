@@ -1,5 +1,6 @@
 import {
 	AdditionalMedicalRecordField,
+	AdditionalMedicalRecordFields,
 	CompulsoryFields,
 	MedicalRecord,
 	PatientFields,
@@ -12,7 +13,7 @@ import { blobToBase64 } from "@/utils/fileHelpers";
 import { Session } from "@supabase/supabase-js";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Platform, ScrollView, StyleSheet, View } from "react-native";
 import {
 	Button,
@@ -34,6 +35,8 @@ interface UploadRecordModalProps {
 	onClose: () => void;
 	session: Session | null;
 	onRecordSaved: (record: MedicalRecord) => void;
+	record?: MedicalRecord | null; // optional
+	mode: "new" | "edit";
 }
 
 export default function UploadRecordModal({
@@ -41,6 +44,8 @@ export default function UploadRecordModal({
 	onClose,
 	session,
 	onRecordSaved,
+	record,
+	mode,
 }: UploadRecordModalProps) {
 	// const [files, setFiles] = useState<SelectedFile[]>([]);
 	const theme = useTheme();
@@ -64,6 +69,34 @@ export default function UploadRecordModal({
 	const isDateField = (field: string) => field.toLowerCase().includes("date");
 	const ALLOWED_IMAGE_TYPES = ["png", "jpg", "jpeg", "webp", "heic", "heif"]; // These are the supported image types by Gemini
 	const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+	useEffect(() => {
+		if (visible) {
+			if (mode === "edit" && record) {
+				setStep("prefill");
+				setRecordTitle(record.title ?? "");
+				setRecordType(record.record_type ?? "");
+				console.log("Record.title:", record.title);
+				console.log("Record.type:", record.record_type);
+
+				// pick only AdditionalMedicalRecord fields from record
+				const ocrFields: Partial<Record<AdditionalMedicalRecordField, any>> =
+					{};
+				AdditionalMedicalRecordFields.forEach((field) => {
+					if (record[field] !== undefined) {
+						ocrFields[field] = record[field];
+					}
+				});
+
+				setOcrData(ocrFields);
+			} else if (mode === "new") {
+				setRecordTitle("");
+				setRecordType("");
+				setOcrData({});
+				// reset other fields for upload mode
+			}
+		}
+	}, [visible, mode, record]);
 
 	const handleTakePhoto = async () => {
 		const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -226,12 +259,11 @@ export default function UploadRecordModal({
 	};
 
 	const handleCancel = () => {
+		onClose(); // Call parent to hide this modal
 		setRecordTitle("");
 		setRecordType("");
 		setSelectedFiles([]);
 		setOcrData({});
-		onClose(); // Call parent to hide this modal
-		setStep("upload");
 	};
 
 	const handleNext = () => {
@@ -243,10 +275,13 @@ export default function UploadRecordModal({
 			Alert.alert("Alert", "Please fill up all the fields!");
 			return;
 		}
-		const files = selectedFiles ?? [];
-		if (files.length === 0) {
-			Alert.alert("Alert", "Please attach at least one image / document!");
-			return;
+
+		if (mode === "new") {
+			const files = selectedFiles ?? [];
+			if (files.length === 0) {
+				Alert.alert("Alert", "Please attach at least one image / document!");
+				return;
+			}
 		}
 
 		setStep("confirm");
@@ -341,6 +376,11 @@ export default function UploadRecordModal({
 			return;
 		}
 
+		// To be removed later
+		if (mode === "edit") {
+			return;
+		}
+
 		try {
 			setSaving(true);
 			// Loop through all selected files
@@ -421,7 +461,6 @@ export default function UploadRecordModal({
 		} finally {
 			handleCancel();
 			setSaving(false);
-			setStep("upload");
 		}
 	};
 
@@ -441,11 +480,11 @@ export default function UploadRecordModal({
 			>
 				<Text variant="titleMedium" style={styles.modalTitle}>
 					{step === "upload" && "New Medical Record"}
-					{step === "confirm" && "Confirm Upload"}
 					{step === "prefill" && "Review Record"}
+					{step === "confirm" && "Confirm Upload"}
 				</Text>
 
-				{step === "upload" && (
+				{step === "upload" && mode === "new" && (
 					<>
 						<ProgressBar
 							progress={0}
@@ -457,7 +496,10 @@ export default function UploadRecordModal({
 							mode="outlined"
 							value={recordTitle}
 							onChangeText={setRecordTitle}
-							style={[styles.input, { backgroundColor: theme.colors.onPrimary}]}
+							style={[
+								styles.input,
+								{ backgroundColor: theme.colors.onPrimary },
+							]}
 							autoComplete="off"
 						/>
 						<RecordTypeMenu
@@ -526,7 +568,8 @@ export default function UploadRecordModal({
 								color: theme.colors.onSurfaceVariant, // muted color
 							}}
 						>
-							For attached files (PDF or TXT), PDFs usually give higher text extraction accuracy.
+							For attached files (PDF or TXT), PDFs usually give higher text
+							extraction accuracy.
 						</Text>
 
 						<View style={styles.actionButtonRow}>
@@ -550,7 +593,7 @@ export default function UploadRecordModal({
 				{step === "prefill" && (
 					<>
 						<ProgressBar
-							progress={0.33}
+							progress={mode === "edit" ? 0 : 0.5}
 							color={theme.colors.primary}
 							style={styles.progressBar}
 						/>
@@ -559,7 +602,10 @@ export default function UploadRecordModal({
 							mode="outlined"
 							value={recordTitle}
 							onChangeText={setRecordTitle}
-							style={[styles.input, { backgroundColor: theme.colors.onPrimary}]}
+							style={[
+								styles.input,
+								{ backgroundColor: theme.colors.onPrimary },
+							]}
 							autoComplete="off"
 						/>
 						<RecordTypeMenu
@@ -606,7 +652,10 @@ export default function UploadRecordModal({
 									onChangeText={(text) =>
 										setOcrData((prev) => ({ ...prev, [field]: text }))
 									}
-									style={[styles.input, { backgroundColor: theme.colors.onPrimary}]}
+									style={[
+										styles.input,
+										{ backgroundColor: theme.colors.onPrimary },
+									]}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 5 : 1}
 								/>
@@ -638,7 +687,10 @@ export default function UploadRecordModal({
 									onChangeText={(text) =>
 										setOcrData((prev) => ({ ...prev, [field]: text }))
 									}
-									style={[styles.input, { backgroundColor: theme.colors.onPrimary}]}
+									style={[
+										styles.input,
+										{ backgroundColor: theme.colors.onPrimary },
+									]}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 5 : 1}
 								/>
@@ -670,94 +722,29 @@ export default function UploadRecordModal({
 									onChangeText={(text) =>
 										setOcrData((prev) => ({ ...prev, [field]: text }))
 									}
-									style={[styles.input, { backgroundColor: theme.colors.onPrimary}]}
+									style={[
+										styles.input,
+										{ backgroundColor: theme.colors.onPrimary },
+									]}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 10 : 1}
 								/>
 							)
 						)}
 
-						{/* {recordType === "lab_result" &&
-							LabResultFields.map((field) => (
-								<TextInput
-									key={field}
-									label={formatLabel(field)}
-									mode="outlined"
-									value={ocrData[field] ?? ""}
-									onChangeText={(text) =>
-										setOcrData((prev) => ({ ...prev, [field]: text }))
-									}
-									style={styles.input}
-								/>
-							))}
-
-						{recordType === "prescription" &&
-							PrescriptionFields.map((field) => (
-								<TextInput
-									key={field}
-									label={formatLabel(field)}
-									mode="outlined"
-									value={ocrData[field] ?? ""}
-									onChangeText={(text) =>
-										setOcrData((prev) => ({ ...prev, [field]: text }))
-									}
-									style={styles.input}
-								/>
-							))}
-
-						{recordType === "imaging_report" &&
-							ImagingReportFields.map((field) => (
-								<TextInput
-									key={field}
-									label={formatLabel(field)}
-									mode="outlined"
-									value={ocrData[field] ?? ""}
-									onChangeText={(text) =>
-										setOcrData((prev) => ({ ...prev, [field]: text }))
-									}
-									style={styles.input}
-								/>
-							))}
-
-						{recordType === "discharge_summary" &&
-							DischargeSummaryFields.map((field) => (
-								<TextInput
-									key={field}
-									label={formatLabel(field)}
-									mode="outlined"
-									value={ocrData[field] ?? ""}
-									onChangeText={(text) =>
-										setOcrData((prev) => ({ ...prev, [field]: text }))
-									}
-									style={styles.input}
-								/>
-							))} */}
-
-						{/* {selectedFiles.length > 0 && (
-							<ScrollView horizontal style={styles.filePreviewHorizontalScroll}>
-								{selectedFiles.map((file, index) => (
-									<FilePreview 
-										key={index} 
-										file={file} 
-										onRemove={() =>
-											setSelectedFiles((prev: SelectedFile[]) =>
-												prev.filter((f) => f.uri !== file.uri)
-											)
-										} 
-									/>
-								))}
-							</ScrollView>
-						)} */}
-
 						<View style={styles.actionButtonRow}>
 							<Button
 								mode="outlined"
 								onPress={() => {
-									setStep("upload");
+									if (mode === "edit") {
+										handleCancel();
+									} else {
+										setStep("upload");
+									}
 								}}
 								style={styles.actionButton}
 							>
-								Back
+								{mode === "edit" ? "Cancel" : "Back"}
 							</Button>
 							<Button
 								mode="contained"
@@ -772,20 +759,34 @@ export default function UploadRecordModal({
 				{step === "confirm" && (
 					<>
 						<ProgressBar
-							progress={0.67}
+							progress={1}
 							color={theme.colors.primary}
 							style={styles.progressBar}
 						/>
-						<View style={{ padding: 16 }}>
-							<Text style={[styles.confirmationText, { marginBottom: 12 }]}>
-								The uploaded image(s), file(s) and form data will be saved into
-								your record.
-							</Text>
+						<View style={{ padding: 8 }}>
+							{mode === "new" ? (
+								<>
+									<Text style={[styles.confirmationText, { marginBottom: 12 }]}>
+										The uploaded image(s), file(s) and form data will be saved
+										into your record.
+									</Text>
 
-							<Text style={[styles.confirmationText, { marginBottom: 20 }]}>
-								If you need to make changes, you can go back and edit it before
-								continuing.
-							</Text>
+									<Text style={[styles.confirmationText, { marginBottom: 20 }]}>
+										If you need to make changes, you can go back and edit it
+										before continuing.
+									</Text>
+								</>
+							) : (
+								<>
+									{record?.file_paths?.map((file, index) => (
+										<FilePreview
+											key={index}
+											file={file}
+											signedUrl={record.signed_urls?.[index]}
+										/>
+									))}
+								</>
+							)}
 
 							<View style={styles.actionButtonRow}>
 								<Button

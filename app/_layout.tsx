@@ -18,6 +18,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function RootLayout() {
 	const colorScheme = useColorScheme();
+	// const myTheme = useTheme();
 	const themeMode = colorScheme === "dark" ? MD3DarkTheme : MD3LightTheme;
 	// const [initialising, setInitialising] = useState(true);
 	// const [user, setUser] = useState<User | null>(null);
@@ -28,6 +29,10 @@ export default function RootLayout() {
 
 	const theme = {
 		...themeMode,
+		// colors: {
+		// 	...myTheme.colors,
+		// 	background: myTheme.colors.onPrimary,
+		// }
 	};
 
 	// if (!loaded) {
