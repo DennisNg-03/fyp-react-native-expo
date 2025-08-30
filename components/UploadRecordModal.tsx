@@ -457,7 +457,7 @@ export default function UploadRecordModal({
 							mode="outlined"
 							value={recordTitle}
 							onChangeText={setRecordTitle}
-							style={styles.input}
+							style={[styles.input, { backgroundColor: theme.colors.onPrimary}]}
 							autoComplete="off"
 						/>
 						<RecordTypeMenu
@@ -559,7 +559,7 @@ export default function UploadRecordModal({
 							mode="outlined"
 							value={recordTitle}
 							onChangeText={setRecordTitle}
-							style={styles.input}
+							style={[styles.input, { backgroundColor: theme.colors.onPrimary}]}
 							autoComplete="off"
 						/>
 						<RecordTypeMenu
@@ -606,7 +606,7 @@ export default function UploadRecordModal({
 									onChangeText={(text) =>
 										setOcrData((prev) => ({ ...prev, [field]: text }))
 									}
-									style={styles.input}
+									style={[styles.input, { backgroundColor: theme.colors.onPrimary}]}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 5 : 1}
 								/>
@@ -638,7 +638,7 @@ export default function UploadRecordModal({
 									onChangeText={(text) =>
 										setOcrData((prev) => ({ ...prev, [field]: text }))
 									}
-									style={styles.input}
+									style={[styles.input, { backgroundColor: theme.colors.onPrimary}]}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 5 : 1}
 								/>
@@ -670,7 +670,7 @@ export default function UploadRecordModal({
 									onChangeText={(text) =>
 										setOcrData((prev) => ({ ...prev, [field]: text }))
 									}
-									style={styles.input}
+									style={[styles.input, { backgroundColor: theme.colors.onPrimary}]}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 10 : 1}
 								/>

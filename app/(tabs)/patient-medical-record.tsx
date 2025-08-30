@@ -1,12 +1,12 @@
-import { ActivityIndicator } from "@/components/ActivityIndicator";
+import CustomDatePicker from "@/components/CustomDatePicker";
 import { formatLabel } from "@/components/RecordTypeMenu";
 import UploadRecordModal from "@/components/UploadRecordModal";
 import { useAuth } from "@/providers/AuthProvider";
 import { MedicalRecord, SelectedFile } from "@/types/medicalRecord";
 import { useEffect, useState } from "react";
 import {
+	Alert,
 	FlatList,
-	Image,
 	Keyboard,
 	StyleSheet,
 	TouchableWithoutFeedback,
@@ -33,12 +33,20 @@ export default function PatientMedicalRecordScreen() {
 	const [uploadModalVisible, setUploadModalVisible] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [imageLoading, setImageLoading] = useState(true);
+	const [fromDate, setFromDate] = useState<Date | undefined>(() => {
+		const d = new Date();
+		d.setDate(d.getDate() - 7); // set 7 days earlier
+		return d;
+	});
+	const [toDate, setToDate] = useState<Date | undefined>(new Date());
+
 	const RECORDS_PER_PAGE = 4;
 
 	useEffect(() => {
 		if (!session?.user.id) return;
 
 		fetchRecords(1);
+		handleSearch();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [session?.user.id]);
 
@@ -49,7 +57,7 @@ export default function PatientMedicalRecordScreen() {
 	// 	});
 	// }, [records]);
 
-	// This useEffect is crucial for preventing excessive re-rendering issue in Flatlist due to modiying "records" directly
+	// This useEffect is crucial for preventing refresh to manipulate the search result in Flatlist due to modiying "records" directly
 	useEffect(() => {
 		if (!searchQuery) {
 			setFilteredRecords(records);
@@ -58,7 +66,9 @@ export default function PatientMedicalRecordScreen() {
 				records.filter(
 					(record) =>
 						record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-						record.record_type?.toLowerCase().includes(searchQuery.toLowerCase())
+						record.record_type
+							?.toLowerCase()
+							.includes(searchQuery.toLowerCase())
 				)
 			);
 		}
@@ -113,31 +123,69 @@ export default function PatientMedicalRecordScreen() {
 	};
 
 	const handleSearch = () => {
-		// if (!searchQuery) {
-		// 	fetchRecords(1, true); // // If query is empty, show all records, and ignore hasMore when refreshing
-		// 	return;
-		// }
-		// const filtered = records.filter(
-		// 	(record) =>
-		// 		record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		// 		record.record_type?.toLowerCase().includes(searchQuery.toLowerCase())
-		// );
-		// console.log(
-		// 	"Filtered record titles:",
-		// 	filtered.map((r) => r.title)
-		// );
-		// setFilteredRecords(filtered);
-		if (!searchQuery) {
-			setFilteredRecords(records);
-		} else {
-			setFilteredRecords(
-				records.filter(
-					(record) =>
-						record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-						record.record_type?.toLowerCase().includes(searchQuery.toLowerCase())
-				)
+		let filtered = records;
+		if (fromDate && toDate && fromDate > toDate) {
+			Alert.alert(
+				"Invalid date range",
+				"The start date cannot be later than the end date."
+			);
+			return; // stop filtering
+		}
+
+		if (searchQuery) {
+			filtered = filtered.filter(
+				(record) =>
+					record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+					record.record_type
+						?.toLowerCase()
+						.includes(searchQuery.toLowerCase()) ||
+					record.patient_name
+						?.toLowerCase()
+						.includes(searchQuery.toLowerCase()) ||
+					record.doctor_name
+						?.toLowerCase()
+						.includes(searchQuery.toLowerCase()) ||
+					record.healthcare_provider_name
+						?.toLowerCase()
+						.includes(searchQuery.toLowerCase())
 			);
 		}
+
+		// Date range filter
+		if (fromDate || toDate) {
+			const stripTime = (date: Date) => {
+				const d = new Date(date);
+				d.setHours(0, 0, 0, 0);
+				return d;
+			};
+
+			console.log("Filtering by date range...");
+			console.log("From Date (raw):", fromDate);
+			console.log("To Date (raw):", toDate);
+			console.log(
+				"From Date (stripped):",
+				fromDate ? stripTime(fromDate) : undefined
+			);
+			console.log(
+				"To Date (stripped):",
+				toDate ? stripTime(toDate) : undefined
+			);
+
+			filtered = filtered.filter((record) => {
+				if (!record.record_date) return false;
+
+				const recordDate = stripTime(new Date(record.record_date));
+				console.log("----");
+				console.log("Record raw:", record.record_date);
+				console.log("Record stripped:", recordDate);
+
+				if (fromDate && recordDate < stripTime(fromDate)) return false;
+				if (toDate && recordDate > stripTime(toDate)) return false;
+
+				return true;
+			});
+		}
+		setFilteredRecords(filtered);
 	};
 
 	const handleUploadRecord = async () => {
@@ -148,17 +196,16 @@ export default function PatientMedicalRecordScreen() {
 	// 	return <ActivityIndicator />;
 	// }
 
+	const keyExtractor = (item: MedicalRecord) => item.id;
 	const renderRecord = ({ item }: { item: MedicalRecord }) => {
 		const imageIndex = item.file_paths?.findIndex(
 			(f): f is SelectedFile =>
 				typeof f !== "string" && f.type.includes("image")
 		);
-
 		const imageUrl =
 			imageIndex !== undefined && imageIndex >= 0
 				? item.signed_urls?.[imageIndex] ?? ""
 				: "";
-		console.log("Image URL:", imageUrl);
 
 		return (
 			<Card
@@ -178,14 +225,9 @@ export default function PatientMedicalRecordScreen() {
 					}
 				/>
 				<Card.Content>
-					{imageUrl ? (
 					<View style={{ width: "100%", height: 150, marginBottom: 10 }}>
-						{imageLoading && (
-							<ActivityIndicator
-								size="small"
-								loadingMsg=""
-								overlay={false}
-							/>
+						{/* {imageLoading && (
+							<ActivityIndicator size="small" loadingMsg="" overlay={false} />
 						)}
 						<Image
 							source={{ uri: imageUrl }}
@@ -193,15 +235,34 @@ export default function PatientMedicalRecordScreen() {
 								width: "100%",
 								height: "100%",
 								borderRadius: 8,
-								position: "absolute", // sits on top
+								position: "absolute",
 							}}
-							resizeMode="cover"
 							onLoadStart={() => setImageLoading(true)}
 							onLoadEnd={() => setImageLoading(false)}
 							onError={() => setImageLoading(false)}
-						/>
+							resizeMethod="resize" 
+						/> */}
+
+						{/* Expo-image */}
+						{/* {imageLoading && (
+							<ActivityIndicator size="small" loadingMsg="" overlay={false} />
+						)}
+						<Image
+							source={{ uri: imageUrl }}
+							style={{
+								width: "100%",
+								height: "100%",
+								borderRadius: 8,
+								position: "absolute",
+							}}
+							contentFit="cover"
+							// placeholder={require('../assets/placeholder.png')} // optional
+							cachePolicy="memory-disk"
+							onLoadStart={() => setImageLoading(true)}
+							onLoadEnd={() => setImageLoading(false)}
+							onError={() => setImageLoading(false)}
+						/> */}
 					</View>
-				) : null}
 
 					{/* Always show all fields */}
 					<View style={{ gap: 6 }}>
@@ -244,10 +305,12 @@ export default function PatientMedicalRecordScreen() {
 				<FlatList
 					contentContainerStyle={{ paddingBottom: 50, paddingHorizontal: 16 }}
 					data={filteredRecords}
-					keyExtractor={(item) => item.id}
+					keyExtractor={keyExtractor}
 					refreshing={loading}
 					onRefresh={handleRefresh}
 					renderItem={renderRecord}
+					// initialNumToRender={4}
+					maxToRenderPerBatch={4}
 					ListHeaderComponent={
 						<>
 							<Card style={styles.searchForm} elevation={1}>
@@ -257,17 +320,32 @@ export default function PatientMedicalRecordScreen() {
 										value={searchQuery}
 										onChangeText={setSearchQuery}
 										style={{
-											marginBottom: 10,
+											marginBottom: 15,
 											backgroundColor: theme.colors.onPrimary,
 											color: theme.colors.primary,
 											borderRadius: 8,
 											borderColor: theme.colors.primary,
 										}}
+										inputStyle={{ fontSize: 14, padding: 0, color: "black" }}
 										elevation={2}
 										autoComplete="off"
 										autoCorrect={false}
 										spellCheck={false}
 									/>
+									<CustomDatePicker
+										label="From"
+										value={fromDate}
+										onChange={setFromDate}
+										parent="searchForm"
+									/>
+
+									<CustomDatePicker
+										label="To"
+										value={toDate}
+										onChange={setToDate}
+										parent="searchForm"
+									/>
+
 									<Button
 										mode="contained"
 										onPress={handleSearch}
@@ -339,14 +417,14 @@ const styles = StyleSheet.create({
 		gap: 20,
 		marginBottom: 20,
 	},
-	searchRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-		marginBottom: 10,
-	},
+	// searchRow: {
+	// 	flexDirection: "row",
+	// 	alignItems: "center",
+	// 	gap: 10,
+	// 	marginBottom: 10,
+	// },
 	searchButton: {
-		marginBottom: 10,
+		marginVertical: 10,
 	},
 	uploadButton: {
 		alignSelf: "flex-end",
