@@ -476,7 +476,8 @@ export default function UploadRecordModal({
 					signed_urls: uploadedUrls, // Array of local previews
 					updated_at: updatedAt,
 					...processedOcrData,
-				});
+				}); // These data will not be used upon changing of logic, will remove in future
+
 			} else if (mode === "edit") {
 				// Call Edge function to update record
 				// Call Edge Function to upload all images and get signed URLs
@@ -548,8 +549,10 @@ export default function UploadRecordModal({
 			>
 				<Text variant="titleMedium" style={styles.modalTitle}>
 					{step === "upload" && "New Medical Record"}
-					{step === "prefill" && "Review Record"}
-					{step === "confirm" && "Confirm Upload"}
+					{step === "prefill" &&
+						(mode === "edit" ? "Edit Record" : "Review Record")}
+					{step === "confirm" &&
+						(mode === "edit" ? "Confirm Upload" : "Confirm Changes")}
 				</Text>
 
 				{step === "upload" && mode === "new" && (
@@ -566,7 +569,7 @@ export default function UploadRecordModal({
 							onChangeText={setRecordTitle}
 							style={[
 								styles.input,
-								{ backgroundColor: theme.colors.onPrimary },
+								// { backgroundColor: theme.colors.onPrimary },
 							]}
 							autoComplete="off"
 						/>
@@ -672,7 +675,7 @@ export default function UploadRecordModal({
 							onChangeText={setRecordTitle}
 							style={[
 								styles.input,
-								{ backgroundColor: theme.colors.onPrimary },
+								// { backgroundColor: theme.colors.onPrimary },
 							]}
 							autoComplete="off"
 						/>
@@ -728,7 +731,7 @@ export default function UploadRecordModal({
 									}
 									style={[
 										styles.input,
-										{ backgroundColor: theme.colors.onPrimary },
+										// { backgroundColor: theme.colors.onPrimary },
 									]}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 5 : 1}
@@ -769,7 +772,7 @@ export default function UploadRecordModal({
 									}
 									style={[
 										styles.input,
-										{ backgroundColor: theme.colors.onPrimary },
+										// { backgroundColor: theme.colors.onPrimary },
 									]}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 5 : 1}
@@ -810,7 +813,7 @@ export default function UploadRecordModal({
 									}
 									style={[
 										styles.input,
-										{ backgroundColor: theme.colors.onPrimary },
+										// { backgroundColor: theme.colors.onPrimary },
 									]}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 10 : 1}
@@ -856,14 +859,36 @@ export default function UploadRecordModal({
 										The uploaded image(s), file(s) and form data will be saved
 										into your record.
 									</Text>
-
+									<Text style={[styles.confirmationText, { marginBottom: 12 }]}>
+										You can still review and edit the extracted form details
+										before continuing. 
+									</Text>
 									<Text style={[styles.confirmationText, { marginBottom: 20 }]}>
-										If you need to make changes, you can go back and edit it
-										before continuing.
+										However, uploaded image(s) and file(s)
+										cannot be changed once submitted, as doing so would affect
+										the extracted content.
 									</Text>
 								</>
 							) : (
 								<>
+									<Text
+										style={[styles.editConfirmationText, { marginBottom: 12 }]}
+									>
+										The attached file(s) shown below are those uploaded when
+										this record was first created.
+									</Text>
+
+									<Text
+										style={[styles.editConfirmationText, { marginBottom: 12 }]}
+									>
+										They cannot be modified and are provided here for your reference only.
+									</Text>
+									<Text
+										style={[styles.editConfirmationText, { marginBottom: 12 }]}
+									>
+										If you need to adjust the form details further, you may go
+										back before saving.
+									</Text>
 									<ScrollView
 										horizontal
 										style={styles.filePreviewHorizontalScroll}
@@ -968,6 +993,10 @@ const styles = StyleSheet.create({
 		marginHorizontal: 4,
 	},
 	confirmationText: {
+		fontSize: 16,
+		lineHeight: 22,
+	},
+	editConfirmationText: {
 		fontSize: 16,
 		lineHeight: 22,
 	},

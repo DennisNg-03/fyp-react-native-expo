@@ -15,11 +15,10 @@ import {
 import {
 	Button,
 	Card,
-	FAB,
 	Portal,
 	Searchbar,
 	Text,
-	useTheme,
+	useTheme
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -52,24 +51,25 @@ export default function PatientMedicalRecordScreen() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [session?.user.id]);
 
-	// useEffect(() => {
-	// 	records.map((record) => {
-	// 		console.log("Use Effect Record Title:", record.title);
-	// 		console.log("Use Effect Record Type:", record.record_type);
-	// 		console.log("Use Effect Record SignedUrl:", record.signed_urls);
-	// 	});
-	// }, [records]);
+	useEffect(() => {
+		records.map((record) => {
+			console.log("Use Effect Record ID:", record.id);
+			console.log("Use Effect Record Title:", record.title);
+			// console.log("Use Effect Record Type:", record.record_type);
+			// console.log("Use Effect Record SignedUrl:", record.signed_urls);
+		});
+	}, [records]);
 
-	// useEffect(() => {
-	// 	filteredRecords.map((record) => {
-	// 		console.log("Use Effect Filtered Record Title:", record.title);
-	// 		console.log("Use Effect Filtered Type:", record.record_type);
-	// 		console.log("Use Effect Filtered Dare:", record.record_date);
-	// 		console.log("Use Effect Filtered SignedUrl:", record.signed_urls);
-	// 	});
-	// }, [filteredRecords]);
+	useEffect(() => {
+		filteredRecords.map((record) => {
+			console.log("Use Effect Filtered Record ID:", record.id);
+			console.log("Use Effect Filtered Type:", record.record_type);
+			// console.log("Use Effect Filtered Dare:", record.record_date);
+			// console.log("Use Effect Filtered SignedUrl:", record.signed_urls);
+		});
+	}, [filteredRecords]);
 
-	// This useEffect is for triggering the search based on default fields for the first time when records is set
+	// This useEffect is for triggering the search based on default fields for the first time when record is fetched
 	useEffect(() => {
 		handleSearch();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -159,28 +159,29 @@ export default function PatientMedicalRecordScreen() {
 				return d;
 			};
 
-			console.log("Filtering by date range...");
-			console.log("From Date (raw):", fromDate);
-			console.log("To Date (raw):", toDate);
-			console.log(
-				"From Date (stripped):",
-				fromDate ? stripTime(fromDate) : undefined
-			);
-			console.log(
-				"To Date (stripped):",
-				toDate ? stripTime(toDate) : undefined
-			);
+			// console.log("Filtering by date range...");
+			// console.log("From Date (raw):", fromDate);
+			// console.log("To Date (raw):", toDate);
+			// console.log(
+			// 	"From Date (stripped):",
+			// 	fromDate ? stripTime(fromDate) : undefined
+			// );
+			// console.log(
+			// 	"To Date (stripped):",
+			// 	toDate ? stripTime(toDate) : undefined
+			// );
 
 			filtered = filtered.filter((record) => {
 				if (!record.record_date) return false;
 
 				const recordDate = stripTime(new Date(record.record_date));
-				console.log("----");
-				console.log("Record raw:", record.record_date);
-				console.log("Record stripped:", recordDate);
+				// console.log("----");
+				// console.log("Record raw:", record.record_date);
+				// console.log("Record stripped:", recordDate);
 
 				if (fromDate && recordDate < stripTime(fromDate)) return false;
 				if (toDate && recordDate > stripTime(toDate)) return false;
+				console.log("Search found Record ID:", record.id);
 
 				return true;
 			});
@@ -188,7 +189,7 @@ export default function PatientMedicalRecordScreen() {
 		setFilteredRecords(filtered);
 	};
 
-	const handleUploadRecord = async () => {
+	const handleAddRecord = async () => {
 		setSelectedRecord(null);
 		setModalMode("new");
 		setUploadModalVisible(true);
@@ -364,19 +365,11 @@ export default function PatientMedicalRecordScreen() {
 								mode="elevated"
 								icon="plus"
 								// icon="upload"
-								onPress={handleUploadRecord}
+								onPress={handleAddRecord}
 								style={styles.uploadButton}
 							>
-								Upload
+								Add Record
 							</Button>
-							<FAB
-								// style={{ position: 'absolute', right: 16, bottom: 16 }}
-								icon="plus"
-								mode="elevated"
-								label="Add Record"
-								onPress={handleUploadRecord}
-								style={styles.uploadButton}
-							/>
 						</>
 					}
 					onEndReached={() => {
@@ -414,7 +407,7 @@ export default function PatientMedicalRecordScreen() {
 									prev.map((r) => (r.id === record.id ? record : r))
 								);
 							} else {
-								setRecords((prev) => [record, ...prev]);
+								handleRefresh();
 							}
 							setUploadModalVisible(false);
 						}}

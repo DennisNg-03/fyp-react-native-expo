@@ -29,7 +29,7 @@ export default function CustomDatePicker({
 				readOnly
 				// contentStyle={{ backgroundColor: theme.colors.onSurfaceVariant}}
 				style={{
-					backgroundColor: theme.colors.onPrimary,
+					backgroundColor: parent === "formModal" ? undefined : theme.colors.onPrimary,
 					fontSize: parent === "formModal" ? 16 : 14,
 				}}
 				outlineStyle={{ borderRadius: 8 }}
