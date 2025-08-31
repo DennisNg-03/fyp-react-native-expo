@@ -400,8 +400,8 @@ export default function UploadRecordModal({
 				Object.entries(ocrData).map(([key, value]) => {
 					if (!value) return [key, value]; // keep null/undefined data as-is
 
-					// These fields would be arrays split by newline
-					if (typeof value === "string") {
+					// To format multine fields to be arrays split by newline
+					if (typeof value === "string" && multilineFields.has(key)) {
 						const arr = value
 							.split("\n")
 							.map((s) => s.trim())
@@ -716,7 +716,13 @@ export default function UploadRecordModal({
 									key={field}
 									label={formatLabel(field)}
 									mode="outlined"
-									value={ocrData[field] ?? ""}
+									value={
+										multilineFields.has(field)
+											? Array.isArray(ocrData[field])
+												? (ocrData[field] as string[]).join("\n")
+												: (ocrData[field] as string) ?? "" // fallback if it's string
+											: (ocrData[field] as string) ?? ""
+									}
 									onChangeText={(text) =>
 										setOcrData((prev) => ({ ...prev, [field]: text }))
 									}
@@ -751,7 +757,13 @@ export default function UploadRecordModal({
 									key={field}
 									label={formatLabel(field)}
 									mode="outlined"
-									value={ocrData[field] ?? ""}
+									value={
+										multilineFields.has(field)
+											? Array.isArray(ocrData[field])
+												? (ocrData[field] as string[]).join("\n")
+												: (ocrData[field] as string) ?? "" // fallback if it's string
+											: (ocrData[field] as string) ?? ""
+									}
 									onChangeText={(text) =>
 										setOcrData((prev) => ({ ...prev, [field]: text }))
 									}
@@ -786,7 +798,13 @@ export default function UploadRecordModal({
 									key={field}
 									label={formatLabel(field)}
 									mode="outlined"
-									value={ocrData[field] ?? ""}
+									value={
+										multilineFields.has(field)
+											? Array.isArray(ocrData[field])
+												? (ocrData[field] as string[]).join("\n")
+												: (ocrData[field] as string) ?? "" // fallback if it's string
+											: (ocrData[field] as string) ?? ""
+									}
 									onChangeText={(text) =>
 										setOcrData((prev) => ({ ...prev, [field]: text }))
 									}
@@ -846,13 +864,18 @@ export default function UploadRecordModal({
 								</>
 							) : (
 								<>
-									{record?.file_paths?.map((file, index) => (
-										<FilePreview
-											key={index}
-											file={file}
-											signedUrl={record.signed_urls?.[index]}
-										/>
-									))}
+									<ScrollView
+										horizontal
+										style={styles.filePreviewHorizontalScroll}
+									>
+										{record?.file_paths?.map((file, index) => (
+											<FilePreview
+												key={index}
+												file={file}
+												signedUrl={record.signed_urls?.[index]}
+											/>
+										))}
+									</ScrollView>
 								</>
 							)}
 

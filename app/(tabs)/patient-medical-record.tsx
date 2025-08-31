@@ -220,6 +220,7 @@ export default function PatientMedicalRecordScreen() {
 			>
 				<Card.Title
 					title={item.title}
+					titleStyle={{ fontWeight: 600 }}
 					subtitle={
 						item.record_date
 							? `${item.record_date}${
