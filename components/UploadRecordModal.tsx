@@ -284,8 +284,10 @@ export default function UploadRecordModal({
 			console.error("User not authenticated!");
 			return;
 		}
-		if (!recordTitle || !recordType) {
-			Alert.alert("Alert", "Record Title cannot be empty!");
+
+		const missingField = CompulsoryFields.find((field) => !ocrData[field]); // It's only record_date now
+		if (!recordTitle || !recordType || missingField) {
+			Alert.alert("Alert", "Record Title, Record Type, and Record Date cannot be empty!");
 			return;
 		}
 
@@ -477,7 +479,6 @@ export default function UploadRecordModal({
 					updated_at: updatedAt,
 					...processedOcrData,
 				}); // These data will not be used upon changing of logic, will remove in future
-
 			} else if (mode === "edit") {
 				// Call Edge function to update record
 				// Call Edge Function to upload all images and get signed URLs
@@ -861,12 +862,12 @@ export default function UploadRecordModal({
 									</Text>
 									<Text style={[styles.confirmationText, { marginBottom: 12 }]}>
 										You can still review and edit the extracted form details
-										before continuing. 
+										before continuing.
 									</Text>
 									<Text style={[styles.confirmationText, { marginBottom: 20 }]}>
-										However, uploaded image(s) and file(s)
-										cannot be changed once submitted, as doing so would affect
-										the extracted content.
+										However, uploaded image(s) and file(s) cannot be changed
+										once submitted, as doing so would affect the extracted
+										content.
 									</Text>
 								</>
 							) : (
@@ -881,7 +882,8 @@ export default function UploadRecordModal({
 									<Text
 										style={[styles.editConfirmationText, { marginBottom: 12 }]}
 									>
-										They cannot be modified and are provided here for your reference only.
+										They cannot be modified and are provided here for your
+										reference only.
 									</Text>
 									<Text
 										style={[styles.editConfirmationText, { marginBottom: 12 }]}

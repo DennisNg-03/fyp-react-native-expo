@@ -43,7 +43,7 @@ export default function TabLayout() {
         name="appointment"
         options={{
           title: 'My Appointments',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="calendar" color={color} />,
 					href: role === "patient" ? "/appointment" : null,
         }}
       />
@@ -51,7 +51,7 @@ export default function TabLayout() {
         name="patient-medical-record"
         options={{
           title: 'My Records',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="doc.text.fill" color={color} />,
 					href: (role === "patient") ? "/patient-medical-record" : null,
         }}
       />
@@ -59,7 +59,7 @@ export default function TabLayout() {
         name="schedule"
         options={{
           title: 'Schedules',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="clock.fill" color={color} />,
 					href: (role === "doctor" || role === "nurse") ? "/schedule" : null,
         }}
       />
@@ -67,7 +67,7 @@ export default function TabLayout() {
         name="doctor-medical-record"
         options={{
           title: 'Patient Records',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.text.rectangle" color={color} />,
 					href: (role === "doctor" || role === "nurse") ? "/doctor-medical-record" : null,
         }}
       />
@@ -75,7 +75,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'My Profile',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.crop.circle.fill" color={color} />,
         }}
       />
     </Tabs>

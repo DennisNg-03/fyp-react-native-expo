@@ -14,16 +14,16 @@ Deno.serve(async (req) => {
 	try {
 		const supabase = createClient(
 			Deno.env.get("SUPABASE_URL")!,
-			Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+			Deno.env.get("SUPABASE_ANON_KEY")!,
+			{
+				global: {
+					headers: { Authorization: req.headers.get("Authorization")! },
+				},
+			}
 		);
 
-		const {
-			record_id,
-			title,
-			record_type,
-			record_date,
-			...ocrData
-		} = (await req.json()) as RequestBody;
+		const { record_id, title, record_type, record_date, ...ocrData } =
+			(await req.json()) as RequestBody;
 		console.log("Parsed request body:", {
 			title,
 			record_date,
@@ -62,7 +62,6 @@ Deno.serve(async (req) => {
 		return new Response(JSON.stringify({ data }), {
 			headers: { "Content-Type": "application/json" },
 		});
-
 	} catch (err: any) {
 		console.error("Error in Edge Function:", err);
 		return new Response("Error: " + err.message, { status: 500 });

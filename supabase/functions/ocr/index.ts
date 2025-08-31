@@ -14,7 +14,6 @@ Deno.serve(async (req) => {
 		const { files, title, record_type } = (await req.json()) as {
 			files: IncomingFile[];
 			title: string;
-			record_date: string;
 			record_type: string;
 		};
 		console.log("Parsed request body:", {
@@ -80,7 +79,8 @@ Rules:
 		try {
 			parsed = JSON.parse(cleanedOcrText);
 		} catch {
-			parsed = { raw: cleanedOcrText }; // fallback
+			parsed = { }; // fallback
+			console.warn("Failed to parse cleanedOcrText");
 		}
 
 		return new Response(JSON.stringify({ extracted_data: parsed }), {

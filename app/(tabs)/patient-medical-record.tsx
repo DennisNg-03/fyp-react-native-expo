@@ -1,4 +1,5 @@
 import CustomDatePicker from "@/components/CustomDatePicker";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import { formatLabel } from "@/components/RecordTypeMenu";
 import UploadRecordModal from "@/components/UploadRecordModal";
 import { useAuth } from "@/providers/AuthProvider";
@@ -15,10 +16,12 @@ import {
 import {
 	Button,
 	Card,
+	IconButton,
+	Menu,
 	Portal,
 	Searchbar,
 	Text,
-	useTheme
+	useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -27,7 +30,9 @@ export default function PatientMedicalRecordScreen() {
 	const { session, role } = useAuth();
 	const [records, setRecords] = useState<MedicalRecord[]>([]);
 	const [filteredRecords, setFilteredRecords] = useState<MedicalRecord[]>([]);
-	const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
+	const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(
+		null
+	);
 	const [modalMode, setModalMode] = useState<"new" | "edit">("new");
 	const [loading, setLoading] = useState(false);
 	const [page, setPage] = useState(0);
@@ -37,10 +42,13 @@ export default function PatientMedicalRecordScreen() {
 	const [imageLoading, setImageLoading] = useState(true);
 	const [fromDate, setFromDate] = useState<Date | undefined>(() => {
 		const d = new Date();
-		d.setFullYear(d.getFullYear() - 1);  // set 1 year earlier
+		d.setFullYear(d.getFullYear() - 1); // set 1 year earlier
 		return d;
 	});
 	const [toDate, setToDate] = useState<Date | undefined>(new Date());
+	const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+	const [dialogVisible, setDialogVisible] = useState(false);
+	const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
 
 	const RECORDS_PER_PAGE = 4;
 
@@ -51,23 +59,23 @@ export default function PatientMedicalRecordScreen() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [session?.user.id]);
 
-	useEffect(() => {
-		records.map((record) => {
-			console.log("Use Effect Record ID:", record.id);
-			console.log("Use Effect Record Title:", record.title);
-			// console.log("Use Effect Record Type:", record.record_type);
-			// console.log("Use Effect Record SignedUrl:", record.signed_urls);
-		});
-	}, [records]);
+	// useEffect(() => {
+	// 	records.map((record) => {
+	// 		console.log("Use Effect Record ID:", record.id);
+	// 		console.log("Use Effect Record Title:", record.title);
+	// 		// console.log("Use Effect Record Type:", record.record_type);
+	// 		// console.log("Use Effect Record SignedUrl:", record.signed_urls);
+	// 	});
+	// }, [records]);
 
-	useEffect(() => {
-		filteredRecords.map((record) => {
-			console.log("Use Effect Filtered Record ID:", record.id);
-			console.log("Use Effect Filtered Type:", record.record_type);
-			// console.log("Use Effect Filtered Dare:", record.record_date);
-			// console.log("Use Effect Filtered SignedUrl:", record.signed_urls);
-		});
-	}, [filteredRecords]);
+	// useEffect(() => {
+	// 	filteredRecords.map((record) => {
+	// 		console.log("Use Effect Filtered Record ID:", record.id);
+	// 		console.log("Use Effect Filtered Type:", record.record_type);
+	// 		// console.log("Use Effect Filtered Dare:", record.record_date);
+	// 		// console.log("Use Effect Filtered SignedUrl:", record.signed_urls);
+	// 	});
+	// }, [filteredRecords]);
 
 	// This useEffect is for triggering the search based on default fields for the first time when record is fetched
 	useEffect(() => {
@@ -201,6 +209,41 @@ export default function PatientMedicalRecordScreen() {
 		setUploadModalVisible(true);
 	};
 
+	const handleDelete = async (id: string) => {
+		console.log("Deleting Record ID:", id);
+		try {
+			const res = await fetch(
+				"https://zxyyegizcgbhctjjoido.functions.supabase.co/deleteMedicalRecord",
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${session?.access_token}`,
+					},
+					body: JSON.stringify({ record_id: id }),
+				}
+			);
+
+			// Parse the JSON response
+			const data = await res.json();
+
+			if (!res.ok || !data.success) {
+				console.error("Delete failed:", data.message);
+				Alert.alert("Error", data.message || "Failed to delete record!");
+				return;
+			}
+
+			// Success case
+			console.log("Delete successful:", data);
+			Alert.alert("Success", data.message);
+			handleRefresh();
+
+		} catch (err: any) {
+			console.error("Unexpected error:", err);
+			Alert.alert("Error", err.message || "An unexpected error occurred!");
+		}
+	};
+
 	const keyExtractor = (item: MedicalRecord) => item.id;
 	const renderRecord = ({ item }: { item: MedicalRecord }) => {
 		const imageIndex = item.file_paths?.findIndex(
@@ -225,10 +268,51 @@ export default function PatientMedicalRecordScreen() {
 					subtitle={
 						item.record_date
 							? `${item.record_date}${
-									formatLabel(item.record_type) ? " • " + formatLabel(item.record_type) : ""
+									formatLabel(item.record_type)
+										? " • " + formatLabel(item.record_type)
+										: ""
 							  }`
 							: formatLabel(item.record_type) ?? "No date"
 					}
+					right={() => (
+						<Menu
+							contentStyle={{ borderRadius: 10, width: 140 }}
+							mode="elevated"
+							visible={openMenuId === item.id}
+							onDismiss={() => setOpenMenuId(null)}
+							anchor={
+								<IconButton
+									icon="dots-vertical"
+									iconColor={theme.colors.primary}
+									onPress={() => setOpenMenuId(item.id)}
+								/>
+							}
+							anchorPosition="top"
+						>
+							<Menu.Item
+								onPress={() => {
+									handleCardPress(item);
+									setOpenMenuId(null); // To dismiss the menu after clicking
+								}}
+								leadingIcon="pencil"
+								title="Edit"
+								containerStyle={{ paddingHorizontal: 5 }}
+							/>
+							<Menu.Item
+								onPress={() => {
+									setSelectedRecordId(item.id);
+									setDialogVisible(true);
+									setOpenMenuId(null); // To dismiss the menu after clicking
+								}}
+								leadingIcon="delete"
+								title="Delete"
+								containerStyle={{ paddingHorizontal: 5 }}
+							/>
+						</Menu>
+					)}
+					// right={() => (
+					// 	<IconButton icon="delete" iconColor={theme.colors.primary} onPress={() => handleDelete(item.id)} />
+					// )}
 				/>
 				<Card.Content>
 					<View style={{ width: "100%", height: 150, marginBottom: 10 }}>
@@ -394,6 +478,12 @@ export default function PatientMedicalRecordScreen() {
 					}
 				/>
 
+				<DeleteConfirmationDialog
+					visible={dialogVisible}
+					deleteId={selectedRecordId}
+					onCancel={() => setDialogVisible(false)}
+					onConfirm={handleDelete}
+				/>
 				{/* Popup Modal for Uploading Medical Records */}
 				<Portal>
 					<UploadRecordModal
@@ -406,9 +496,8 @@ export default function PatientMedicalRecordScreen() {
 								setRecords((prev) =>
 									prev.map((r) => (r.id === record.id ? record : r))
 								);
-							} else {
-								handleRefresh();
 							}
+							handleRefresh();
 							setUploadModalVisible(false);
 						}}
 						record={selectedRecord}
@@ -427,6 +516,7 @@ const styles = StyleSheet.create({
 	},
 	card: {
 		marginBottom: 15,
+		padding: 5,
 	},
 	center: {
 		alignItems: "center",
