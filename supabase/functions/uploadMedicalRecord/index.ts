@@ -12,9 +12,9 @@ type IncomingFile = {
 type RequestBody = {
 	files: IncomingFile[];
 	title: string;
-	record_date: string;
 	uid: string;
 	record_type: string;
+	record_date: string; // Will be destructured from ocrData
 } & Partial<Record<AdditionalMedicalRecordField, string>>;
 
 Deno.serve(async (req) => {
@@ -24,8 +24,8 @@ Deno.serve(async (req) => {
 	);
 
 	try {
-		const { files, title, record_date, uid, record_type, ...ocrData } =
-			(await req.json()) as RequestBody;
+		// record_date is destructured from ...ocrData on frontend, the rest of the fields will be stored under ocrData
+		const { files, title, uid, record_type, record_date, ...ocrData } = (await req.json()) as RequestBody;
 		console.log("Parsed request body:", { files, title, record_date, uid });
 		console.log("OCR Data:", ocrData);
 
@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
 			uploadedUrls.push(signedData.signedUrl);
 		}
 
-		const { error: insertError } = await supabase
+		const { data: insertedRecords, error: insertError } = await supabase
 			.from("medical_records")
 			.insert([
 				{
@@ -115,17 +115,21 @@ Deno.serve(async (req) => {
 					file_paths: filePaths,
 					...ocrData,
 				},
-			]);
+			])
+			.select("id, patient_id, updated_at");
 
 		if (insertError) {
 			console.error("Error inserting medical record:", insertError);
 			return new Response("Failed to save record", { status: 500 });
 		}
+		const newRecordId = insertedRecords?.[0]?.id; // the first inserted row's id
+		const newRecordPatientId = insertedRecords?.[0]?.patient_id; // the first inserted row's patient_id
+		const updated_at = insertedRecords?.[0]?.updated_at; // the first inserted row's patient_id
 
-		console.log("All files processed, returning URLs");
+		console.log("All files processed, returning URLs & new record ID");
 
 		// Return signed URLs to client
-		return new Response(JSON.stringify({ uploadedUrls }), {
+		return new Response(JSON.stringify({ recordId: newRecordId, patientId: newRecordPatientId, updatedAt: updated_at, uploadedUrls }), {
 			headers: { "Content-Type": "application/json" },
 		});
 	} catch (err: any) {

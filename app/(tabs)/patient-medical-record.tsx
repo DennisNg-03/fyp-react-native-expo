@@ -28,9 +28,7 @@ export default function PatientMedicalRecordScreen() {
 	const { session, role } = useAuth();
 	const [records, setRecords] = useState<MedicalRecord[]>([]);
 	const [filteredRecords, setFilteredRecords] = useState<MedicalRecord[]>([]);
-	const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(
-		null
-	);
+	const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
 	const [modalMode, setModalMode] = useState<"new" | "edit">("new");
 	const [loading, setLoading] = useState(false);
 	const [page, setPage] = useState(0);
@@ -40,7 +38,7 @@ export default function PatientMedicalRecordScreen() {
 	const [imageLoading, setImageLoading] = useState(true);
 	const [fromDate, setFromDate] = useState<Date | undefined>(() => {
 		const d = new Date();
-		d.setDate(d.getDate() - 7); // set 7 days earlier
+		d.setFullYear(d.getFullYear() - 1);  // set 1 year earlier
 		return d;
 	});
 	const [toDate, setToDate] = useState<Date | undefined>(new Date());

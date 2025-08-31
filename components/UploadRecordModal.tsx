@@ -49,13 +49,15 @@ export default function UploadRecordModal({
 }: UploadRecordModalProps) {
 	// const [files, setFiles] = useState<SelectedFile[]>([]);
 	const theme = useTheme();
+	const [step, setStep] = useState<"upload" | "confirm" | "prefill">("upload");
+	const [recordId, setRecordId] = useState<string>("");
+	const [recordTitle, setRecordTitle] = useState("");
+	// const [recordDate, setRecordDate] = useState<Date>(new Date());
 	const [recordType, setRecordType] = useState<string>();
+	const [signedUrls, setSignedUrls] = useState<string[]>([]);
 	const [ocrData, setOcrData] = useState<
 		Partial<Record<AdditionalMedicalRecordField, string>>
 	>({});
-	const [step, setStep] = useState<"upload" | "confirm" | "prefill">("upload");
-	const [recordTitle, setRecordTitle] = useState("");
-	// const [recordDate, setRecordDate] = useState<Date>(new Date());
 	const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
 	const [saving, setSaving] = useState(false);
 	const multilineFields = new Set([
@@ -71,11 +73,17 @@ export default function UploadRecordModal({
 	const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 	useEffect(() => {
+		console.log("ocrData updated:", ocrData);
+	}, [ocrData]);
+
+	useEffect(() => {
 		if (visible) {
 			if (mode === "edit" && record) {
 				setStep("prefill");
+				setRecordId(record.id ?? "");
 				setRecordTitle(record.title ?? "");
 				setRecordType(record.record_type ?? "");
+				setSignedUrls(record.signed_urls ?? []);
 				console.log("Record.title:", record.title);
 				console.log("Record.type:", record.record_type);
 
@@ -102,7 +110,6 @@ export default function UploadRecordModal({
 	useEffect(() => {
 		console.log("Record Type:", recordType);
 	}, [recordType]);
-
 
 	const handleTakePhoto = async () => {
 		const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -278,7 +285,7 @@ export default function UploadRecordModal({
 			return;
 		}
 		if (!recordTitle || !recordType) {
-			Alert.alert("Alert", "Please fill up all the fields!");
+			Alert.alert("Alert", "Record Title cannot be empty!");
 			return;
 		}
 
@@ -371,45 +378,30 @@ export default function UploadRecordModal({
 
 		const missingField = CompulsoryFields.find((field) => !ocrData[field]); // It's only record_date now
 		if (!recordTitle || !recordType || missingField) {
-			Alert.alert("Alert", "Please fill up all the fields!");
+			Alert.alert(
+				"Alert",
+				"Record Title, Record Type, and Record Date cannot be empty!"
+			);
 			return;
 		}
 
 		const files = selectedFiles ?? [];
-		if (files.length === 0) {
-			Alert.alert("Alert", "Please attach at least one image / document!");
-			return;
-		}
-
-		// To be removed later
-		if (mode === "edit") {
-			return;
+		if (mode === "new") {
+			if (files.length === 0) {
+				Alert.alert("Alert", "Please attach at least one image / document!");
+				return;
+			}
 		}
 
 		try {
 			setSaving(true);
-			// Loop through all selected files
-			const filesToUpload = await Promise.all(
-				selectedFiles.map(async (file) => {
-					const response = await fetch(file.uri);
-					const blob = await response.blob();
-					const base64 = await blobToBase64(blob);
-					return {
-						name: file.name,
-						blobBase64: base64,
-						type: blob.type,
-					};
-				})
-			);
-
-			// console.log("Files to upload:", filesToUpload);
 
 			const processedOcrData = Object.fromEntries(
 				Object.entries(ocrData).map(([key, value]) => {
 					if (!value) return [key, value]; // keep null/undefined data as-is
 
 					// These fields would be arrays split by newline
-					if (["diagnosis", "procedures", "medications"].includes(key)) {
+					if (typeof value === "string") {
 						const arr = value
 							.split("\n")
 							.map((s) => s.trim())
@@ -421,46 +413,117 @@ export default function UploadRecordModal({
 				})
 			);
 
-			// Call Edge Function to upload all images and get signed URLs
-			const res = await fetch(
-				"https://zxyyegizcgbhctjjoido.functions.supabase.co/uploadMedicalRecord",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${session?.access_token}`,
-					},
-					body: JSON.stringify({
-						files: filesToUpload,
-						title: recordTitle,
-						uid: session?.user.id,
-						record_type: recordType,
-						...processedOcrData,
-					}),
+			if (mode === "new") {
+				// Call Edge function to add new record
+				// Loop through all selected files
+				const filesToUpload = await Promise.all(
+					selectedFiles.map(async (file) => {
+						const response = await fetch(file.uri);
+						const blob = await response.blob();
+						const base64 = await blobToBase64(blob);
+						return {
+							name: file.name,
+							blobBase64: base64,
+							type: blob.type,
+						};
+					})
+				);
+
+				// console.log("Files to upload:", filesToUpload);
+
+				// Call Edge Function to upload all images and get signed URLs
+				const res = await fetch(
+					"https://zxyyegizcgbhctjjoido.functions.supabase.co/uploadMedicalRecord",
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${session?.access_token}`,
+						},
+						body: JSON.stringify({
+							files: filesToUpload,
+							title: recordTitle,
+							uid: session?.user.id,
+							record_type: recordType,
+							...processedOcrData,
+						}),
+					}
+				);
+
+				console.log("Uploaded medical records to Supabase:", res);
+
+				if (!res.ok) {
+					const errorBody = await res.text(); // or res.json()
+					console.error(
+						"Upload failed:",
+						res.status,
+						res.statusText,
+						errorBody
+					);
+					return;
 				}
-			);
 
-			console.log("Uploaded medical records to Supabase:", res);
+				const { recordId, patientId, updatedAt, uploadedUrls } =
+					await res.json();
+				console.log("Uploaded Record ID:", recordId);
+				console.log("Uploaded Signed URLs:", uploadedUrls);
+				onRecordSaved({
+					id: recordId,
+					title: recordTitle,
+					record_type: recordType,
+					patient_id: patientId,
+					file_paths: files,
+					signed_urls: uploadedUrls, // Array of local previews
+					updated_at: updatedAt,
+					...processedOcrData,
+				});
+			} else if (mode === "edit") {
+				// Call Edge function to update record
+				// Call Edge Function to upload all images and get signed URLs
+				const res = await fetch(
+					"https://zxyyegizcgbhctjjoido.functions.supabase.co/updateMedicalRecord",
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${session?.access_token}`,
+						},
+						body: JSON.stringify({
+							record_id: recordId,
+							title: recordTitle,
+							record_type: recordType,
+							...processedOcrData,
+						}),
+					}
+				);
 
-			if (!res.ok) {
-				const errorBody = await res.text(); // or res.json()
-				console.error("Upload failed:", res.status, res.statusText, errorBody);
-				return;
+				console.log("Updated medical records on Supabase:", res);
+
+				if (!res.ok) {
+					const errorBody = await res.text(); // or res.json()
+					console.error(
+						"Update failed:",
+						res.status,
+						res.statusText,
+						errorBody
+					);
+					return;
+				}
+
+				const { data } = await res.json();
+				console.log("Updated Record Data:", data);
+
+				onRecordSaved({
+					id: data.id,
+					title: data.title,
+					record_type: data.record_type,
+					patient_id: data.patient_id,
+					file_paths: data.file_paths,
+					signed_urls: signedUrls,
+					updated_at: data.updated_at,
+					...processedOcrData,
+				});
 			}
-
-			const { uploadedUrls } = await res.json();
-			console.log("Uploaded Urls:", uploadedUrls);
-			console.log("Uploaded Signed URLs:", uploadedUrls);
-
-			onRecordSaved({
-				id: Date.now().toString(),
-				title: recordTitle,
-				record_type: recordType,
-				patient_id: session.user.id,
-				file_paths: files,
-				signed_urls: uploadedUrls, // Array of local previews
-				...processedOcrData,
-			});
 		} catch (err) {
 			console.error("Error saving record:", err);
 		} finally {
@@ -830,8 +893,10 @@ export default function UploadRecordModal({
 							loadingMsg={
 								step === "upload"
 									? "Extracting data..."
-									: step === "confirm"
+									: mode === "new" && step === "confirm"
 									? "Saving extracted data..."
+									: mode === "edit" && step === "confirm"
+									? "Saving data..."
 									: "Loading..."
 							}
 						/>
