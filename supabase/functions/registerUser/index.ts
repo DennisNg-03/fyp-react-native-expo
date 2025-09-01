@@ -12,23 +12,53 @@ Deno.serve(async (req) => {
 		}
 	);
 
-	const { userId, email, role, date_of_birth, insurance_info } = await req.json();
+	try {
+		const { user_id, email, role, provider_id } = await req.json();
 
-	const updated_at = new Date().toISOString();
+		// Update base profile
+		const { error: userError } = await supabase
+			.from("profiles")
+			.update({ email, role })
+			.eq("id", user_id);
 
-	const { error: userError } = await supabase
-		.from("profiles")
-		.update({ email, role, updated_at })
-		.eq("id", userId);
+		if (userError) {
+			return new Response(userError.message, { status: 400 });
+		}
 
-	if (userError) return new Response(userError.message, { status: 400 });
+		// Insert into role-specific table
+		if (role === "patient") {
+			const { error: patientError } = await supabase
+				.from("patients")
+				.insert([{ id: user_id }]);
 
-	const { error: patientError } = await supabase
-		.from("patients")
-		.insert([
-			{ id: userId, date_of_birth, insurance_info, medical_history: {} },
-		]);
-	if (patientError) return new Response(patientError.message, { status: 400 });
+			if (patientError) {
+				return new Response(patientError.message, { status: 400 });
+			}
+		}
 
-	return new Response(JSON.stringify({ success: true }), { status: 200 });
+		if (role === "doctor") {
+			const { error: doctorError } = await supabase
+				.from("doctors")
+				.insert([{ id: user_id, provider_id }]);
+
+			if (doctorError) {
+				return new Response(doctorError.message, { status: 400 });
+			}
+		}
+
+		if (role === "nurse") {
+			const { error: nurseError } = await supabase
+				.from("nurses")
+				.insert([{ id: user_id, provider_id }]);
+
+			if (nurseError) {
+				return new Response(nurseError.message, { status: 400 });
+			}
+		}
+
+		return new Response(JSON.stringify({ success: true }), { status: 200 });
+
+	} catch (err: any) {
+		return new Response(`Server error: ${err.message}`, { status: 500 });
+	}
 });

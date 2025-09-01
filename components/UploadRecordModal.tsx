@@ -28,7 +28,7 @@ import {
 import { ActivityIndicator } from "./ActivityIndicator";
 import CustomDatePicker from "./CustomDatePicker";
 import { FilePreview } from "./FilePreview";
-import { formatLabel, RecordTypeMenu } from "./RecordTypeMenu";
+import { formatLabel, RecordTypeDropdown } from "./RecordTypeDropdown";
 
 interface UploadRecordModalProps {
 	visible: boolean;
@@ -574,7 +574,7 @@ export default function UploadRecordModal({
 							]}
 							autoComplete="off"
 						/>
-						<RecordTypeMenu
+						<RecordTypeDropdown
 							selectedType={recordType}
 							setSelectedType={setRecordType}
 						/>
@@ -680,7 +680,7 @@ export default function UploadRecordModal({
 							]}
 							autoComplete="off"
 						/>
-						<RecordTypeMenu
+						<RecordTypeDropdown
 							selectedType={recordType}
 							setSelectedType={setRecordType}
 						/>

@@ -1,6 +1,6 @@
 import CustomDatePicker from "@/components/CustomDatePicker";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
-import { formatLabel } from "@/components/RecordTypeMenu";
+import { formatLabel } from "@/components/RecordTypeDropdown";
 import UploadRecordModal from "@/components/UploadRecordModal";
 import { useAuth } from "@/providers/AuthProvider";
 import { MedicalRecord, SelectedFile } from "@/types/medicalRecord";
@@ -28,6 +28,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function PatientMedicalRecordScreen() {
 	const theme = useTheme();
 	const { session, role } = useAuth();
+	const userId = session?.user.id;
 	const [records, setRecords] = useState<MedicalRecord[]>([]);
 	const [filteredRecords, setFilteredRecords] = useState<MedicalRecord[]>([]);
 	const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(
@@ -53,11 +54,11 @@ export default function PatientMedicalRecordScreen() {
 	const RECORDS_PER_PAGE = 4;
 
 	useEffect(() => {
-		if (!session?.user.id) return;
+		if (!userId) return;
 
 		fetchRecords(1);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [session?.user.id]);
+	}, [userId]);
 
 	// useEffect(() => {
 	// 	records.map((record) => {
@@ -84,7 +85,7 @@ export default function PatientMedicalRecordScreen() {
 	}, [records]);
 
 	const fetchRecords = async (pageNumber = 1, ignoreHasMore = false) => {
-		if (!session?.user.id || (!hasMore && !ignoreHasMore)) return;
+		if (!userId || (!hasMore && !ignoreHasMore)) return;
 		try {
 			setLoading(true);
 			const res = await fetch(

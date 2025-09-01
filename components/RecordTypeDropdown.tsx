@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { useTheme } from "react-native-paper";
 import { Dropdown } from "react-native-paper-dropdown";
 
-interface RecordTypeMenuProps {
+interface RecordTypeDropdownProps {
 	selectedType: string | undefined;
 	setSelectedType: (value?: string) => void;
 }
@@ -15,10 +15,10 @@ export const formatLabel = (field: string | undefined) => {
     .replace(/\b\w/g, (char) => char.toUpperCase()); // capitalise first letter of each word
 }
 
-export const RecordTypeMenu = ({
+export const RecordTypeDropdown = ({
 	selectedType,
 	setSelectedType,
-}: RecordTypeMenuProps) => {
+}: RecordTypeDropdownProps) => {
 	const theme = useTheme();
 
 	const dropDownItems = recordTypes.map((type) => ({
