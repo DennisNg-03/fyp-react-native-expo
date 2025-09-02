@@ -17,9 +17,3 @@ export type Doctor = {
 	timezone: string;
 	provider_id?: string | null;
 };
-
-export type Slot = {
-	slot_start: string;
-	slot_end: string;
-	is_blocked: boolean;
-};

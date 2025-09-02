@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
 		console.log("All files processed, returning URLs & new record ID");
 
 		// Return signed URLs to client
-		return new Response(JSON.stringify({ recordId: newRecordId }), {
+		return new Response(JSON.stringify({ record_id: newRecordId }), {
 			headers: { "Content-Type": "application/json" },
 		});
 	} catch (err: any) {

@@ -75,7 +75,7 @@ export default function PatientMedicalRecordScreen() {
 	// 	filteredRecords.map((record) => {
 	// 		console.log("Use Effect Filtered Record ID:", record.id);
 	// 		console.log("Use Effect Filtered Type:", record.record_type);
-	// 		// console.log("Use Effect Filtered Dare:", record.record_date);
+	// 		// console.log("Use Effect Filtered Date:", record.record_date);
 	// 		// console.log("Use Effect Filtered SignedUrl:", record.signed_urls);
 	// 	});
 	// }, [filteredRecords]);
@@ -318,9 +318,6 @@ export default function PatientMedicalRecordScreen() {
 							/>
 						</Menu>
 					)}
-					// right={() => (
-					// 	<IconButton icon="delete" iconColor={theme.colors.primary} onPress={() => handleDelete(item.id)} />
-					// )}
 				/>
 				<Card.Content>
 					<View style={{ width: "100%", height: 150, marginBottom: 10 }}>
@@ -543,12 +540,6 @@ const styles = StyleSheet.create({
 		gap: 20,
 		marginBottom: 20,
 	},
-	// searchRow: {
-	// 	flexDirection: "row",
-	// 	alignItems: "center",
-	// 	gap: 10,
-	// 	marginBottom: 10,
-	// },
 	searchButton: {
 		marginVertical: 10,
 	},

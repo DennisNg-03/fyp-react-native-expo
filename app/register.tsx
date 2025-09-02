@@ -112,7 +112,9 @@ export default function RegisterScreen() {
 			const userId = data.user?.id;
 			if (!userId) throw new Error("No user ID returned from Supabase.");
 
-			const {data: { session }} = await supabase.auth.getSession();
+			const {
+				data: { session },
+			} = await supabase.auth.getSession();
 
 			if (!error) {
 				await supabase.auth.signOut(); // Immediately log out so they are not auto-logged in upon app refresh

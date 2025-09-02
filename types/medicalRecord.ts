@@ -1,8 +1,14 @@
 export type SelectedFile = {
 	uri: string; // This attribute can be the local URI for Expo image picker preview or Database's file path
 	name: string;
-	type: string; // Expect to be MIME type
+	type: string; // Expect to be MIME type 
 };
+
+export type SelectedFileToUpload = {
+	name: string;
+	blobBase64: string;
+	type: string; // MIME type
+}
 
 export type RecordType = "Lab Result" | "Prescription" | "Imaging Report" | "Discharge Summary" | "Others";
 
@@ -20,7 +26,7 @@ export interface BaseMedicalRecord {
   title: string;
 	record_type?: string,
   // date: string;
-  file_paths: SelectedFile[];
+  file_paths: SelectedFile[]; // This is only used on frontend display and must be generated on backend, so it will not be in the payload sent to backend
   signed_urls: string[];
   updated_at?: string;
 }

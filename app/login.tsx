@@ -47,57 +47,61 @@ export default function LoginScreen() {
 
 	return (
 		<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-  <KeyboardAvoidingView
-    style={styles.container}
-    behavior={Platform.OS === "ios" ? "padding" : undefined}
-  >
-    {loading && <ActivityIndicator loadingMsg="" />}
+			<KeyboardAvoidingView
+				style={styles.container}
+				behavior={Platform.OS === "ios" ? "padding" : undefined}
+			>
+				{loading && <ActivityIndicator loadingMsg="" />}
 
-    <View style={styles.header}>
-      <Text variant="headlineMedium" style={styles.title}>
-        MediNexis
-      </Text>
-      <Text variant="labelLarge" style={styles.subtitle}>
-        Log in to continue your journey with us!
-      </Text>
-    </View>
+				<View style={styles.header}>
+					<Text variant="headlineMedium" style={styles.title}>
+						MediNexis
+					</Text>
+					<Text variant="labelLarge" style={styles.subtitle}>
+						Log in to continue your journey with us!
+					</Text>
+				</View>
 
-    <View style={styles.form}>
-      <TextInput
-        label="Email"
-        mode="outlined"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoComplete="off"
-        autoCorrect={false}
-        spellCheck={false}
-        style={styles.input}
-      />
-      <TextInput
-        label="Password"
-        mode="outlined"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-      />
+				<View style={styles.form}>
+					<TextInput
+						label="Email"
+						mode="outlined"
+						value={email}
+						onChangeText={setEmail}
+						keyboardType="email-address"
+						autoCapitalize="none"
+						autoComplete="off"
+						autoCorrect={false}
+						spellCheck={false}
+						style={styles.input}
+					/>
+					<TextInput
+						label="Password"
+						mode="outlined"
+						value={password}
+						onChangeText={setPassword}
+						secureTextEntry
+						style={styles.input}
+					/>
 
-      <Button
-        mode="contained"
-        onPress={handleLogin}
-        style={styles.loginButton}
-      >
-        Login
-      </Button>
+					<Button
+						mode="contained"
+						onPress={handleLogin}
+						style={styles.loginButton}
+					>
+						Login
+					</Button>
 
-      <Button mode="text" onPress={handleRegister} style={styles.secondaryBtn}>
-        {"Don't have an account? Register"}
-      </Button>
-    </View>
-  </KeyboardAvoidingView>
-</SafeAreaView>
+					<Button
+						mode="text"
+						onPress={handleRegister}
+						style={styles.secondaryBtn}
+					>
+						{"Don't have an account? Register"}
+					</Button>
+				</View>
+			</KeyboardAvoidingView>
+		</SafeAreaView>
 	);
 }
 
@@ -111,17 +115,17 @@ const styles = StyleSheet.create({
 		width: "100%",
 	},
 	header: {
-    marginBottom: 24,
-    alignItems: "center",
-  },
-  title: {
+		marginBottom: 24,
+		alignItems: "center",
+	},
+	title: {
 		textAlign: "center",
-    marginBottom: 8,
-  },
-  subtitle: {
-    textAlign: "center",
-    color: "#4d4c4cff",
-  },
+		marginBottom: 8,
+	},
+	subtitle: {
+		textAlign: "center",
+		color: "#4d4c4cff",
+	},
 	input: {
 		marginBottom: 16,
 		borderRadius: 20,
@@ -131,7 +135,7 @@ const styles = StyleSheet.create({
 		marginBottom: 12,
 	},
 	secondaryBtn: {
-    marginBottom: 3,
-    width: "100%",
-  },
+		marginBottom: 3,
+		width: "100%",
+	},
 });

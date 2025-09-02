@@ -31,6 +31,7 @@ export default function TabLayout() {
           },
           default: {},
         }),
+        tabBarHideOnKeyboard: true,
       }}>
       <Tabs.Screen
         name="home"

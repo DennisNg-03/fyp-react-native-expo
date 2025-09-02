@@ -62,11 +62,11 @@ export default function UploadRecordModal({
 	const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
 	const [saving, setSaving] = useState(false);
 	const multilineFields = new Set([
+		"address",
+		"healthcare_provider_address",
 		"diagnosis",
 		"procedures",
 		"medications",
-		"address",
-		"healthcare_provider_address",
 		"notes",
 	]);
 	const isDateField = (field: string) => field.toLowerCase().includes("date");
@@ -466,10 +466,10 @@ export default function UploadRecordModal({
 					return;
 				}
 
-				const { recordId } = await res.json();
-				console.log("Uploaded Record ID:", recordId);
+				const { record_id } = await res.json();
+				console.log("Uploaded Record ID:", record_id);
 
-				Alert.alert("Success", "Record Added Successfully!");
+				Alert.alert("Success", "Record added successfully!");
 				onRecordSaved();
 
 			} else if (mode === "edit") {
@@ -508,7 +508,7 @@ export default function UploadRecordModal({
 				const { data } = await res.json();
 				console.log("Updated Record Data:", data);
 
-				Alert.alert("Success", "Record Updated Successfully!");
+				Alert.alert("Success", "Record updated successfully!");
 				onRecordSaved();
 			}
 		} catch (err) {
@@ -558,6 +558,7 @@ export default function UploadRecordModal({
 								// { backgroundColor: theme.colors.onPrimary },
 							]}
 							autoComplete="off"
+							maxLength={35}
 						/>
 						<RecordTypeDropdown
 							selectedType={recordType}
