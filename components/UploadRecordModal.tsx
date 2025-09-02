@@ -7,6 +7,7 @@ import {
 	ProviderFields,
 	RecordFields,
 	SelectedFile,
+	SelectedFileToUpload,
 } from "@/types/medicalRecord";
 import { parseDateToISO } from "@/utils/dateHelpers";
 import { blobToBase64 } from "@/utils/fileHelpers";
@@ -34,7 +35,7 @@ interface UploadRecordModalProps {
 	visible: boolean;
 	onClose: () => void;
 	session: Session | null;
-	onRecordSaved: (record: MedicalRecord) => void;
+	onRecordSaved: () => void;
 	record?: MedicalRecord | null; // optional
 	mode: "new" | "edit";
 }
@@ -144,7 +145,7 @@ export default function UploadRecordModal({
 				}
 
 				if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
-					alert("File too large. Maximum allowed size per file is 10 MB.");
+					alert(`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 *1024)} MB.`);
 					return; // stop if any file is too big
 				}
 			}
@@ -207,7 +208,7 @@ export default function UploadRecordModal({
 					}
 
 					if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
-						alert("File too large. Maximum allowed size per file is 10 MB.");
+						alert(`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 *1024)} MB.`);
 						return; // stop if any file is too big
 					}
 				}
@@ -220,7 +221,7 @@ export default function UploadRecordModal({
 				}
 
 				if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
-					alert("File too large. Maximum allowed size per file is 10 MB.");
+					alert(`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 *1024)} MB.`);
 					return; // stop if any file is too big
 				}
 			}
@@ -327,8 +328,8 @@ export default function UploadRecordModal({
 					const base64 = await blobToBase64(blob);
 					return {
 						name: file.name,
-						blobBase64: base64,
-						type: blob.type, // to be passed to Gemini API
+						blobBase64: base64, // To be passed to Gemini API
+						type: blob.type, // To be passed to Gemini API & Supabase Storage
 					};
 				})
 			);
@@ -418,7 +419,7 @@ export default function UploadRecordModal({
 			if (mode === "new") {
 				// Call Edge function to add new record
 				// Loop through all selected files
-				const filesToUpload = await Promise.all(
+				const filesToUpload: SelectedFileToUpload[] = await Promise.all(
 					selectedFiles.map(async (file) => {
 						const response = await fetch(file.uri);
 						const blob = await response.blob();
@@ -465,20 +466,12 @@ export default function UploadRecordModal({
 					return;
 				}
 
-				const { recordId, patientId, updatedAt, uploadedUrls } =
-					await res.json();
+				const { recordId } = await res.json();
 				console.log("Uploaded Record ID:", recordId);
-				console.log("Uploaded Signed URLs:", uploadedUrls);
-				onRecordSaved({
-					id: recordId,
-					title: recordTitle,
-					record_type: recordType,
-					patient_id: patientId,
-					file_paths: files,
-					signed_urls: uploadedUrls, // Array of local previews
-					updated_at: updatedAt,
-					...processedOcrData,
-				}); // These data will not be used upon changing of logic, will remove in future
+
+				Alert.alert("Success", "Record Added Successfully!");
+				onRecordSaved();
+
 			} else if (mode === "edit") {
 				// Call Edge function to update record
 				// Call Edge Function to upload all images and get signed URLs
@@ -515,16 +508,8 @@ export default function UploadRecordModal({
 				const { data } = await res.json();
 				console.log("Updated Record Data:", data);
 
-				onRecordSaved({
-					id: data.id,
-					title: data.title,
-					record_type: data.record_type,
-					patient_id: data.patient_id,
-					file_paths: data.file_paths,
-					signed_urls: signedUrls,
-					updated_at: data.updated_at,
-					...processedOcrData,
-				});
+				Alert.alert("Success", "Record Updated Successfully!");
+				onRecordSaved();
 			}
 		} catch (err) {
 			console.error("Error saving record:", err);

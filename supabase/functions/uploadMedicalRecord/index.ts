@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
 		}
 
 		const filePaths: { uri: string; name: string; type: string }[] = [];
-		const uploadedUrls: string[] = []; // For passing to client to call OCR function
+		// const uploadedUrls: string[] = []; // For passing to client to call OCR function
 
 		// const safeOcrData = Object.fromEntries(
 		// 	Object.entries(ocrData).filter(([_, v]) => v !== null && v !== undefined && v !== "")
@@ -83,25 +83,25 @@ Deno.serve(async (req) => {
 			});
 
 			// Create Signed URL for the Supabase Storage
-			const { data: signedData, error: signedUrlError } = await supabase.storage
-				.from("medical-records")
-				.createSignedUrl(filePath, 60 * 60);
+			// const { data: signedData, error: signedUrlError } = await supabase.storage
+			// 	.from("medical-records")
+			// 	.createSignedUrl(filePath, 60 * 60);
 
-			if (!signedData?.signedUrl) {
-				console.error("Signed URL error:", signedUrlError);
-				return new Response(
-					JSON.stringify({
-						message: "Failed to get signed URL",
-						signedUrlError,
-						filePath,
-					}),
-					{ status: 500, headers: { "Content-Type": "application/json" } }
-				);
-			}
+			// if (!signedData?.signedUrl) {
+			// 	console.error("Signed URL error:", signedUrlError);
+			// 	return new Response(
+			// 		JSON.stringify({
+			// 			message: "Failed to get signed URL",
+			// 			signedUrlError,
+			// 			filePath,
+			// 		}),
+			// 		{ status: 500, headers: { "Content-Type": "application/json" } }
+			// 	);
+			// }
 
-			console.log("Uploaded and signed URL generated:");
-			// console.log("Uploaded and signed URL generated:", signedData.signedUrl);
-			uploadedUrls.push(signedData.signedUrl);
+			// console.log("Uploaded and signed URL generated:");
+			// // console.log("Uploaded and signed URL generated:", signedData.signedUrl);
+			// uploadedUrls.push(signedData.signedUrl);
 		}
 
 		const { data: insertedRecords, error: insertError } = await supabase
@@ -116,20 +116,20 @@ Deno.serve(async (req) => {
 					...ocrData,
 				},
 			])
-			.select("id, patient_id, updated_at");
+			.select("id");
 
 		if (insertError) {
 			console.error("Error inserting medical record:", insertError);
 			return new Response("Failed to save record", { status: 500 });
 		}
 		const newRecordId = insertedRecords?.[0]?.id; // the first inserted row's id
-		const newRecordPatientId = insertedRecords?.[0]?.patient_id; // the first inserted row's patient_id
-		const updated_at = insertedRecords?.[0]?.updated_at; // the first inserted row's patient_id
+		// const newRecordPatientId = insertedRecords?.[0]?.patient_id; // the first inserted row's patient_id
+		// const updated_at = insertedRecords?.[0]?.updated_at; // the first inserted row's patient_id
 
 		console.log("All files processed, returning URLs & new record ID");
 
 		// Return signed URLs to client
-		return new Response(JSON.stringify({ recordId: newRecordId, patientId: newRecordPatientId, updatedAt: updated_at, uploadedUrls }), {
+		return new Response(JSON.stringify({ recordId: newRecordId }), {
 			headers: { "Content-Type": "application/json" },
 		});
 	} catch (err: any) {

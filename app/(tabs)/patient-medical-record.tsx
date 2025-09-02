@@ -34,11 +34,13 @@ export default function PatientMedicalRecordScreen() {
 	const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(
 		null
 	);
+
 	const [modalMode, setModalMode] = useState<"new" | "edit">("new");
 	const [loading, setLoading] = useState(false);
 	const [page, setPage] = useState(0);
 	const [hasMore, setHasMore] = useState(true);
 	const [uploadModalVisible, setUploadModalVisible] = useState(false);
+
 	const [searchQuery, setSearchQuery] = useState("");
 	const [imageLoading, setImageLoading] = useState(true);
 	const [fromDate, setFromDate] = useState<Date | undefined>(() => {
@@ -47,16 +49,16 @@ export default function PatientMedicalRecordScreen() {
 		return d;
 	});
 	const [toDate, setToDate] = useState<Date | undefined>(new Date());
+
 	const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 	const [dialogVisible, setDialogVisible] = useState(false);
 	const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
 
-	const RECORDS_PER_PAGE = 4;
+	const RECORDS_PER_PAGE = 4; // Currently only set this to 4 can prevent duplicated children issue
 
 	useEffect(() => {
 		if (!userId) return;
-
-		fetchRecords(1);
+		handleRefresh();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [userId]);
 
@@ -78,7 +80,7 @@ export default function PatientMedicalRecordScreen() {
 	// 	});
 	// }, [filteredRecords]);
 
-	// This useEffect is for triggering the search based on default fields for the first time when record is fetched
+	// This useEffect is for triggering the search based on default fields for the first time when record is first fetched (Don't change)
 	useEffect(() => {
 		handleSearch();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -87,7 +89,7 @@ export default function PatientMedicalRecordScreen() {
 	const fetchRecords = async (pageNumber = 1, ignoreHasMore = false) => {
 		if (!userId || (!hasMore && !ignoreHasMore)) return;
 		try {
-			setLoading(true);
+			// setLoading(true);
 			const res = await fetch(
 				`https://zxyyegizcgbhctjjoido.functions.supabase.co/getMedicalRecord?uid=${session.user.id}&role=${role}&page=${pageNumber}&limit=${RECORDS_PER_PAGE}`,
 				{
@@ -105,30 +107,36 @@ export default function PatientMedicalRecordScreen() {
 			const recordsWithUrls: MedicalRecord[] = data?.recordsWithUrls ?? [];
 			const more: boolean = data?.hasMore ?? false;
 
-			// const formattedRecords = recordsWithUrls.map((record) => ({
-			// 	...record,
-			// 	record_type: formatLabel(record.record_type ?? ""),
-			// }));
-
 			setHasMore(more);
 
 			if (pageNumber === 1) {
 				setRecords(recordsWithUrls); // Refresh and First page
 				setPage(1); // reset page counter
 			} else {
-				setRecords((prev) => [...prev, ...recordsWithUrls]); // Append the records for infinite scroll
+				// Resolve duplicated record issue
+				setRecords((prev) => {
+					const combined =
+						pageNumber === 1 ? recordsWithUrls : [...prev, ...recordsWithUrls];
+					// remove duplicates by id
+					const uniqueRecords = Array.from(
+						new Map(combined.map((r) => [r.id, r])).values()
+					);
+					return uniqueRecords;
+				});
 			}
 		} catch (err) {
 			console.error(err);
 		} finally {
-			setLoading(false);
+			// setLoading(false);
 		}
 	};
 
-	const handleRefresh = () => {
-		setPage(1);
+	const handleRefresh = async () => {
+		setLoading(true);
 		setHasMore(true);
-		fetchRecords(1);
+		await fetchRecords(1, true); // force refresh, replace data
+		handleSearch();
+		setLoading(false);
 	};
 
 	const handleSearch = () => {
@@ -238,7 +246,6 @@ export default function PatientMedicalRecordScreen() {
 			console.log("Delete successful:", data);
 			Alert.alert("Success", data.message);
 			handleRefresh();
-
 		} catch (err: any) {
 			console.error("Unexpected error:", err);
 			Alert.alert("Error", err.message || "An unexpected error occurred!");
@@ -400,8 +407,8 @@ export default function PatientMedicalRecordScreen() {
 					refreshing={loading}
 					onRefresh={handleRefresh}
 					renderItem={renderRecord}
-					// initialNumToRender={4}
-					maxToRenderPerBatch={4}
+					// initialNumToRender={5} // This seems not affecting
+					maxToRenderPerBatch={6}
 					ListHeaderComponent={
 						<>
 							<Card style={styles.searchForm} elevation={1}>
@@ -492,15 +499,24 @@ export default function PatientMedicalRecordScreen() {
 						onClose={() => setUploadModalVisible(false)}
 						session={session}
 						// onRecordSaved={(record) => setRecords((prev) => [record, ...prev])}
-						onRecordSaved={(record) => {
-							if (modalMode === "edit") {
-								setRecords((prev) =>
-									prev.map((r) => (r.id === record.id ? record : r))
-								);
-							}
+						onRecordSaved={() => {
+							// if (modalMode === "edit") {
+							// 	setRecords((prev) =>
+							// 		prev.map((r) => (r.id === record.id ? record : r))
+							// 	);
+							// }
 							handleRefresh();
 							setUploadModalVisible(false);
 						}}
+						// onRecordSaved={(record) => {
+						// 	if (modalMode === "edit") {
+						// 		setRecords((prev) =>
+						// 			prev.map((r) => (r.id === record.id ? record : r))
+						// 		);
+						// 	}
+						// 	handleRefresh();
+						// 	setUploadModalVisible(false);
+						// }}
 						record={selectedRecord}
 						mode={modalMode}
 					/>
