@@ -37,7 +37,7 @@ export const RecordTypeDropdown = ({
 				mode="outlined"
 				menuContentStyle={{
 					backgroundColor: theme.colors.onPrimary,
-					borderRadius: 8,
+					borderRadius: 10,
 				}}
 				hideMenuHeader
 			/>

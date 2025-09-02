@@ -61,6 +61,7 @@ export default function UploadRecordModal({
 	>({});
 	const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
 	const [saving, setSaving] = useState(false);
+	
 	const multilineFields = new Set([
 		"address",
 		"healthcare_provider_address",
@@ -69,6 +70,18 @@ export default function UploadRecordModal({
 		"medications",
 		"notes",
 	]);
+
+	const placeholders: Record<string, string> = {
+		diagnosis: "E.g. Hypertension, Type 2 Diabetes",
+		procedures: "E.g. Appendectomy, MRI Scan",
+		medications: "E.g. Metformin 500mg, Lisinopril 10mg",
+		report_prepared_by: "E.g. Nurse Jane Doe",
+		notes: "E.g. Patient advised to follow up in 2 weeks",
+		address: "E.g. 123 Jalan Bukit Bintang, Kuala Lumpur",
+		healthcare_provider_address:
+			"E.g. KPJ Damansara Specialist Hospital, Selangor",
+	};
+
 	const isDateField = (field: string) => field.toLowerCase().includes("date");
 	const ALLOWED_IMAGE_TYPES = ["png", "jpg", "jpeg", "webp", "heic", "heif"]; // These are the supported image types by Gemini
 	const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -536,8 +549,7 @@ export default function UploadRecordModal({
 		>
 			<ScrollView
 				contentContainerStyle={{
-					paddingVertical: 10,
-					paddingHorizontal: 8,
+					padding: 20,
 				}}
 				keyboardShouldPersistTaps="handled"
 			>
@@ -558,6 +570,7 @@ export default function UploadRecordModal({
 						/>
 						<TextInput
 							label="Title"
+							placeholder="E.g. Blood Test Results"
 							mode="outlined"
 							value={recordTitle}
 							onChangeText={setRecordTitle}
@@ -569,6 +582,9 @@ export default function UploadRecordModal({
 							]}
 							contentStyle={{
 								textAlign: undefined, // To prevent ellipsis from not working
+							}}
+							outlineStyle={{
+								borderRadius: 10
 							}}
 						/>
 						<RecordTypeDropdown
@@ -668,6 +684,7 @@ export default function UploadRecordModal({
 						/>
 						<TextInput
 							label="Title"
+							placeholder="E.g. Blood Test Results"
 							mode="outlined"
 							value={recordTitle}
 							onChangeText={setRecordTitle}
@@ -741,6 +758,7 @@ export default function UploadRecordModal({
 									}}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 5 : 1}
+									placeholder={placeholders[field] ?? "E.g. Enter details"}
 								/>
 							)
 						)}
@@ -786,6 +804,7 @@ export default function UploadRecordModal({
 									}}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 5 : 1}
+									placeholder={placeholders[field] ?? "E.g. Enter details"}
 								/>
 							)
 						)}
@@ -831,6 +850,7 @@ export default function UploadRecordModal({
 									}}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 10 : 1}
+									placeholder={placeholders[field] ?? "E.g. Enter details"}
 								/>
 							)
 						)}
@@ -974,8 +994,9 @@ const styles = StyleSheet.create({
 	modalContainer: {
 		backgroundColor: "white",
 		borderRadius: 8,
-		padding: 20,
+		padding: 2,
 		marginHorizontal: 15,
+		marginVertical: 5,
 	},
 	modalTitle: {
 		textAlign: "center",

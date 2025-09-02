@@ -12,10 +12,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { ActivityIndicator } from "@/components/ActivityIndicator";
 import AuthProvider from "@/providers/AuthProvider";
 import { useMaterial3Theme } from "@pchmn/expo-material3-theme";
-import {
-	KeyboardAvoidingView,
-	Platform
-} from "react-native";
+import { KeyboardAvoidingView, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -26,7 +23,7 @@ export default function RootLayout() {
 
 	const colorScheme = useColorScheme();
 	const { theme } = useMaterial3Theme();
-	const paperTheme =
+	const baseTheme =
 		colorScheme === "dark"
 			? { ...MD3DarkTheme, colors: theme.dark }
 			: { ...MD3LightTheme, colors: theme.light };
@@ -34,6 +31,11 @@ export default function RootLayout() {
 	const [loaded] = useFonts({
 		SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
 	});
+
+	const paperTheme = {
+		...baseTheme,
+		roundness: 10,
+	};
 
 	// const theme = {
 	// 	...themeMode,

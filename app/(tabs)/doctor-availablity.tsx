@@ -1,7 +1,7 @@
 // Let doctors add weekly time blocks. Keep it simple; expand later with editing.
 import { supabase } from "@/lib/supabase";
-import React, { useState } from "react";
-import { View } from "react-native";
+import { useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { Button, Card, HelperText, Text, TextInput } from "react-native-paper";
 
 const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -28,7 +28,7 @@ export default function DoctorAvailabilityScreen({ userId }: { userId: string })
   };
 
   return (
-    <Card style={{ margin: 16, borderRadius: 12 }}>
+    <Card style={styles.card}>
       <Card.Content>
         <Text variant="titleMedium">Add weekly availability</Text>
         <HelperText type="info">Times are local (GMT+8 unless you changed your profile).</HelperText>
@@ -49,3 +49,19 @@ export default function DoctorAvailabilityScreen({ userId }: { userId: string })
     </Card>
   );
 }
+
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+		padding: 15,
+	},
+	center: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	card: {
+		marginBottom: 15,
+		borderRadius: 10,
+	},
+});

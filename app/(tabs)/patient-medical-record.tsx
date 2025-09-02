@@ -284,7 +284,7 @@ export default function PatientMedicalRecordScreen() {
 					}
 					right={() => (
 						<Menu
-							contentStyle={{ borderRadius: 10, width: 140 }}
+							contentStyle={{ borderRadius: 8, width: 140 }}
 							mode="elevated"
 							visible={openMenuId === item.id}
 							onDismiss={() => setOpenMenuId(null)}
@@ -531,6 +531,7 @@ const styles = StyleSheet.create({
 	card: {
 		marginBottom: 15,
 		padding: 5,
+		borderRadius: 10,
 	},
 	center: {
 		alignItems: "center",
@@ -539,6 +540,7 @@ const styles = StyleSheet.create({
 	searchForm: {
 		gap: 20,
 		marginBottom: 20,
+		borderRadius: 10,
 	},
 	searchButton: {
 		marginVertical: 10,

@@ -15,7 +15,7 @@ export default function DeleteConfirmationDialog({
 }: Props) {
 	return (
 		<Portal>
-			<Dialog visible={visible} onDismiss={onCancel} dismissable={false} style={{ borderRadius: 10 }}>
+			<Dialog visible={visible} onDismiss={onCancel} dismissable={false} style={{ borderRadius: 8 }}>
 				<Dialog.Icon icon="alert" color={MD3Colors.error50} />
 				<Dialog.Title style={{ fontSize: 20, textAlign: "center", fontWeight: "500" }}>Delete Record Confirmation</Dialog.Title>
 				<Dialog.Content>

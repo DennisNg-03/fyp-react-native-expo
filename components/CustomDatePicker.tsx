@@ -8,13 +8,15 @@ type CustomDatePickerProps = {
 	value?: Date | undefined;
 	onChange: (date: Date) => void;
 	parent?: string;
+	mode?: "past" | "future";
 };
 
 export default function CustomDatePicker({
 	label = "Date",
 	value,
 	onChange,
-	parent = "formModal",
+	parent = "formModal", // If parent is not stated, the background color would be white colour (theme.colors.onPrimary)
+	mode = "past",
 }: CustomDatePickerProps) {
 	const theme = useTheme();
 	const [showPicker, setShowPicker] = useState(false);
@@ -29,7 +31,8 @@ export default function CustomDatePicker({
 				readOnly
 				// contentStyle={{ backgroundColor: theme.colors.onSurfaceVariant}}
 				style={{
-					backgroundColor: parent === "formModal" ? undefined : theme.colors.onPrimary,
+					backgroundColor:
+						parent === "formModal" ? undefined : theme.colors.onPrimary,
 					fontSize: parent === "formModal" ? 16 : 14,
 				}}
 				outlineStyle={{ borderRadius: 8 }}
@@ -68,7 +71,8 @@ export default function CustomDatePicker({
 								value={value ?? new Date()} // To handle the case where sometimes the value is empty/null
 								mode="date"
 								display="spinner"
-								maximumDate={new Date()}
+								maximumDate={mode === "past" ? new Date() : undefined}
+								minimumDate={mode === "future" ? new Date() : undefined}
 								onChange={(_e, selected) => {
 									if (selected) onChange(selected);
 								}}

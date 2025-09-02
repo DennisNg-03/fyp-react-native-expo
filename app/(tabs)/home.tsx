@@ -191,6 +191,7 @@ const styles = StyleSheet.create({
   },
   card: {
     marginBottom: 15,
+		borderRadius: 10,
   },
   content: {
     padding: 16,
@@ -215,6 +216,7 @@ const styles = StyleSheet.create({
   },
   fullCard: {
     marginBottom: 16,
+		borderRadius: 10,
   },
   subText: {
     marginTop: 4,

@@ -30,6 +30,7 @@ import {
 	IconButton,
 	Searchbar,
 	Text,
+	TextInput,
 	useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -285,28 +286,6 @@ export default function AppointmentScreen() {
 
 		try {
 			setBooking(true);
-			// const formData = new FormData();
-			// formData.append("doctor_id", selectedDoctor.id);
-			// formData.append("patient_id", userId);
-			// formData.append("starts_at", selectedSlot.slot_start);
-			// formData.append("ends_at", selectedSlot.slot_end);
-			// formData.append("reason", reason);
-
-			// supportingDocuments.forEach((file, idx) => {
-			// 	formData.append(
-			// 		`supporting_documents[${idx}]`,
-			// 		new Blob([file.arrayBuffer], { type: file.type }),
-			// 		file.name
-			// 	);
-			// );
-
-			// const res = await fetch("https://.../bookAppointment", {
-			// 	method: "POST",
-			// 	headers: {
-			// 		Authorization: `Bearer ${session?.access_token}`,
-			// 	},
-			// 	body: formData,
-			// });
 
 			const supportingDocumentsToUpload: SupportingDocumentToUpload[] =
 				await Promise.all(
@@ -337,7 +316,7 @@ export default function AppointmentScreen() {
 						starts_at: selectedSlot.slot_start,
 						ends_at: selectedSlot.slot_end,
 						reason: reason,
-						supporting_documents: supportingDocumentsToUpload, // Contains array buffer
+						supporting_documents: supportingDocumentsToUpload, // Contains base64
 					}),
 				}
 			);
@@ -360,6 +339,8 @@ export default function AppointmentScreen() {
 
 			setReason("");
 			setSelectedSlot(null);
+			setSelectedDate(new Date());
+			setSelectedDoctor(null);
 			loadSlots();
 			loadUpcoming();
 		} catch (err) {
@@ -403,41 +384,84 @@ export default function AppointmentScreen() {
 	};
 
 	return (
-			<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-				<SafeAreaView
-					style={{ flex: 1, backgroundColor: theme.colors.background }}
-				>
-					<FlatList
-						style={{ flex: 1 }}
-						ListHeaderComponent={
-							<>
-								<Card style={{ margin: 12, borderRadius: 12 }}>
-									<Card.Content>
-										<Text variant="titleMedium" style={{ marginBottom: 8 }}>
-											Book an appointment
-										</Text>
+		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+			<SafeAreaView
+				style={{ flex: 1, backgroundColor: theme.colors.background }}
+			>
+				<FlatList
+					style={{ flex: 1 }}
+					ListHeaderComponent={
+						<>
+							<Card style={{ margin: 12, borderRadius: 12 }}>
+								<Card.Content>
+									<Text variant="titleMedium" style={{ marginBottom: 8 }}>
+										Book an appointment
+									</Text>
 
+									<Searchbar
+										placeholder="Search provider..."
+										value={providerQuery}
+										onChangeText={setProviderQuery}
+										style={{ marginBottom: 8 }}
+									/>
+									{showProvidersLoading ? (
+										// <ActivityIndicator />
+										<View style={{ height: 94 }}></View>
+									) : (
+										<FlatList
+											horizontal
+											data={filteredProviders}
+											keyExtractor={(p) => p.id}
+											style={{ marginBottom: 12, paddingVertical: 10 }}
+											extraData={{ selectedProvider, selectedDate }}
+											renderItem={({ item }) => {
+												const active = selectedProvider?.id === item.id;
+												return (
+													<TouchableOpacity
+														onPress={() => setSelectedProvider(item)}
+														style={{
+															marginRight: 8,
+															paddingHorizontal: 12,
+															paddingVertical: 10,
+															borderRadius: 10,
+															borderWidth: active ? 2 : 1,
+															borderColor: active ? "#6200ee" : "#ddd",
+															backgroundColor: active ? "#f2e7ff" : "#fff",
+														}}
+													>
+														<Text style={{ fontWeight: "600" }}>
+															{item.name}
+														</Text>
+														<Text>{item.provider_type}</Text>
+													</TouchableOpacity>
+												);
+											}}
+										/>
+									)}
+
+									{/* Doctor searchbar */}
+									<View style={{ marginVertical: 16 }}>
 										<Searchbar
-											placeholder="Search provider..."
-											value={providerQuery}
-											onChangeText={setProviderQuery}
+											placeholder="Search doctor..."
+											value={doctorQuery}
+											onChangeText={setDoctorQuery}
 											style={{ marginBottom: 8 }}
 										/>
-										{showProvidersLoading ? (
+										{showDoctorsLoading ? (
 											// <ActivityIndicator />
 											<View style={{ height: 94 }}></View>
 										) : (
 											<FlatList
 												horizontal
-												data={filteredProviders}
-												keyExtractor={(p) => p.id}
+												data={filteredDoctors}
+												keyExtractor={(d) => d.id}
 												style={{ marginBottom: 12, paddingVertical: 10 }}
-												extraData={{ selectedProvider, selectedDate }}
+												contentContainerStyle={{ width: "100%" }}
 												renderItem={({ item }) => {
-													const active = selectedProvider?.id === item.id;
+													const active = selectedDoctor?.id === item.id;
 													return (
 														<TouchableOpacity
-															onPress={() => setSelectedProvider(item)}
+															onPress={() => setSelectedDoctor(item)}
 															style={{
 																marginRight: 8,
 																paddingHorizontal: 12,
@@ -449,101 +473,14 @@ export default function AppointmentScreen() {
 															}}
 														>
 															<Text style={{ fontWeight: "600" }}>
-																{item.name}
+																Dr {item.profiles?.full_name}
 															</Text>
-															<Text>{item.provider_type}</Text>
+															{item.speciality ? (
+																<Text>{item.speciality}</Text>
+															) : null}
 														</TouchableOpacity>
 													);
 												}}
-											/>
-										)}
-
-										{/* Doctor searchbar */}
-										<View style={{ marginVertical: 16 }}>
-											<Searchbar
-												placeholder="Search doctor..."
-												value={doctorQuery}
-												onChangeText={setDoctorQuery}
-												style={{ marginBottom: 8 }}
-											/>
-											{showDoctorsLoading ? (
-												// <ActivityIndicator />
-												<View style={{ height: 94 }}></View>
-											) : (
-												<FlatList
-													horizontal
-													data={filteredDoctors}
-													keyExtractor={(d) => d.id}
-													style={{ marginBottom: 12, paddingVertical: 10 }}
-													contentContainerStyle={{ width: "100%" }}
-													renderItem={({ item }) => {
-														const active = selectedDoctor?.id === item.id;
-														return (
-															<TouchableOpacity
-																onPress={() => setSelectedDoctor(item)}
-																style={{
-																	marginRight: 8,
-																	paddingHorizontal: 12,
-																	paddingVertical: 10,
-																	borderRadius: 10,
-																	borderWidth: active ? 2 : 1,
-																	borderColor: active ? "#6200ee" : "#ddd",
-																	backgroundColor: active ? "#f2e7ff" : "#fff",
-																}}
-															>
-																<Text style={{ fontWeight: "600" }}>
-																	Dr {item.profiles?.full_name}
-																</Text>
-																{item.speciality ? (
-																	<Text>{item.speciality}</Text>
-																) : null}
-															</TouchableOpacity>
-														);
-													}}
-													ListEmptyComponent={
-														<View
-															style={{
-																flex: 1,
-																alignItems: "center",
-																justifyContent: "center",
-																marginVertical: 10,
-															}}
-														>
-															<Text style={{ textAlign: "center" }}>
-																No doctors found from this healthcare provider.
-															</Text>
-														</View>
-													}
-												/>
-											)}
-										</View>
-
-										<CustomDatePicker
-											label="Choose date"
-											value={selectedDate}
-											onChange={setSelectedDate}
-											parent="appointments"
-										/>
-
-										<Text
-											variant="titleSmall"
-											style={{ marginTop: 12, marginBottom: 8 }}
-										>
-											Appointment Slots
-										</Text>
-										{showSlotsLoading ? (
-											<ActivityIndicator
-												loadingMsg=""
-												size="small"
-												overlay={false}
-											/>
-										) : (
-											<FlatList
-												data={slots}
-												keyExtractor={(s) => s.slot_start}
-												numColumns={3}
-												renderItem={renderSlot}
-												columnWrapperStyle={{ justifyContent: "space-between" }}
 												ListEmptyComponent={
 													<View
 														style={{
@@ -554,87 +491,147 @@ export default function AppointmentScreen() {
 														}}
 													>
 														<Text style={{ textAlign: "center" }}>
-															No slots available. Try a different date or
-															doctor.
+															No doctors found from this healthcare provider.
 														</Text>
 													</View>
 												}
 											/>
 										)}
+									</View>
 
-										<Searchbar
-											placeholder="Reason (optional)"
-											value={reason}
-											onChangeText={setReason}
-											style={{ marginTop: 30 }}
+									<CustomDatePicker
+										label="Choose date"
+										value={selectedDate}
+										onChange={setSelectedDate}
+										parent="appointments"
+										mode="future"
+									/>
+
+									<Text
+										variant="titleSmall"
+										style={{ marginTop: 12, marginBottom: 8 }}
+									>
+										Appointment Slots
+									</Text>
+									{showSlotsLoading ? (
+										<ActivityIndicator
+											loadingMsg=""
+											size="small"
+											overlay={false}
 										/>
-
-										{supportingDocuments.length > 0 && (
-											<ScrollView
-												horizontal
-												style={styles.filePreviewHorizontalScroll}
-											>
-												{supportingDocuments.map((file, index) => (
-													<FilePreview
-														key={index}
-														file={file}
-														onRemove={() =>
-															setSupportingDocuments(
-																(prev: SupportingDocument[]) =>
-																	prev.filter((f) => f.uri !== file.uri)
-															)
-														}
-													/>
-												))}
-											</ScrollView>
-										)}
-
-										<IconButton
-											mode="outlined"
-											icon="file-document-multiple"
-											onPress={handleAttachFile}
-											style={styles.uploadButton}
+									) : (
+										<FlatList
+											data={slots}
+											keyExtractor={(s) => s.slot_start}
+											numColumns={3}
+											renderItem={renderSlot}
+											columnWrapperStyle={{ justifyContent: "space-between" }}
+											ListEmptyComponent={
+												<View
+													style={{
+														flex: 1,
+														alignItems: "center",
+														justifyContent: "center",
+														marginVertical: 10,
+													}}
+												>
+													<Text style={{ textAlign: "center" }}>
+														No slots available. Try a different date or doctor.
+													</Text>
+												</View>
+											}
 										/>
+									)}
 
-										<Button
-											mode="contained"
-											onPress={handleBooking}
-											disabled={!selectedSlot || booking}
-											loading={booking}
-											style={{ marginTop: 12 }}
+									<TextInput
+										label="Reason (optional"
+										mode="outlined"
+										placeholder="Reason (optional)"
+										value={reason}
+										onChangeText={setReason}
+										autoComplete="off"
+										maxLength={100}
+										style={[
+											styles.input,
+											{ backgroundColor: theme.colors.onPrimary },
+										]}
+										contentStyle={{
+											textAlign: undefined, // To prevent ellipsis from not working
+										}}
+									/>
+
+									{supportingDocuments.length > 0 && (
+										<ScrollView
+											horizontal
+											style={styles.filePreviewHorizontalScroll}
 										>
-											Request appointment
-										</Button>
-									</Card.Content>
-								</Card>
+											{supportingDocuments.map((file, index) => (
+												<FilePreview
+													key={index}
+													file={file}
+													onRemove={() =>
+														setSupportingDocuments(
+															(prev: SupportingDocument[]) =>
+																prev.filter((f) => f.uri !== file.uri)
+														)
+													}
+												/>
+											))}
+										</ScrollView>
+									)}
 
-								<Text
-									style={{ marginLeft: 16, marginBottom: 8 }}
-									variant="titleMedium"
-								>
-									Upcoming appointments
-								</Text>
-							</>
-						}
-						data={upcoming}
-						keyExtractor={(a) => a.id}
-						contentContainerStyle={{ paddingBottom: 40 }}
-						renderItem={({ item }) => {
-							const start = formatKL(item.starts_at, "dd MMM yyyy, HH:mm");
-							const docName = item.doctor?.profiles?.full_name ?? "Doctor";
-							return (
-								<Card style={{ marginHorizontal: 16, marginBottom: 12 }}>
-									<Card.Content>
-										<Text variant="titleSmall">{docName}</Text>
-										<Text>{start}</Text>
-										<Text>Status: {item.status}</Text>
-									</Card.Content>
-								</Card>
-							);
-						}}
-					/>
-				</SafeAreaView>
-			</TouchableWithoutFeedback>
+									<Text
+										variant="titleSmall"
+										style={{ marginTop: 20, marginBottom: 8 }}
+									>
+										Supporting Documents (optional)
+									</Text>
+									<IconButton
+										mode="outlined"
+										icon="file-document-multiple"
+										onPress={handleAttachFile}
+										style={styles.uploadButton}
+									/>
+
+									<Button
+										mode="contained"
+										onPress={handleBooking}
+										disabled={!selectedSlot || booking}
+										loading={booking}
+										style={{ marginTop: 12 }}
+									>
+										Request appointment
+									</Button>
+								</Card.Content>
+							</Card>
+
+							<Text
+								style={{ marginLeft: 16, marginBottom: 8 }}
+								variant="titleMedium"
+							>
+								Upcoming appointments
+							</Text>
+						</>
+					}
+					data={upcoming}
+					keyExtractor={(a) => a.id}
+					contentContainerStyle={{ paddingBottom: 40 }}
+					renderItem={({ item }) => {
+						const start = formatKL(item.starts_at, "dd MMM yyyy, HH:mm");
+						const docName = item.doctor?.profiles?.full_name ?? "Doctor";
+						return (
+							<Card style={{ marginHorizontal: 16, marginBottom: 12 }}>
+								<Card.Content>
+									<Text variant="titleSmall">{docName}</Text>
+									<Text>{start}</Text>
+									<Text>Status: {item.status}</Text>
+								</Card.Content>
+							</Card>
+						);
+					}}
+				/>
+			</SafeAreaView>
+		</TouchableWithoutFeedback>
 	);
 }
 

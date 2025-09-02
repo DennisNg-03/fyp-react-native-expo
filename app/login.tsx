@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		marginBottom: 16,
-		borderRadius: 20,
+		// borderRadius: 20,
 	},
 	loginButton: {
 		marginTop: 16,
