@@ -653,7 +653,7 @@ export default function UploadRecordModal({
 								color: theme.colors.onSurfaceVariant, // muted color
 							}}
 						>
-							For attached files (PDF or TXT), PDFs usually give higher text
+							For supported file types (PDF, TXT), PDFs usually give higher text
 							extraction accuracy.
 						</Text>
 

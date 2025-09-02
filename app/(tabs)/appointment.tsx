@@ -1,6 +1,6 @@
 import { ActivityIndicator } from "@/components/ActivityIndicator";
 import CustomDatePicker from "@/components/CustomDatePicker";
-import { FilePreview } from "@/components/FilePreview";
+import { SupportingDocumentPreview } from "@/components/SupportingDocumentPreview";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
 import {
@@ -36,11 +36,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AppointmentScreen() {
-	// const userId = session?.user.id!;
-	const tzDisplay = "Asia/Kuala_Lumpur";
 	const theme = useTheme();
 	const { session, role } = useAuth();
 	const userId = session?.user.id;
+
 	// Providers -> Doctors -> Date -> Slots
 	const [providers, setProviders] = useState<Provider[]>([]);
 	const [providerQuery, setProviderQuery] = useState("");
@@ -265,10 +264,19 @@ export default function AppointmentScreen() {
 				...result.assets.map((asset) => ({
 					uri: asset.uri,
 					name: asset.name,
-					type: "others" as SupportingDocumentType,
+					type: "document" as string,
+					document_type: "others" as SupportingDocumentType,
 				})),
 			]);
 		}
+	};
+
+	const handleTypeChange = (index: number, type: SupportingDocumentType) => {
+		setSupportingDocuments((prev) =>
+			prev.map((doc, i) =>
+				i === index ? { ...doc, document_type: type } : doc
+			)
+		);
 	};
 
 	const handleBooking = async () => {
@@ -297,7 +305,7 @@ export default function AppointmentScreen() {
 							name: file.name,
 							blobBase64: base64,
 							type: blob.type,
-							document_type: file.type,
+							document_type: file.document_type,
 						};
 					})
 				);
@@ -337,6 +345,15 @@ export default function AppointmentScreen() {
 
 			Alert.alert("Success", "Appointment made successfully!");
 
+			// Mark slot as blocked
+			setSlots((prev) =>
+				prev.map((slot) =>
+					slot.slot_start === selectedSlot.slot_start
+						? { ...slot, is_blocked: true }
+						: slot
+				)
+			);
+
 			setReason("");
 			setSelectedSlot(null);
 			setSelectedDate(new Date());
@@ -348,13 +365,26 @@ export default function AppointmentScreen() {
 		} finally {
 			setBooking(false);
 		}
-		if (!selectedDoctor || !selectedSlot) {
-			console.log("Doctor or slot is not selected!");
-			return;
-		}
 	};
 
 	const renderSlot = ({ item }: { item: Slot }) => {
+		if (!selectedDoctor) {
+			return (
+				<View
+					style={{
+						flex: 1,
+						alignItems: "center",
+						justifyContent: "center",
+						marginVertical: 10,
+					}}
+				>
+					{/* <Text style={{ textAlign: "center" }}>
+						No doctors found from this healthcare provider.
+					</Text> */}
+				</View>
+			);
+		}
+
 		const startLocal = formatKL(item.slot_start, "HH:mm");
 		const endLocal = formatKL(item.slot_end, "HH:mm");
 		const disabled = item.is_blocked;
@@ -389,7 +419,7 @@ export default function AppointmentScreen() {
 				style={{ flex: 1, backgroundColor: theme.colors.background }}
 			>
 				<FlatList
-					style={{ flex: 1 }}
+					style={{ flex: 1, marginBottom: 30 }}
 					ListHeaderComponent={
 						<>
 							<Card style={{ margin: 12, borderRadius: 12 }}>
@@ -457,6 +487,7 @@ export default function AppointmentScreen() {
 												keyExtractor={(d) => d.id}
 												style={{ marginBottom: 12, paddingVertical: 10 }}
 												contentContainerStyle={{ width: "100%" }}
+												scrollEnabled={!selectedProvider}
 												renderItem={({ item }) => {
 													const active = selectedDoctor?.id === item.id;
 													return (
@@ -560,32 +591,47 @@ export default function AppointmentScreen() {
 										}}
 									/>
 
-									{supportingDocuments.length > 0 && (
-										<ScrollView
-											horizontal
-											style={styles.filePreviewHorizontalScroll}
-										>
-											{supportingDocuments.map((file, index) => (
-												<FilePreview
-													key={index}
-													file={file}
-													onRemove={() =>
-														setSupportingDocuments(
-															(prev: SupportingDocument[]) =>
-																prev.filter((f) => f.uri !== file.uri)
-														)
-													}
-												/>
-											))}
-										</ScrollView>
-									)}
-
 									<Text
 										variant="titleSmall"
 										style={{ marginTop: 20, marginBottom: 8 }}
 									>
 										Supporting Documents (optional)
 									</Text>
+
+									{supportingDocuments.length > 0 && (
+										<ScrollView
+											horizontal
+											style={styles.filePreviewHorizontalScroll}
+										>
+											{supportingDocuments.map((file, index) => (
+												<View key={index}>
+													<SupportingDocumentPreview
+														key={index}
+														file={file}
+														onRemove={() => {
+															setSupportingDocuments((prev) =>
+																prev.filter((_, i) => i !== index)
+															);
+														}}
+														onTypeChange={(type) =>
+															handleTypeChange(index, type)
+														}
+													/>
+												</View>
+											))}
+										</ScrollView>
+									)}
+									<Text
+										variant="labelSmall"
+										style={{
+											marginBottom: 10,
+											marginHorizontal: 5,
+											color: theme.colors.onSurfaceVariant, // muted color
+										}}
+									>
+										Supported file types: PDF, DOC, DOCX, TXT
+									</Text>
+
 									<IconButton
 										mode="outlined"
 										icon="file-document-multiple"
