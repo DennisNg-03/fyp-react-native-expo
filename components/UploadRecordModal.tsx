@@ -73,9 +73,9 @@ export default function UploadRecordModal({
 	const ALLOWED_IMAGE_TYPES = ["png", "jpg", "jpeg", "webp", "heic", "heif"]; // These are the supported image types by Gemini
 	const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
-	useEffect(() => {
-		console.log("ocrData updated:", ocrData);
-	}, [ocrData]);
+	// useEffect(() => {
+	// 	console.log("ocrData updated:", ocrData);
+	// }, [ocrData]);
 
 	useEffect(() => {
 		if (visible) {
@@ -145,7 +145,9 @@ export default function UploadRecordModal({
 				}
 
 				if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
-					alert(`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 *1024)} MB.`);
+					alert(
+						`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 *1024)} MB.`
+					);
 					return; // stop if any file is too big
 				}
 			}
@@ -208,7 +210,9 @@ export default function UploadRecordModal({
 					}
 
 					if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
-						alert(`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 *1024)} MB.`);
+						alert(
+							`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 *1024)} MB.`
+						);
 						return; // stop if any file is too big
 					}
 				}
@@ -221,7 +225,9 @@ export default function UploadRecordModal({
 				}
 
 				if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
-					alert(`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 *1024)} MB.`);
+					alert(
+						`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 *1024)} MB.`
+					);
 					return; // stop if any file is too big
 				}
 			}
@@ -288,7 +294,10 @@ export default function UploadRecordModal({
 
 		const missingField = CompulsoryFields.find((field) => !ocrData[field]); // It's only record_date now
 		if (!recordTitle || !recordType || missingField) {
-			Alert.alert("Alert", "Record Title, Record Type, and Record Date cannot be empty!");
+			Alert.alert(
+				"Alert",
+				"Record Title, Record Type, and Record Date cannot be empty!"
+			);
 			return;
 		}
 
@@ -471,7 +480,6 @@ export default function UploadRecordModal({
 
 				Alert.alert("Success", "Record added successfully!");
 				onRecordSaved();
-
 			} else if (mode === "edit") {
 				// Call Edge function to update record
 				// Call Edge Function to upload all images and get signed URLs
@@ -553,12 +561,15 @@ export default function UploadRecordModal({
 							mode="outlined"
 							value={recordTitle}
 							onChangeText={setRecordTitle}
+							autoComplete="off"
+							maxLength={80}
 							style={[
 								styles.input,
 								// { backgroundColor: theme.colors.onPrimary },
 							]}
-							autoComplete="off"
-							maxLength={35}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
 						/>
 						<RecordTypeDropdown
 							selectedType={recordType}
@@ -660,11 +671,15 @@ export default function UploadRecordModal({
 							mode="outlined"
 							value={recordTitle}
 							onChangeText={setRecordTitle}
+							autoComplete="off"
+							maxLength={80}
 							style={[
 								styles.input,
 								// { backgroundColor: theme.colors.onPrimary },
 							]}
-							autoComplete="off"
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
 						/>
 						<RecordTypeDropdown
 							selectedType={recordType}
@@ -716,10 +731,14 @@ export default function UploadRecordModal({
 									onChangeText={(text) =>
 										setOcrData((prev) => ({ ...prev, [field]: text }))
 									}
+									autoComplete="off"
 									style={[
 										styles.input,
 										// { backgroundColor: theme.colors.onPrimary },
 									]}
+									contentStyle={{
+										textAlign: undefined, // To prevent ellipsis from not working
+									}}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 5 : 1}
 								/>
@@ -757,10 +776,14 @@ export default function UploadRecordModal({
 									onChangeText={(text) =>
 										setOcrData((prev) => ({ ...prev, [field]: text }))
 									}
+									autoComplete="off"
 									style={[
 										styles.input,
 										// { backgroundColor: theme.colors.onPrimary },
 									]}
+									contentStyle={{
+										textAlign: undefined, // To prevent ellipsis from not working
+									}}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 5 : 1}
 								/>
@@ -798,10 +821,14 @@ export default function UploadRecordModal({
 									onChangeText={(text) =>
 										setOcrData((prev) => ({ ...prev, [field]: text }))
 									}
+									autoComplete="off"
 									style={[
 										styles.input,
 										// { backgroundColor: theme.colors.onPrimary },
 									]}
+									contentStyle={{
+										textAlign: undefined, // To prevent ellipsis from not working
+									}}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 10 : 1}
 								/>

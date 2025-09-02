@@ -226,7 +226,11 @@ export default function RegisterScreen() {
 							autoComplete="off"
 							autoCorrect={false}
 							spellCheck={false}
+							maxLength={50}
 							style={styles.input}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
 						/>
 						<TextInput
 							label="Email"
@@ -238,7 +242,11 @@ export default function RegisterScreen() {
 							autoComplete="off"
 							autoCorrect={false}
 							spellCheck={false}
+							maxLength={50}
 							style={styles.input}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
 						/>
 						<TextInput
 							label="Password"
@@ -247,7 +255,11 @@ export default function RegisterScreen() {
 							mode="outlined"
 							secureTextEntry
 							textContentType="oneTimeCode"
+							maxLength={30}
 							style={styles.input}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
 						/>
 						<TextInput
 							label="Confirm Password"
@@ -256,7 +268,11 @@ export default function RegisterScreen() {
 							mode="outlined"
 							secureTextEntry
 							textContentType="oneTimeCode"
+							maxLength={30}
 							style={styles.input}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
 						/>
 
 						{(role === "doctor" || role === "nurse") && (

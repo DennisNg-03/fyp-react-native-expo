@@ -73,7 +73,11 @@ export default function LoginScreen() {
 						autoComplete="off"
 						autoCorrect={false}
 						spellCheck={false}
+						maxLength={50}
 						style={styles.input}
+						contentStyle={{
+							textAlign: undefined, // To prevent ellipsis from not working
+						}}
 					/>
 					<TextInput
 						label="Password"
@@ -81,7 +85,11 @@ export default function LoginScreen() {
 						value={password}
 						onChangeText={setPassword}
 						secureTextEntry
+						maxLength={30}
 						style={styles.input}
+						contentStyle={{
+							textAlign: undefined, // To prevent ellipsis from not working
+						}}
 					/>
 
 					<Button

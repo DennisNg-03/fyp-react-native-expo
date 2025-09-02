@@ -52,7 +52,7 @@ export default function TabLayout() {
         name="patient-medical-record"
         options={{
           title: 'My Records',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="doc.text.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="doc.text" color={color} />,
 					href: (role === "patient") ? "/patient-medical-record" : null,
         }}
       />
@@ -76,7 +76,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'My Profile',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.crop.circle.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.crop.circle" color={color} />,
         }}
       />
       <Tabs.Screen
