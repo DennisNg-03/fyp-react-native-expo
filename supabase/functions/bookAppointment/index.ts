@@ -1,21 +1,24 @@
 // eslint-disable-next-line import/no-unresolved
 import { createClient } from "npm:@supabase/supabase-js";
+import { Appointment, IncomingFile } from "../../../types/appointment.ts";
 
-type IncomingFile = {
-	name: string;
-	blobBase64: string;
-	type: string;
-	document_type: string;
-};
+// type IncomingFile = {
+// 	name: string;
+// 	blobBase64: string;
+// 	type: string;
+// 	document_type: string;
+// };
 
-type RequestBody = {
-	doctor_id: string;
-	patient_id: string;
-	starts_at: string;
-	ends_at: string;
-	reason: string;
-	supporting_documents: IncomingFile[];
-};
+// type RequestBody = {
+// 	doctor_id: string;
+// 	patient_id: string;
+// 	starts_at: string;
+// 	ends_at: string;
+// 	reason: string;
+// 	for_whom: "me" | "someone_else";
+// 	other_person: OtherPerson;
+// 	supporting_documents: IncomingFile[];
+// };
 
 Deno.serve(async (req) => {
 	try {
@@ -30,8 +33,11 @@ Deno.serve(async (req) => {
 			starts_at,
 			ends_at,
 			reason,
+			notes,
+			for_whom,
+			other_person,
 			supporting_documents,
-		} = (await req.json()) as RequestBody;
+		} = (await req.json()) as Appointment;
 
 		console.log("Parsed request body:", {
 			doctor_id,
@@ -39,11 +45,14 @@ Deno.serve(async (req) => {
 			starts_at,
 			ends_at,
 			reason,
+			notes,
+			for_whom,
+			other_person,
 			supporting_documents,
 		});
 
 		// Validation
-		if (!doctor_id || !patient_id || !starts_at || !ends_at) {
+		if (!doctor_id || !patient_id || !starts_at || !ends_at || !reason || !for_whom) {
 			return new Response(
 				JSON.stringify({ error: "Missing required fields" }),
 				{ status: 400 }
@@ -52,8 +61,9 @@ Deno.serve(async (req) => {
 
 		const supportingDocuments: { uri: string; name: string; type: string; document_type: string }[] = [];
 
-		for (const file of supporting_documents) {
-			const { name, blobBase64, type, document_type } = file;
+		if (supporting_documents) {
+			for (const file of supporting_documents) {
+			const { name, blobBase64, type, document_type } = file as IncomingFile;
 			console.log("Processing file:", name);
 
 			const filePath = `${file.document_type}/${patient_id}/${Date.now()}-${name}`;
@@ -90,6 +100,7 @@ Deno.serve(async (req) => {
 				document_type: document_type,
 			});
 		}
+		}
 
 		// Insert into appointments
 		const { data, error: insertError } = await supabase
@@ -100,7 +111,10 @@ Deno.serve(async (req) => {
 					patient_id,
 					starts_at,
 					ends_at,
-					reason: reason ?? null,
+					reason,
+					notes: notes ?? null,
+					for_whom,
+					other_person: other_person ?? null,
 					supporting_documents: supportingDocuments ?? null,
 				},
 			])

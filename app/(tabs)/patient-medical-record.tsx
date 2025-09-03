@@ -1,9 +1,9 @@
 import CustomDatePicker from "@/components/CustomDatePicker";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
-import { formatLabel } from "@/components/RecordTypeDropdown";
 import UploadRecordModal from "@/components/UploadRecordModal";
 import { useAuth } from "@/providers/AuthProvider";
 import { MedicalRecord, SelectedFile } from "@/types/medicalRecord";
+import { formatLabel } from "@/utils/labelHelpers";
 import { useEffect, useState } from "react";
 import {
 	Alert,
@@ -524,10 +524,6 @@ export default function PatientMedicalRecordScreen() {
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		padding: 15,
-	},
 	card: {
 		marginBottom: 15,
 		padding: 5,

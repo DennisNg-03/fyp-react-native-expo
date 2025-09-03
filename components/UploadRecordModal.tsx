@@ -11,6 +11,7 @@ import {
 } from "@/types/medicalRecord";
 import { parseDateToISO } from "@/utils/dateHelpers";
 import { blobToBase64 } from "@/utils/fileHelpers";
+import { formatLabel } from "@/utils/labelHelpers";
 import { Session } from "@supabase/supabase-js";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
@@ -29,7 +30,7 @@ import {
 import { ActivityIndicator } from "./ActivityIndicator";
 import CustomDatePicker from "./CustomDatePicker";
 import { FilePreview } from "./FilePreview";
-import { formatLabel, RecordTypeDropdown } from "./RecordTypeDropdown";
+import { RecordTypeDropdown } from "./RecordTypeDropdown";
 
 interface UploadRecordModalProps {
 	visible: boolean;

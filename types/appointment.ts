@@ -1,3 +1,33 @@
+export type Appointment = {
+	id: string;
+	doctor_id: string;
+	patient_id: string;
+	// patient_name: string;
+	// patient_identification_number: string;
+	starts_at: string; // timestamptz 
+	ends_at: string; // timestamptz 
+	status?: "pending" | "confirmed" | "cancelled" | "completed"; // Make it optional since it is not need when inserting
+	reason: string;
+	notes?: string;
+	for_whom: "me" | "someone_else",
+  other_person?: OtherPerson,
+	supporting_documents?: SupportingDocument[] | IncomingFile[];
+}
+
+export type IncomingFile = {
+	name: string;
+	blobBase64: string;
+	type: string;
+	document_type: string;
+};
+
+export type OtherPerson = {
+	name: string;
+	date_of_birth: string | Date;
+	gender: string;
+	relationship: string;
+}
+
 export type Slot = {
 	slot_start: string;
 	slot_end: string;
