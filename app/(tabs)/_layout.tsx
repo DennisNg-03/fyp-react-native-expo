@@ -112,7 +112,7 @@ export default function TabLayout() {
           //   role === "doctor" || role === "nurse" ? "/doctor-availability" : null,
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="test"
         options={{
           title: "Test",
@@ -120,7 +120,7 @@ export default function TabLayout() {
             <MaterialCommunityIcons name="flask-outline" size={28} color={color} />
           ),
         }}
-      />
+      /> */}
     </Tabs>
   );
 }

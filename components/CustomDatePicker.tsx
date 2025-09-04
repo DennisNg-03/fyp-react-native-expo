@@ -33,7 +33,7 @@ export default function CustomDatePicker({
 				style={{
 					backgroundColor:
 						(parent === "formModal") ? undefined : theme.colors.onPrimary,
-					fontSize: parent === "formModal" ? 16 : 14,
+					fontSize: parent === "formModal" || parent === "form" ? 16 : 14, // Implement liddis because of the My Records searchbar
 				}}
 				outlineStyle={{ borderRadius: 8 }}
 			/>

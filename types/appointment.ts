@@ -4,15 +4,38 @@ export type Appointment = {
 	patient_id: string;
 	// patient_name: string;
 	// patient_identification_number: string;
-	starts_at: string; // timestamptz 
-	ends_at: string; // timestamptz 
+	starts_at: string; // timestamptz
+	ends_at: string; // timestamptz
 	status?: "pending" | "confirmed" | "cancelled" | "completed"; // Make it optional since it is not need when inserting
 	reason: string;
 	notes?: string;
-	for_whom: "me" | "someone_else",
-  other_person?: OtherPerson,
+	for_whom: "me" | "someone_else";
+	other_person?: OtherPerson;
 	supporting_documents?: SupportingDocument[] | IncomingFile[];
-}
+	// doctor?: {
+	// 	speciality: string;
+	// 	profiles: {
+	// 		full_name: string;
+	// 	};
+	// 	provider: {
+	// 		name: string;
+	// 		provider_type: string;
+	// 		address: string;
+	// 	};
+	// }[];
+	// Flattened doctor and provider
+	doctor?: {
+		full_name: string;
+		email?: string;
+		phone_number?: string;
+		speciality: string;
+	};
+	provider?: {
+		name: string;
+		provider_type: string;
+		address: string;
+	};
+};
 
 export type IncomingFile = {
 	name: string;
@@ -26,7 +49,7 @@ export type OtherPerson = {
 	date_of_birth: string | Date;
 	gender: string;
 	relationship: string;
-}
+};
 
 export type Slot = {
 	slot_start: string;

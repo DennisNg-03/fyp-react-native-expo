@@ -13,8 +13,8 @@ import {
 import { Doctor, Provider } from "@/types/user";
 import { formatKL } from "@/utils/dateHelpers";
 import { blobToBase64 } from "@/utils/fileHelpers";
-import { useFocusEffect } from "@react-navigation/native";
 import * as DocumentPicker from "expo-document-picker";
+import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	Alert,
@@ -406,8 +406,6 @@ export default function AppointmentBookingScreen() {
 			const { appointment_id } = await res.json();
 			console.log("Returned Appointment ID:", appointment_id);
 
-			Alert.alert("Success", "Appointment made successfully!");
-
 			// Mark slot as blocked
 			setSlots((prev) =>
 				prev.map((slot) =>
@@ -423,6 +421,13 @@ export default function AppointmentBookingScreen() {
 			loadSlots();
 			// isFirstRender.current = true;
 			setSelectedDoctor(null);
+
+			Alert.alert("Success", "Appointment made successfully!", [
+				{
+					text: "OK",
+					onPress: () => router.push("/(tabs)/patient-appointment"),
+				},
+			]);
 		} catch (err) {
 			console.error("Error saving record:", err);
 		} finally {
