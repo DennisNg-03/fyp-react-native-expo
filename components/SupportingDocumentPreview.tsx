@@ -11,7 +11,7 @@ import { IconButton, useTheme } from "react-native-paper";
 
 type SupportingDocumentPreviewProps = {
 	file: SupportingDocument;
-	signedUrl?: string; // If signedUrl is provided, it means the file is from database, so disallow the user to remove.
+	signedUrl?: string;
 	onRemove?: () => void;
 	onTypeChange?: (type: SupportingDocumentType) => void;
 };
@@ -74,6 +74,7 @@ export const SupportingDocumentPreview: FC<SupportingDocumentPreviewProps> = ({
 					data={dropDownItems}
 					labelField="label"
 					valueField="value"
+					disable={!onRemove}
 					value={selectedDocumentType}
 					onChange={(item) => setSelectedDocumentType(item.value)}
 					placeholder="Select type"
@@ -84,6 +85,7 @@ export const SupportingDocumentPreview: FC<SupportingDocumentPreviewProps> = ({
 						borderRadius: 10,
 						backgroundColor: colors.surfaceVariant,
 						paddingHorizontal: 8,
+						opacity: !onRemove ? 0.6 : 1,
 					}}
 					itemContainerStyle={{
 						backgroundColor: colors.surfaceVariant,

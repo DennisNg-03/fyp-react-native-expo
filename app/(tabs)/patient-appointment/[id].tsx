@@ -118,12 +118,12 @@ export default function AppointmentDetailScreen() {
 		loadData();
 	}, [session, id]);
 
-	if (loading) {
+	if (loading || !appointment) {
 		return <ActivityIndicator loadingMsg="Fetching appointment record..." />;
 	}
 
-	const doc = appointment.doctors;
-	const provider = doc?.provider;
+	// const doc = appointment.doctors;
+	// const provider = doc?.provider;
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -161,22 +161,22 @@ export default function AppointmentDetailScreen() {
 						</View>
 						<Card.Content>
 							<Text style={styles.doctorName}>
-								Dr {doc?.profiles?.full_name}
+								Dr {appointment.doctors?.profiles?.full_name}
 							</Text>
-							<Text style={styles.speciality}>{doc?.speciality}</Text>
+							<Text style={styles.speciality}>{appointment.doctors?.speciality}</Text>
 
 							<View style={[styles.section, { marginBottom: 8 }]}>
 								<Text style={styles.label}>Healthcare Provider</Text>
 								<Text style={styles.contentText}>
-									{provider?.name} ({provider?.provider_type})
+									{appointment.doctors.provider?.name} ({appointment.doctors.provider?.provider_type})
 								</Text>
 								<Text style={[styles.label, { marginTop: 12 }]}>Address</Text>
-								<Text style={styles.contentText}>{provider?.address}</Text>
-								{provider?.phone_number ? (
+								<Text style={styles.contentText}>{appointment.doctors.provider?.address}</Text>
+								{appointment.doctors.provider?.phone_number ? (
 									<>
 										<Text style={[styles.label, { marginTop: 12 }]}>Phone</Text>
 										<Text style={styles.contentText}>
-											{provider.phone_number}
+											{appointment.doctors.provider.phone_number}
 										</Text>
 									</>
 								) : null}
@@ -312,8 +312,7 @@ const styles = StyleSheet.create({
 	statusText: {
 		color: "white",
 		fontWeight: "bold",
-		fontSize: 12,
-		textTransform: "uppercase",
+		fontSize: 16,
 	},
 	doctorName: {
 		fontWeight: "bold",

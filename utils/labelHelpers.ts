@@ -5,7 +5,7 @@ export const formatLabel = (field: string | undefined) => {
 		.replace(/\b\w/g, (char) => char.toUpperCase()); // capitalise first letter of each word
 };
 
-export const getStatusColor = (status: string) => {
+export const getStatusFontColor = (status: string) => {
 	if (!status) return "#9E9E9E"; // fallback for undefined
 	return status === "pending"
 		? "#FFC107"
@@ -14,6 +14,17 @@ export const getStatusColor = (status: string) => {
 		: status === "cancelled"
 		? "#F44336"
 		: "#9E9E9E";
+};
+
+export const getStatusColor = (status: string) => {
+	if (!status) return "#B0BEC5"; // neutral grey
+	return status === "pending"
+		? "#FFD54F" // amber 300
+		: status === "confirmed"
+		? "#66BB6A" // green 400
+		: status === "cancelled"
+		? "#E57373" // red 300
+		: "#B0BEC5";
 };
 
 export const getStatusBarStyle = (status?: string) => ({

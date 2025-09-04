@@ -6,7 +6,7 @@ import { formatKL } from "@/utils/dateHelpers";
 import {
 	formatLabel,
 	getStatusBarStyle,
-	getStatusColor,
+	getStatusFontColor
 } from "@/utils/labelHelpers";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
@@ -212,7 +212,7 @@ export default function MyAppointmentsScreen() {
 								fontSize: 14,
 								fontWeight: "600",
 								textAlign: "center",
-								color: getStatusColor(item.status ?? ""),
+								color: getStatusFontColor(item.status ?? ""),
 								marginTop: 8,
 							}}
 						>
