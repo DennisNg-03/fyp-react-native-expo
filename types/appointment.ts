@@ -33,7 +33,8 @@ export type Appointment = {
 	provider?: {
 		name: string;
 		provider_type: string;
-		address: string;
+		address?: string;
+		phone_number?: string;
 	};
 };
 

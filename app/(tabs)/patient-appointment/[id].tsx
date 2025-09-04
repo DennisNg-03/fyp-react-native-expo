@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { formatKL } from "@/utils/dateHelpers";
-import { formatLabel } from "@/utils/labelHelpers";
+import { formatLabel, getStatusColor } from "@/utils/labelHelpers";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -8,6 +8,7 @@ import {
 	ScrollView,
 	StyleSheet,
 	TouchableWithoutFeedback,
+	View,
 } from "react-native";
 import {
 	ActivityIndicator,
@@ -25,6 +26,8 @@ export default function AppointmentDetailScreen() {
 	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
+		if (!id) return;
+
 		const load = async () => {
 			setLoading(true);
 			try {
@@ -38,6 +41,9 @@ export default function AppointmentDetailScreen() {
           status,
           reason,
           notes,
+          for_whom,
+          other_person,
+          supporting_documents,
           doctors:doctor_id (
             speciality,
             bio,
@@ -45,7 +51,8 @@ export default function AppointmentDetailScreen() {
             provider:provider_id (
               name,
               provider_type,
-              address
+              address,
+              phone_number
             )
           )
         `
@@ -82,27 +89,121 @@ export default function AppointmentDetailScreen() {
 					marginBottom: 10,
 				}}
 			>
-				<ScrollView
-					style={{ flex: 1, backgroundColor: theme.colors.background }}
-				>
-					<Card style={styles.card}>
-						<Card.Title
-							title={`Dr ${doc?.profiles?.full_name}`}
-							subtitle={doc?.speciality}
-						/>
+				<ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+					<Card
+						style={styles.card}
+						key={appointment.id}
+						elevation={2}
+						onStartShouldSetResponder={() => true} // Enable this child respond to scroll, otherwise the Touchable component will affect scrolling
+					>
+						<View
+							style={{
+								overflow: "hidden",
+								borderTopLeftRadius: 12,
+								borderTopRightRadius: 12,
+							}}
+						>
+							<View
+								style={[
+									styles.cardHeader,
+									{ backgroundColor: getStatusColor(appointment.status) },
+								]}
+							>
+								<Text variant="headlineSmall" style={styles.statusText}>
+									{formatLabel(appointment.status)}
+								</Text>
+							</View>
+						</View>
 						<Card.Content>
-							<Text>
-								Date: {formatKL(appointment.starts_at, "dd MMM yyyy, HH:mm")}
+							<Text style={styles.doctorName}>
+								Dr {doc?.profiles?.full_name}
 							</Text>
-							<Text>Status: {formatLabel(appointment.status)}</Text>
-							<Divider style={{ marginVertical: 12 }} />
-							<Text>
-								Provider: {provider?.name} ({provider?.provider_type})
-							</Text>
-							<Text>Address: {provider?.address}</Text>
-							<Divider style={{ marginVertical: 12 }} />
-							<Text>Reason: {appointment.reason || "—"}</Text>
-							<Text>Notes: {appointment.notes || "—"}</Text>
+							<Text style={styles.speciality}>{doc?.speciality}</Text>
+
+							<View style={[styles.section, { marginBottom: 8}]}>
+								<Text style={styles.label}>Healthcare Provider</Text>
+								<Text style={styles.contentText}>
+									{provider?.name} ({provider?.provider_type})
+								</Text>
+								<Text style={[styles.label, { marginTop: 12 }]}>Address</Text>
+								<Text style={styles.contentText}>{provider?.address}</Text>
+								{provider?.phone_number ? (
+									<>
+										<Text style={[styles.label, { marginTop: 12 }]}>Phone</Text>
+										<Text style={styles.contentText}>
+											{provider.phone_number}
+										</Text>
+									</>
+								) : null}
+							</View>
+
+							<Divider bold={true} style={styles.divider} />
+
+							<View style={styles.section}>
+								<Text style={styles.label}>Appointment Time</Text>
+								<Text variant="titleMedium" style={styles.dateTime}>
+									{formatKL(appointment.starts_at, "dd MMM yyyy, HH:mm")} -{" "}
+									{formatKL(appointment.ends_at, "HH:mm")}
+								</Text>
+							</View>
+
+							<View style={styles.section}>
+								<Text style={styles.label}>Reason</Text>
+								<Text style={styles.contentText}>
+									{appointment.reason || "—"}
+								</Text>
+							</View>
+
+							<View style={[styles.section, { marginBottom: 8}]}>
+								<Text style={styles.label}>Notes</Text>
+								<Text style={styles.contentText}>
+									{appointment.notes || "—"}
+								</Text>
+							</View>
+
+							<Divider bold={true} style={styles.divider} />
+
+							{appointment.for_whom ? (
+								<View style={styles.section}>
+									<Text style={styles.label}>For Whom</Text>
+									<Text style={styles.contentText}>{formatLabel(appointment.for_whom)}</Text>
+								</View>
+							) : null}
+
+							{appointment.other_person ? (
+								<View style={styles.section}>
+									<Text style={styles.label}>Patient Details</Text>
+									<Text style={styles.contentText}>
+										Name: {appointment.other_person.name}
+									</Text>
+									<Text style={styles.contentText}>
+										Gender: {appointment.other_person.gender}
+									</Text>
+									<Text style={styles.contentText}>
+										Relationship: {appointment.other_person.relationship}
+									</Text>
+									<Text style={styles.contentText}>
+										Date of Birth:{" "}
+										{formatKL(
+											appointment.other_person.date_of_birth,
+											"dd MMM yyyy"
+										)}
+									</Text>
+								</View>
+							) : null}
+							{appointment.supporting_documents &&
+							appointment.supporting_documents.length > 0 ? (
+								<View style={styles.section}>
+									<Text style={styles.label}>Supporting Documents</Text>
+									{appointment.supporting_documents.map(
+										(doc: any, idx: number) => (
+											<Text key={idx} style={styles.contentText}>
+												• {doc.name || doc}
+											</Text>
+										)
+									)}
+								</View>
+							) : null}
 						</Card.Content>
 					</Card>
 				</ScrollView>
@@ -112,8 +213,79 @@ export default function AppointmentDetailScreen() {
 }
 
 const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+		flexDirection: "row",
+		backgroundColor: "white",
+	},
+	statusBar: {
+		width: 8,
+		borderTopLeftRadius: 8,
+		borderBottomLeftRadius: 8,
+		justifyContent: "center",
+		alignItems: "center",
+		paddingVertical: 10,
+	},
+	statusBarText: {
+		color: "white",
+		fontWeight: "bold",
+		transform: [{ rotate: "-90deg" }],
+		width: 100,
+		textAlign: "center",
+		fontSize: 12,
+		letterSpacing: 1,
+	},
+	scrollView: {
+		// flex: 1,
+		// backgroundColor: "white",
+		// flexGrow: 1,
+	},
 	card: {
-		margin: 16,
-		borderRadius: 8,
+		marginHorizontal: 16,
+		marginBottom: 12,
+		borderRadius: 12,
+		backgroundColor: "white",
+		// overflow: "hidden", // important so the header bar stays within card
+	},
+	cardHeader: {
+		width: "100%",
+		// height: 12,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	statusText: {
+		color: "white",
+		fontWeight: "bold",
+		fontSize: 12,
+		textTransform: "uppercase",
+	},
+	doctorName: {
+		fontWeight: "bold",
+		fontSize: 20,
+		marginTop: 8,
+		marginBottom: 2,
+	},
+	speciality: {
+		fontSize: 14,
+		color: "#666",
+		marginBottom: 12,
+	},
+	divider: {
+		marginBottom: 16,
+	},
+	section: {
+		marginBottom: 16,
+	},
+	label: {
+		fontWeight: "bold",
+		marginBottom: 4,
+	},
+	dateTime: {
+		fontSize: 16,
+		marginTop: 0,
+		marginBottom: 3,
+	},
+	contentText: {
+		marginBottom: 8,
 	},
 });

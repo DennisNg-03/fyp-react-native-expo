@@ -493,37 +493,81 @@ export default function AppointmentBookingScreen() {
 			>
 				<ScrollView
 					style={{ flex: 1 }}
-					contentContainerStyle={{ paddingBottom: 40 }}
+					contentContainerStyle={{ paddingBottom: 40, flexGrow: 1 }}
 					keyboardShouldPersistTaps="handled"
 				>
-					<>
-						<Card style={{ margin: 12, borderRadius: 12 }}>
-							<Card.Content>
-								<Text variant="titleMedium" style={{ marginBottom: 8 }}>
-									Book an appointment
-								</Text>
+					<Card
+						style={{ margin: 12, borderRadius: 12 }}
+						onStartShouldSetResponder={() => true} // Enable this child respond to scroll, otherwise the Touchable component will affect scrolling
+					>
+						<Card.Content>
+							<Text variant="titleMedium" style={{ marginBottom: 8 }}>
+								Book an appointment
+							</Text>
 
+							<Searchbar
+								placeholder="Search provider..."
+								value={providerQuery}
+								onChangeText={setProviderQuery}
+								style={{ marginBottom: 8 }}
+							/>
+							{showProvidersLoading ? (
+								// <ActivityIndicator />
+								<View style={{ height: 94 }}></View>
+							) : (
+								<FlatList
+									horizontal
+									data={filteredProviders}
+									keyExtractor={(p) => p.id}
+									style={{ marginVertical: 10, paddingBottom: 12 }}
+									extraData={{ selectedProvider, selectedDate }}
+									renderItem={({ item }) => {
+										const active = selectedProvider?.id === item.id;
+										return (
+											<TouchableOpacity
+												onPress={() => setSelectedProvider(item)}
+												style={{
+													marginRight: 8,
+													paddingHorizontal: 12,
+													paddingVertical: 10,
+													borderRadius: 10,
+													borderWidth: active ? 2 : 1,
+													borderColor: active ? "#6200ee" : "#ddd",
+													backgroundColor: active ? "#f2e7ff" : "#fff",
+												}}
+											>
+												<Text style={{ fontWeight: "600" }}>{item.name}</Text>
+												<Text>{item.provider_type}</Text>
+											</TouchableOpacity>
+										);
+									}}
+								/>
+							)}
+
+							{/* Doctor searchbar */}
+							<View style={{ marginVertical: 16 }}>
 								<Searchbar
-									placeholder="Search provider..."
-									value={providerQuery}
-									onChangeText={setProviderQuery}
+									placeholder="Search doctor..."
+									value={doctorQuery}
+									onChangeText={setDoctorQuery}
 									style={{ marginBottom: 8 }}
 								/>
-								{showProvidersLoading ? (
+								{showDoctorsLoading ? (
 									// <ActivityIndicator />
 									<View style={{ height: 94 }}></View>
 								) : (
 									<FlatList
 										horizontal
-										data={filteredProviders}
-										keyExtractor={(p) => p.id}
+										data={filteredDoctors}
+										keyExtractor={(d) => d.id}
 										style={{ marginVertical: 10, paddingBottom: 12 }}
-										extraData={{ selectedProvider, selectedDate }}
+										contentContainerStyle={{ width: "100%" }}
+										// scrollEnabled={!selectedProvider}
 										renderItem={({ item }) => {
-											const active = selectedProvider?.id === item.id;
+											const active = selectedDoctor?.id === item.id;
 											return (
 												<TouchableOpacity
-													onPress={() => setSelectedProvider(item)}
+													onPress={() => setSelectedDoctor(item)}
 													style={{
 														marginRight: 8,
 														paddingHorizontal: 12,
@@ -534,367 +578,317 @@ export default function AppointmentBookingScreen() {
 														backgroundColor: active ? "#f2e7ff" : "#fff",
 													}}
 												>
-													<Text style={{ fontWeight: "600" }}>{item.name}</Text>
-													<Text>{item.provider_type}</Text>
+													<Text style={{ fontWeight: "600" }}>
+														Dr {item.profiles?.full_name}
+													</Text>
+													{item.speciality ? (
+														<Text>{item.speciality}</Text>
+													) : null}
 												</TouchableOpacity>
 											);
 										}}
+										ListEmptyComponent={
+											<View
+												style={{
+													flex: 1,
+													alignItems: "center",
+													justifyContent: "center",
+													marginVertical: 10,
+												}}
+											>
+												<Text style={{ textAlign: "center" }}>
+													No doctors found from this healthcare provider.
+												</Text>
+											</View>
+										}
 									/>
 								)}
+							</View>
 
-								{/* Doctor searchbar */}
-								<View style={{ marginVertical: 16 }}>
-									<Searchbar
-										placeholder="Search doctor..."
-										value={doctorQuery}
-										onChangeText={setDoctorQuery}
-										style={{ marginBottom: 8 }}
+							<CustomDatePicker
+								label="Choose date"
+								value={selectedDate}
+								onChange={setSelectedDate}
+								parent="appointments"
+								mode="future"
+							/>
+
+							<Text
+								variant="titleSmall"
+								style={{ marginTop: 12, marginBottom: 8 }}
+							>
+								Appointment Slots
+							</Text>
+							{showSlotsLoading ? (
+								<ActivityIndicator loadingMsg="" size="small" overlay={false} />
+							) : slots.length > 0 ? (
+								<View
+									style={{ flexDirection: "row", flexWrap: "wrap", gap: 4 }}
+								>
+									{slots.map((slot) => (
+										<View key={slot.slot_start} style={{ flexBasis: "32.5%" }}>
+											{renderSlot({ item: slot })}
+										</View>
+									))}
+								</View>
+							) : (
+								<View style={{ marginVertical: 10, alignItems: "center" }}>
+									<Text>No available slots.</Text>
+								</View>
+							)}
+
+							{selectedSlot && (
+								<>
+									<TextInput
+										label="Reason for appointment"
+										mode="outlined"
+										placeholder="E.g. Consultation, Follow-up appointment"
+										value={reason}
+										onChangeText={setReason}
+										autoComplete="off"
+										maxLength={100}
+										style={[
+											styles.input,
+											{
+												backgroundColor: theme.colors.onPrimary,
+												marginTop: 20,
+											},
+										]}
+										contentStyle={{
+											textAlign: undefined, // To prevent ellipsis from not working
+										}}
 									/>
-									{showDoctorsLoading ? (
-										// <ActivityIndicator />
-										<View style={{ height: 94 }}></View>
-									) : (
-										<FlatList
-											horizontal
-											data={filteredDoctors}
-											keyExtractor={(d) => d.id}
-											style={{ marginVertical: 10, paddingBottom: 12 }}
-											contentContainerStyle={{ width: "100%" }}
-											// scrollEnabled={!selectedProvider}
-											renderItem={({ item }) => {
-												const active = selectedDoctor?.id === item.id;
+
+									<TextInput
+										label="Notes (Optional)"
+										mode="outlined"
+										placeholder="Anything you'd like your doctor to know"
+										value={notes}
+										onChangeText={setNotes}
+										autoComplete="off"
+										maxLength={100}
+										style={[
+											styles.input,
+											{
+												backgroundColor: theme.colors.onPrimary,
+											},
+										]}
+										contentStyle={{
+											textAlign: undefined, // To prevent ellipsis from not working
+										}}
+									/>
+
+									<Text
+										variant="titleSmall"
+										style={{ marginTop: 16, marginBottom: 8 }}
+									>
+										Who will be seeing the doctor?
+									</Text>
+
+									<RadioButton.Group
+										onValueChange={(value) =>
+											setForWhom(value as "me" | "someone_else")
+										}
+										value={forWhom}
+									>
+										<View style={{ flexDirection: "row", gap: 12 }}>
+											{[
+												{ label: "Me", value: "me" },
+												{ label: "Someone else", value: "someone_else" },
+											].map((opt) => {
+												const selected = forWhom === opt.value;
 												return (
 													<TouchableOpacity
-														onPress={() => setSelectedDoctor(item)}
+														key={opt.value}
+														onPress={() =>
+															setForWhom(opt.value as "me" | "someone_else")
+														}
 														style={{
-															marginRight: 8,
-															paddingHorizontal: 12,
-															paddingVertical: 10,
-															borderRadius: 10,
-															borderWidth: active ? 2 : 1,
-															borderColor: active ? "#6200ee" : "#ddd",
-															backgroundColor: active ? "#f2e7ff" : "#fff",
+															flexDirection: "row",
+															alignItems: "center",
+															borderRadius: 8,
+															paddingHorizontal: 14,
+															paddingBottom: 8,
 														}}
 													>
-														<Text style={{ fontWeight: "600" }}>
-															Dr {item.profiles?.full_name}
+														<Text style={{ fontSize: 14, marginRight: 6 }}>
+															{opt.label}
 														</Text>
-														{item.speciality ? (
-															<Text>{item.speciality}</Text>
-														) : null}
+														<RadioButton.Android
+															value={opt.value}
+															status={selected ? "checked" : "unchecked"}
+															color={theme.colors.primary}
+															rippleColor="transparent"
+														/>
 													</TouchableOpacity>
 												);
-											}}
-											ListEmptyComponent={
-												<View
-													style={{
-														flex: 1,
-														alignItems: "center",
-														justifyContent: "center",
-														marginVertical: 10,
-													}}
-												>
-													<Text style={{ textAlign: "center" }}>
-														No doctors found from this healthcare provider.
-													</Text>
-												</View>
-											}
-										/>
+											})}
+										</View>
+									</RadioButton.Group>
+
+									{forWhom === "someone_else" && (
+										<View>
+											<TextInput
+												label="Full Name"
+												value={otherPerson.name}
+												onChangeText={(t) =>
+													setOtherPerson({ ...otherPerson, name: t })
+												}
+												mode="outlined"
+												style={[
+													styles.input,
+													{
+														backgroundColor: theme.colors.onPrimary,
+														marginTop: 8,
+													},
+												]}
+												placeholder="E.g. John Doe"
+												autoComplete="off"
+												maxLength={100}
+												contentStyle={{
+													textAlign: undefined, // To prevent ellipsis from not working
+												}}
+											/>
+
+											<CustomDatePicker
+												label="Date of Birth"
+												value={otherPerson.date_of_birth as Date}
+												onChange={(d) =>
+													setOtherPerson({ ...otherPerson, date_of_birth: d })
+												}
+												parent="form"
+												mode="dob"
+											/>
+
+											<TextInput
+												label="Gender"
+												placeholder="E.g. Male, Female"
+												value={otherPerson.gender}
+												onChangeText={(t) =>
+													setOtherPerson({ ...otherPerson, gender: t })
+												}
+												mode="outlined"
+												style={[
+													styles.input,
+													{
+														backgroundColor: theme.colors.onPrimary,
+													},
+												]}
+												autoComplete="off"
+												maxLength={100}
+												contentStyle={{
+													textAlign: undefined, // To prevent ellipsis from not working
+												}}
+											/>
+
+											<TextInput
+												label="Relationship"
+												placeholder="E.g. Spouse, Child, Parent"
+												value={otherPerson.relationship}
+												onChangeText={(t) =>
+													setOtherPerson({ ...otherPerson, relationship: t })
+												}
+												mode="outlined"
+												style={[
+													styles.input,
+													{
+														backgroundColor: theme.colors.onPrimary,
+													},
+												]}
+												autoComplete="off"
+												maxLength={100}
+												contentStyle={{
+													textAlign: undefined, // To prevent ellipsis from not working
+												}}
+											/>
+										</View>
 									)}
-								</View>
 
-								<CustomDatePicker
-									label="Choose date"
-									value={selectedDate}
-									onChange={setSelectedDate}
-									parent="appointments"
-									mode="future"
-								/>
-
-								<Text
-									variant="titleSmall"
-									style={{ marginTop: 12, marginBottom: 8 }}
-								>
-									Appointment Slots
-								</Text>
-								{showSlotsLoading ? (
-									<ActivityIndicator
-										loadingMsg=""
-										size="small"
-										overlay={false}
-									/>
-								) : slots.length > 0 ? (
-									<View
-										style={{ flexDirection: "row", flexWrap: "wrap", gap: 4 }}
+									<Text
+										variant="titleSmall"
+										style={{ marginTop: 10, marginBottom: 8 }}
 									>
-										{slots.map((slot) => (
-											<View
-												key={slot.slot_start}
-												style={{ flexBasis: "32.5%" }}
-											>
-												{renderSlot({ item: slot })}
-											</View>
-										))}
-									</View>
-								) : (
-									<View style={{ marginVertical: 10, alignItems: "center" }}>
-										<Text>No available slots.</Text>
-									</View>
-								)}
+										Supporting Documents (optional)
+									</Text>
+									<Text
+										variant="labelSmall"
+										style={{
+											marginBottom: 3,
+											// marginHorizontal: 5,
+											color: theme.colors.onSurfaceVariant, // muted color
+										}}
+									>
+										E.g. Insurance Claim, Company Letter of Guarantee, Referral
+										Letter, Lab Result, etc.
+									</Text>
 
-								{selectedSlot && (
-									<>
-										<TextInput
-											label="Reason for appointment"
-											mode="outlined"
-											placeholder="E.g. Consultation, Follow-up appointment"
-											value={reason}
-											onChangeText={setReason}
-											autoComplete="off"
-											maxLength={100}
-											style={[
-												styles.input,
-												{
-													backgroundColor: theme.colors.onPrimary,
-													marginTop: 20,
-												},
-											]}
-											contentStyle={{
-												textAlign: undefined, // To prevent ellipsis from not working
-											}}
-										/>
-
-										<TextInput
-											label="Notes (Optional)"
-											mode="outlined"
-											placeholder="Anything you'd like your doctor to know"
-											value={notes}
-											onChangeText={setNotes}
-											autoComplete="off"
-											maxLength={100}
-											style={[
-												styles.input,
-												{
-													backgroundColor: theme.colors.onPrimary,
-												},
-											]}
-											contentStyle={{
-												textAlign: undefined, // To prevent ellipsis from not working
-											}}
-										/>
-
-										<Text
-											variant="titleSmall"
-											style={{ marginTop: 16, marginBottom: 8 }}
+									{supportingDocuments.length > 0 && (
+										<ScrollView
+											horizontal
+											style={styles.filePreviewHorizontalScroll}
 										>
-											Who will be seeing the doctor?
-										</Text>
+											{supportingDocuments.map((file, index) => (
+												<View key={index}>
+													<SupportingDocumentPreview
+														key={index}
+														file={file}
+														onRemove={() => {
+															setSupportingDocuments((prev) =>
+																prev.filter((_, i) => i !== index)
+															);
+														}}
+														onTypeChange={(type) =>
+															handleTypeChange(index, type)
+														}
+													/>
+												</View>
+											))}
+										</ScrollView>
+									)}
+									<Text
+										variant="labelSmall"
+										style={{
+											marginTop: 2,
+											marginBottom: 10,
+											// marginHorizontal: 5,
+											color: theme.colors.onSurfaceVariant, // muted color
+										}}
+									>
+										Supported file types: PDF, DOC, DOCX
+									</Text>
 
-										<RadioButton.Group
-											onValueChange={(value) =>
-												setForWhom(value as "me" | "someone_else")
-											}
-											value={forWhom}
-										>
-											<View style={{ flexDirection: "row", gap: 12 }}>
-												{[
-													{ label: "Me", value: "me" },
-													{ label: "Someone else", value: "someone_else" },
-												].map((opt) => {
-													const selected = forWhom === opt.value;
-													return (
-														<TouchableOpacity
-															key={opt.value}
-															onPress={() =>
-																setForWhom(opt.value as "me" | "someone_else")
-															}
-															style={{
-																flexDirection: "row",
-																alignItems: "center",
-																borderRadius: 8,
-																paddingHorizontal: 14,
-																paddingBottom: 8,
-															}}
-														>
-															<Text style={{ fontSize: 14, marginRight: 6 }}>
-																{opt.label}
-															</Text>
-															<RadioButton.Android
-																value={opt.value}
-																status={selected ? "checked" : "unchecked"}
-																color={theme.colors.primary}
-																rippleColor="transparent"
-															/>
-														</TouchableOpacity>
-													);
-												})}
-											</View>
-										</RadioButton.Group>
+									<Button
+										mode="elevated"
+										icon="file-document-multiple"
+										onPress={handleAttachFile}
+										style={styles.uploadButton}
+										contentStyle={{ flexDirection: "row-reverse" }} // optional: icon on right
+									>
+										Attach File
+									</Button>
+								</>
+							)}
 
-										{forWhom === "someone_else" && (
-											<View>
-												<TextInput
-													label="Full Name"
-													value={otherPerson.name}
-													onChangeText={(t) =>
-														setOtherPerson({ ...otherPerson, name: t })
-													}
-													mode="outlined"
-													style={[
-														styles.input,
-														{
-															backgroundColor: theme.colors.onPrimary,
-															marginTop: 8,
-														},
-													]}
-													placeholder="E.g. John Doe"
-													autoComplete="off"
-													maxLength={100}
-													contentStyle={{
-														textAlign: undefined, // To prevent ellipsis from not working
-													}}
-												/>
-
-												<CustomDatePicker
-													label="Date of Birth"
-													value={otherPerson.date_of_birth as Date}
-													onChange={(d) =>
-														setOtherPerson({ ...otherPerson, date_of_birth: d })
-													}
-													parent="form"
-													mode="dob"
-												/>
-
-												<TextInput
-													label="Gender"
-													placeholder="E.g. Male, Female"
-													value={otherPerson.gender}
-													onChangeText={(t) =>
-														setOtherPerson({ ...otherPerson, gender: t })
-													}
-													mode="outlined"
-													style={[
-														styles.input,
-														{
-															backgroundColor: theme.colors.onPrimary,
-														},
-													]}
-													autoComplete="off"
-													maxLength={100}
-													contentStyle={{
-														textAlign: undefined, // To prevent ellipsis from not working
-													}}
-												/>
-
-												<TextInput
-													label="Relationship"
-													placeholder="E.g. Spouse, Child, Parent"
-													value={otherPerson.relationship}
-													onChangeText={(t) =>
-														setOtherPerson({ ...otherPerson, relationship: t })
-													}
-													mode="outlined"
-													style={[
-														styles.input,
-														{
-															backgroundColor: theme.colors.onPrimary,
-														},
-													]}
-													autoComplete="off"
-													maxLength={100}
-													contentStyle={{
-														textAlign: undefined, // To prevent ellipsis from not working
-													}}
-												/>
-											</View>
-										)}
-
-										<Text
-											variant="titleSmall"
-											style={{ marginTop: 10, marginBottom: 8 }}
-										>
-											Supporting Documents (optional)
-										</Text>
-										<Text
-											variant="labelSmall"
-											style={{
-												marginBottom: 3,
-												// marginHorizontal: 5,
-												color: theme.colors.onSurfaceVariant, // muted color
-											}}
-										>
-											E.g. Insurance Claim, Company Letter of Guarantee,
-											Referral Letter, Lab Result, etc.
-										</Text>
-
-										{supportingDocuments.length > 0 && (
-											<ScrollView
-												horizontal
-												style={styles.filePreviewHorizontalScroll}
-											>
-												{supportingDocuments.map((file, index) => (
-													<View key={index}>
-														<SupportingDocumentPreview
-															key={index}
-															file={file}
-															onRemove={() => {
-																setSupportingDocuments((prev) =>
-																	prev.filter((_, i) => i !== index)
-																);
-															}}
-															onTypeChange={(type) =>
-																handleTypeChange(index, type)
-															}
-														/>
-													</View>
-												))}
-											</ScrollView>
-										)}
-										<Text
-											variant="labelSmall"
-											style={{
-												marginTop: 2,
-												marginBottom: 10,
-												// marginHorizontal: 5,
-												color: theme.colors.onSurfaceVariant, // muted color
-											}}
-										>
-											Supported file types: PDF, DOC, DOCX
-										</Text>
-
-										<Button
-											mode="elevated"
-											icon="file-document-multiple"
-											onPress={handleAttachFile}
-											style={styles.uploadButton}
-											contentStyle={{ flexDirection: "row-reverse" }} // optional: icon on right
-										>
-											Attach File
-										</Button>
-									</>
-								)}
-
-								<Button
-									mode="contained"
-									onPress={handleBooking}
-									disabled={
-										!selectedSlot ||
-										booking ||
-										!reason ||
-										(forWhom === "someone_else" &&
-											(!otherPerson.name ||
-												!otherPerson.date_of_birth ||
-												!otherPerson.gender ||
-												!otherPerson.relationship))
-									}
-									loading={booking}
-									style={{ marginTop: 12 }}
-								>
-									Request appointment
-								</Button>
-							</Card.Content>
-						</Card>
-					</>
+							<Button
+								mode="contained"
+								onPress={handleBooking}
+								disabled={
+									!selectedSlot ||
+									booking ||
+									!reason ||
+									(forWhom === "someone_else" &&
+										(!otherPerson.name ||
+											!otherPerson.date_of_birth ||
+											!otherPerson.gender ||
+											!otherPerson.relationship))
+								}
+								loading={booking}
+								style={{ marginTop: 12 }}
+							>
+								Request appointment
+							</Button>
+						</Card.Content>
+					</Card>
 				</ScrollView>
 			</SafeAreaView>
 		</TouchableWithoutFeedback>

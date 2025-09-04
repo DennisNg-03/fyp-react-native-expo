@@ -3,9 +3,13 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
 import { Appointment } from "@/types/appointment";
 import { formatKL } from "@/utils/dateHelpers";
-import { formatLabel, getStatusBarStyle } from "@/utils/labelHelpers";
+import {
+	formatLabel,
+	getStatusBarStyle,
+	getStatusColor,
+} from "@/utils/labelHelpers";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { Card, Divider, List, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -22,27 +26,28 @@ export default function MyAppointmentsScreen() {
 	const [refreshing, setRefreshing] = useState(false);
 
 	const flattenAppointments = (appointments: any[]): Appointment[] => {
-  return (appointments ?? []).map((appointment) => {
-    const doc = appointment.doctors; // Supabase returns object with arrays
-    const doctorProfile = doc?.profiles ?? {};
-    const doctorProvider = doc?.provider ?? {};
+		return (appointments ?? []).map((appointment) => {
+			const doc = appointment.doctors; // Supabase returns object with arrays
+			const doctorProfile = doc?.profiles ?? {};
+			const doctorProvider = doc?.provider ?? {};
 
-    return {
-      ...appointment,
-      doctor: {
-        speciality: doc?.speciality ?? "",
-        full_name: doctorProfile.full_name ?? "",
-        email: doctorProfile.email ?? "",
-        phone_number: doctorProfile.phone_number ?? "",
-      },
-      provider: {
-        name: doctorProvider.name ?? "",
-        provider_type: doctorProvider.provider_type ?? "",
-        address: doctorProvider.address ?? "",
-      },
-    };
-  });
-};
+			return {
+				...appointment,
+				doctor: {
+					speciality: doc?.speciality ?? "",
+					full_name: doctorProfile.full_name ?? "",
+					email: doctorProfile.email ?? "",
+					phone_number: doctorProfile.phone_number ?? "",
+				},
+				provider: {
+					name: doctorProvider.name ?? "",
+					provider_type: doctorProvider.provider_type ?? "",
+					address: doctorProvider.address ?? "",
+					phone_number: doctorProvider.phone_number ?? "",
+				},
+			};
+		});
+	};
 
 	const loadAppointments = useCallback(async () => {
 		try {
@@ -69,7 +74,8 @@ export default function MyAppointmentsScreen() {
 					provider:provider_id (
 						name,
 						provider_type,
-						address
+						address,
+						phone_number
 					  )
 				  )
 				`
@@ -101,7 +107,8 @@ export default function MyAppointmentsScreen() {
 					provider:provider_id (
 						name,
 						provider_type,
-						address
+						address,
+						phone_number
 					  )
 				  )
 				`
@@ -111,7 +118,6 @@ export default function MyAppointmentsScreen() {
 				.order("starts_at", { ascending: false });
 
 			setPast(flattenAppointments(pastData ?? []));
-
 		} catch (e) {
 			console.warn(e);
 		} finally {
@@ -135,26 +141,22 @@ export default function MyAppointmentsScreen() {
 		}, [loadAppointments])
 	);
 
-	useEffect(() => {
-		console.log("Upcoming:", upcoming);
-		console.log("Past:", past);
-	}, [upcoming, past]);
+	// useEffect(() => {
+	// 	console.log("Upcoming:", upcoming);
+	// 	console.log("Past:", past);
+	// }, [upcoming, past]);
 
 	const renderAppointmentSummary = (item: Appointment) => {
 		const startTime = formatKL(item.starts_at, "HH:mm");
 		const endTime = formatKL(item.ends_at, "HH:mm");
 		const date = formatKL(item.starts_at, "dd MMM yyyy");
-
 		const displayTime = `${date} ${startTime} - ${endTime}`;
 
 		const docName = item.doctor?.full_name ?? "Doctor";
 		const providerName = item.provider?.name ?? "Provider";
-
-		// const mappedDoctors = (data ?? []).map((d: any) => ({
-		// 	...d,
-		// 	profiles: d.profiles && d.profiles.length > 0 ? d.profiles[0] : {},
-		// 	provider: d.provider && d.provider.length > 0 ? d.provider[0] : {},
-		// }));
+		const providerPhone = item.provider?.phone_number ?? "-"; // assuming phone is under doctor
+		const providerAddress = item.provider?.address ?? "-";
+		const reason = item.reason ?? "-";
 
 		return (
 			<Card
@@ -172,11 +174,50 @@ export default function MyAppointmentsScreen() {
 					<View style={getStatusBarStyle(item.status)} />
 					<View style={styles.cardContent}>
 						<Text variant="titleMedium" style={styles.docName}>
-							{docName}
+							Dr {docName}
 						</Text>
+
 						<Text style={styles.providerName}>{providerName}</Text>
-						<Text style={styles.dateText}>{displayTime}</Text>
-						<Text style={styles.statusText}>{formatLabel(item.status)}</Text>
+
+						{/* Make the time more prominent */}
+						<Text
+							style={[
+								styles.dateText,
+								{
+									fontSize: 14,
+									color: "#333",
+									fontWeight: "600",
+									marginVertical: 8,
+								},
+							]}
+						>
+							{displayTime}
+						</Text>
+
+						{/* Add a bit more spacing for provider details */}
+						<Text style={[styles.providerDetails, { marginVertical: 8 }]}>
+							{providerAddress}
+						</Text>
+						<Text style={[styles.providerDetails, { marginVertical: 8 }]}>
+							📞 {providerPhone}
+						</Text>
+
+						<Text style={[styles.reasonText, { marginVertical: 8 }]}>
+							Reason: {reason}
+						</Text>
+
+						{/* <Text style={styles.statusText}>{formatLabel(item.status)}</Text> */}
+						<Text
+							style={{
+								fontSize: 14,
+								fontWeight: "600",
+								textAlign: "center",
+								color: getStatusColor(item.status ?? ""),
+								marginTop: 8,
+							}}
+						>
+							{formatLabel(item.status)}
+						</Text>
 					</View>
 				</View>
 			</Card>
@@ -209,7 +250,7 @@ export default function MyAppointmentsScreen() {
 						)}
 					</List.Section>
 
-					<Divider style={{ marginHorizontal: 16 }} />
+					<Divider bold={true} style={{ marginHorizontal: 16 }} />
 
 					<List.Section>
 						<List.Subheader style={styles.sectionHeader}>
@@ -261,11 +302,11 @@ const styles = StyleSheet.create({
 		color: "#555",
 		marginBottom: 2,
 	},
-	dateText: {
-		fontSize: 13,
-		color: "#777",
-		marginBottom: 2,
-	},
+	// dateText: {
+	// 	fontSize: 13,
+	// 	color: "#777",
+	// 	marginBottom: 2,
+	// },
 	statusText: {
 		fontSize: 13,
 		fontWeight: "500",
@@ -280,5 +321,22 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		backgroundColor: "transparent",
 		marginBottom: 8,
+	},
+	dateText: {
+		fontSize: 14, // bigger
+		color: "#333", // darker
+		fontWeight: "600", // semi-bold
+		marginBottom: 6,
+	},
+	providerDetails: {
+		fontSize: 13,
+		color: "#555",
+		marginBottom: 4, // slightly more spacing
+	},
+	reasonText: {
+		fontSize: 14,
+		color: "#333",
+		fontStyle: "italic",
+		marginBottom: 6,
 	},
 });
