@@ -45,6 +45,7 @@ export const SupportingDocumentPreview: FC<SupportingDocumentPreviewProps> = ({
 	// console.log("displayUri:", displayUri);
 
 	const handlePreview = () => {
+		console.log("handlePreview with URL:", displayUri);
 		Linking.openURL(displayUri);
 	};
 
@@ -81,18 +82,26 @@ export const SupportingDocumentPreview: FC<SupportingDocumentPreviewProps> = ({
 						width: 120,
 						height: 32,
 						borderRadius: 10,
-						backgroundColor: colors.onPrimary,
+						backgroundColor: colors.surfaceVariant,
 						paddingHorizontal: 8,
 					}}
+					itemContainerStyle={{
+						backgroundColor: colors.surfaceVariant,
+					}}
+					activeColor={colors.primaryContainer}
 					itemTextStyle={{ fontSize: 11, color: colors.onSurface }}
-					selectedTextStyle={{ textAlign: "center", fontSize: 11, color: colors.onSurface }}
+					selectedTextStyle={{
+						textAlign: "center",
+						fontSize: 11,
+						color: colors.onSurface,
+					}}
 					iconStyle={{
 						marginRight: 0,
 						paddingRight: 0,
 					}}
 					dropdownPosition="bottom"
 					containerStyle={{
-						backgroundColor: colors.onPrimary,
+						backgroundColor: colors.surfaceVariant,
 						borderRadius: 10,
 						paddingVertical: 4,
 					}}
@@ -108,7 +117,7 @@ export const SupportingDocumentPreview: FC<SupportingDocumentPreviewProps> = ({
 								paddingHorizontal: 8,
 								backgroundColor: selected
 									? colors.primaryContainer
-									: colors.onPrimary,
+									: colors.surfaceVariant,
 								borderRadius: 10, // rounded item
 								marginVertical: 1,
 							}}
@@ -121,15 +130,17 @@ export const SupportingDocumentPreview: FC<SupportingDocumentPreviewProps> = ({
 				/>
 			</Pressable>
 			{/* {!signedUrl && ( */}
-			<IconButton
-				icon="close"
-				size={20}
-				mode="contained-tonal"
-				containerColor="rgba(0,0,0,0.6)"
-				iconColor="white"
-				style={{ position: "absolute", top: 4, right: 4 }}
-				onPress={onRemove}
-			/>
+			{onRemove && (
+				<IconButton
+					icon="close"
+					size={20}
+					mode="contained-tonal"
+					containerColor="rgba(0,0,0,0.6)"
+					iconColor="white"
+					style={{ position: "absolute", top: 4, right: 4 }}
+					onPress={onRemove}
+				/>
+			)}
 			{/* )} */}
 		</View>
 	);

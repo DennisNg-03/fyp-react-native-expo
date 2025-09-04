@@ -1,4 +1,7 @@
+import { ActivityIndicator } from "@/components/ActivityIndicator";
+import { SupportingDocumentPreview } from "@/components/SupportingDocumentPreview";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/providers/AuthProvider";
 import { formatKL } from "@/utils/dateHelpers";
 import { formatLabel, getStatusColor } from "@/utils/labelHelpers";
 import { useLocalSearchParams } from "expo-router";
@@ -11,7 +14,6 @@ import {
 	View,
 } from "react-native";
 import {
-	ActivityIndicator,
 	Card,
 	Divider,
 	Text,
@@ -21,14 +23,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AppointmentDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
+	const { session, role } = useAuth();
 	const theme = useTheme();
 	const [appointment, setAppointment] = useState<any>(null);
 	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
 		if (!id) return;
+		if (!session) return;
 
-		const load = async () => {
+		const loadData = async () => {
 			setLoading(true);
 			try {
 				const { data, error } = await supabase
@@ -63,18 +67,59 @@ export default function AppointmentDetailScreen() {
 				console.log("Supabase returned data:", data);
 				console.log("Supabase returned error:", error);
 
-				setAppointment(data);
+				if (!data) return;
+
+				let result = data;
+
+				if (data && data.supporting_documents.length > 0) {
+					const res = await fetch(
+						`https://zxyyegizcgbhctjjoido.functions.supabase.co/getAppointmentDocSignedUrl`,
+						{
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+								Authorization: `Bearer ${session?.access_token}`,
+							},
+							body: JSON.stringify({
+								supporting_documents: data.supporting_documents,
+							}),
+						}
+					);
+
+					if (!res.ok) {
+						console.error(
+							"Failed to fetch signed URLs for documents",
+							await res.text()
+						);
+						return;
+					}
+
+					const signedUrlData = await res.json();
+					const supportingDocsWithUrls = signedUrlData?.supporting_documents ?? [];
+
+					// console.log("supportingDocsWithUrls:", supportingDocsWithUrls);
+
+					// Replace supporting_documents with those with signed Urls
+					result = {
+						...data,
+						supporting_documents: supportingDocsWithUrls,
+					};
+				}
+
+				setAppointment(result);
+
+				// setAppointment(data);
 			} catch (e) {
 				console.warn("Error fetching appointment:", e);
 			} finally {
 				setLoading(false);
 			}
 		};
-		load();
-	}, [id]);
+		loadData();
+	}, [session, id]);
 
-	if (loading || !appointment || !appointment.doctors) {
-		return <ActivityIndicator style={{ marginTop: 50 }} />;
+	if (loading) {
+		return <ActivityIndicator loadingMsg="Fetching appointment record..." />;
 	}
 
 	const doc = appointment.doctors;
@@ -120,7 +165,7 @@ export default function AppointmentDetailScreen() {
 							</Text>
 							<Text style={styles.speciality}>{doc?.speciality}</Text>
 
-							<View style={[styles.section, { marginBottom: 8}]}>
+							<View style={[styles.section, { marginBottom: 8 }]}>
 								<Text style={styles.label}>Healthcare Provider</Text>
 								<Text style={styles.contentText}>
 									{provider?.name} ({provider?.provider_type})
@@ -154,7 +199,7 @@ export default function AppointmentDetailScreen() {
 								</Text>
 							</View>
 
-							<View style={[styles.section, { marginBottom: 8}]}>
+							<View style={[styles.section, { marginBottom: 8 }]}>
 								<Text style={styles.label}>Notes</Text>
 								<Text style={styles.contentText}>
 									{appointment.notes || "—"}
@@ -166,7 +211,9 @@ export default function AppointmentDetailScreen() {
 							{appointment.for_whom ? (
 								<View style={styles.section}>
 									<Text style={styles.label}>For Whom</Text>
-									<Text style={styles.contentText}>{formatLabel(appointment.for_whom)}</Text>
+									<Text style={styles.contentText}>
+										{formatLabel(appointment.for_whom)}
+									</Text>
 								</View>
 							) : null}
 
@@ -191,19 +238,28 @@ export default function AppointmentDetailScreen() {
 									</Text>
 								</View>
 							) : null}
-							{appointment.supporting_documents &&
-							appointment.supporting_documents.length > 0 ? (
-								<View style={styles.section}>
-									<Text style={styles.label}>Supporting Documents</Text>
-									{appointment.supporting_documents.map(
-										(doc: any, idx: number) => (
-											<Text key={idx} style={styles.contentText}>
-												• {doc.name || doc}
-											</Text>
-										)
-									)}
-								</View>
-							) : null}
+							<View style={styles.section}>
+								<Text style={styles.label}>Supporting Documents</Text>
+								{appointment.supporting_documents &&
+								appointment.supporting_documents.length > 0 ? (
+									<ScrollView
+										horizontal
+										// style={styles.filePreviewHorizontalScroll}
+									>
+										{appointment.supporting_documents.map(
+											(file: any, index: number) => (
+												<SupportingDocumentPreview
+													key={index}
+													file={file}
+													signedUrl={
+														file.signed_url
+													}
+												/>
+											)
+										)}
+									</ScrollView>
+								) : null}
+							</View>
 						</Card.Content>
 					</Card>
 				</ScrollView>
