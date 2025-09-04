@@ -1,5 +1,6 @@
 import { ActivityIndicator } from "@/components/ActivityIndicator";
 import CustomDatePicker from "@/components/CustomDatePicker";
+import { SlotPicker } from "@/components/SlotPicker";
 import { SupportingDocumentPreview } from "@/components/SupportingDocumentPreview";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
@@ -435,52 +436,52 @@ export default function AppointmentBookingScreen() {
 		}
 	};
 
-	const renderSlot = ({ item }: { item: Slot }) => {
-		if (!selectedDoctor) {
-			return (
-				<View
-					style={{
-						flex: 1,
-						alignItems: "center",
-						justifyContent: "center",
-						marginVertical: 10,
-					}}
-				>
-					{/* <Text style={{ textAlign: "center" }}>
-						No doctors found from this healthcare provider.
-					</Text> */}
-				</View>
-			);
-		}
+	// const renderSlot = ({ item }: { item: Slot }) => {
+	// 	if (!selectedDoctor) {
+	// 		return (
+	// 			<View
+	// 				style={{
+	// 					flex: 1,
+	// 					alignItems: "center",
+	// 					justifyContent: "center",
+	// 					marginVertical: 10,
+	// 				}}
+	// 			>
+	// 				{/* <Text style={{ textAlign: "center" }}>
+	// 					No doctors found from this healthcare provider.
+	// 				</Text> */}
+	// 			</View>
+	// 		);
+	// 	}
 
-		const startLocal = formatKL(item.slot_start, "HH:mm");
-		const endLocal = formatKL(item.slot_end, "HH:mm");
-		const disabled = item.is_blocked;
-		const selected = selectedSlot?.slot_start === item.slot_start;
-		return (
-			<TouchableOpacity
-				disabled={disabled}
-				onPress={() => setSelectedSlot(item)}
-				style={{
-					// flexBasis: "32%",
-					// flexGrow: 0,
-					// flexShrink: 0,
-					// width: "100%", // fill the parent container width (slotWidth)
-					marginVertical: 4,
-					opacity: disabled ? 0.4 : 1,
-					borderRadius: 12,
-					borderWidth: selected ? 2 : 1,
-					borderColor: selected ? theme.colors.primary : "#ccc",
-					paddingVertical: 8,
-					// paddingHorizontal: 12,
-					alignItems: "center",
-					backgroundColor: selected ? "#eee" : "white",
-				}}
-			>
-				<Text style={{ fontSize: 12 }}>{`${startLocal} – ${endLocal}`}</Text>
-			</TouchableOpacity>
-		);
-	};
+	// 	const startLocal = formatKL(item.slot_start, "HH:mm");
+	// 	const endLocal = formatKL(item.slot_end, "HH:mm");
+	// 	const disabled = item.is_blocked;
+	// 	const selected = selectedSlot?.slot_start === item.slot_start;
+	// 	return (
+	// 		<TouchableOpacity
+	// 			disabled={disabled}
+	// 			onPress={() => setSelectedSlot(item)}
+	// 			style={{
+	// 				// flexBasis: "32%",
+	// 				// flexGrow: 0,
+	// 				// flexShrink: 0,
+	// 				// width: "100%", // fill the parent container width (slotWidth)
+	// 				marginVertical: 4,
+	// 				opacity: disabled ? 0.4 : 1,
+	// 				borderRadius: 12,
+	// 				borderWidth: selected ? 2 : 1,
+	// 				borderColor: selected ? theme.colors.primary : "#ccc",
+	// 				paddingVertical: 8,
+	// 				// paddingHorizontal: 12,
+	// 				alignItems: "center",
+	// 				backgroundColor: selected ? "#eee" : "white",
+	// 			}}
+	// 		>
+	// 			<Text style={{ fontSize: 12 }}>{`${startLocal} – ${endLocal}`}</Text>
+	// 		</TouchableOpacity>
+	// 	);
+	// };
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -613,7 +614,7 @@ export default function AppointmentBookingScreen() {
 								mode="future"
 							/>
 
-							<Text
+							{/* <Text
 								variant="titleSmall"
 								style={{ marginTop: 12, marginBottom: 8 }}
 							>
@@ -631,6 +632,27 @@ export default function AppointmentBookingScreen() {
 										</View>
 									))}
 								</View>
+							) : (
+								<View style={{ marginVertical: 10, alignItems: "center" }}>
+									<Text>No available slots.</Text>
+								</View>
+							)} */}
+
+							<Text
+								variant="titleSmall"
+								style={{ marginTop: 12, marginBottom: 8 }}
+							>
+								Appointment Slots
+							</Text>
+
+							{showSlotsLoading ? (
+								<ActivityIndicator loadingMsg="" size="small" overlay={false} />
+							) : slots.length > 0 ? (
+								<SlotPicker
+									slots={slots}
+									selectedSlot={selectedSlot}
+									onSelect={setSelectedSlot}
+								/>
 							) : (
 								<View style={{ marginVertical: 10, alignItems: "center" }}>
 									<Text>No available slots.</Text>

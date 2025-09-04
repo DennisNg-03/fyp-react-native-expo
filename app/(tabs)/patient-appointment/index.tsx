@@ -6,7 +6,7 @@ import { formatKL } from "@/utils/dateHelpers";
 import {
 	formatLabel,
 	getStatusBarStyle,
-	getStatusFontColor
+	getStatusFontColor,
 } from "@/utils/labelHelpers";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
@@ -27,7 +27,7 @@ export default function MyAppointmentsScreen() {
 
 	const flattenAppointments = (appointments: any[]): Appointment[] => {
 		return (appointments ?? []).map((appointment) => {
-			const doc = appointment.doctors; // Supabase returns object with arrays
+			const doc = appointment.doctor; // Supabase returns object with arrays
 			const doctorProfile = doc?.profiles ?? {};
 			const doctorProvider = doc?.provider ?? {};
 
@@ -68,17 +68,17 @@ export default function MyAppointmentsScreen() {
 				  for_whom,
 				  other_person,
 				  supporting_documents,
-				  doctors:doctor_id (
-					speciality,
-					profiles(full_name, email, phone_number),
-					provider:provider_id (
-						name,
-						provider_type,
-						address,
-						phone_number
-					  )
-				  )
-				`
+				  doctor:doctor_id (
+						speciality,
+						profiles(full_name, email, phone_number),
+						provider:provider_id (
+							name,
+							provider_type,
+							address,
+							phone_number
+							)
+						)
+					`
 				)
 				.eq("patient_id", userId)
 				.gte("ends_at", new Date().toISOString())
@@ -101,7 +101,7 @@ export default function MyAppointmentsScreen() {
 				  for_whom,
 				  other_person,
 				  supporting_documents,
-				  doctors:doctor_id (
+				  doctor:doctor_id (
 					speciality,
 					profiles(full_name, email, phone_number),
 					provider:provider_id (

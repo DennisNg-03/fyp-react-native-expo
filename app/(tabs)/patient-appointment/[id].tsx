@@ -1,4 +1,5 @@
 import { ActivityIndicator } from "@/components/ActivityIndicator";
+import RescheduleModal from "@/components/RescheduleModal";
 import { SupportingDocumentPreview } from "@/components/SupportingDocumentPreview";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
@@ -14,8 +15,10 @@ import {
 	View,
 } from "react-native";
 import {
+	Button,
 	Card,
 	Divider,
+	Portal,
 	Text,
 	useTheme,
 } from "react-native-paper";
@@ -27,6 +30,7 @@ export default function AppointmentDetailScreen() {
 	const theme = useTheme();
 	const [appointment, setAppointment] = useState<any>(null);
 	const [loading, setLoading] = useState(false);
+	const [rescheduleVisible, setRescheduleVisible] = useState(false);
 
 	useEffect(() => {
 		if (!id) return;
@@ -39,27 +43,29 @@ export default function AppointmentDetailScreen() {
 					.from("appointments")
 					.select(
 						`
-          id,
-          starts_at,
-          ends_at,
-          status,
-          reason,
-          notes,
-          for_whom,
-          other_person,
-          supporting_documents,
-          doctors:doctor_id (
-            speciality,
-            bio,
-            profiles(full_name, email, phone_number),
-            provider:provider_id (
-              name,
-              provider_type,
-              address,
-              phone_number
-            )
-          )
-        `
+						id,
+						doctor_id,
+						patient_id,
+						starts_at,
+						ends_at,
+						status,
+						reason,
+						notes,
+						for_whom,
+						other_person,
+						supporting_documents,
+						doctor:doctor_id (
+							speciality,
+							slot_minutes,
+							profiles(full_name, email, phone_number),
+							provider:provider_id (
+								name,
+								provider_type,
+								address,
+								phone_number
+								)
+							)
+						`
 					)
 					.eq("id", id)
 					.single();
@@ -95,7 +101,8 @@ export default function AppointmentDetailScreen() {
 					}
 
 					const signedUrlData = await res.json();
-					const supportingDocsWithUrls = signedUrlData?.supporting_documents ?? [];
+					const supportingDocsWithUrls =
+						signedUrlData?.supporting_documents ?? [];
 
 					// console.log("supportingDocsWithUrls:", supportingDocsWithUrls);
 
@@ -122,7 +129,7 @@ export default function AppointmentDetailScreen() {
 		return <ActivityIndicator loadingMsg="Fetching appointment record..." />;
 	}
 
-	// const doc = appointment.doctors;
+	// const doc = appointment.doctor;
 	// const provider = doc?.provider;
 
 	return (
@@ -161,22 +168,29 @@ export default function AppointmentDetailScreen() {
 						</View>
 						<Card.Content>
 							<Text style={styles.doctorName}>
-								Dr {appointment.doctors?.profiles?.full_name}
+								Dr {appointment.doctor?.profiles?.full_name}
 							</Text>
-							<Text style={styles.speciality}>{appointment.doctors?.speciality}</Text>
+							<Text style={styles.speciality}>
+								{appointment.doctor?.speciality}
+							</Text>
+
+							<Divider bold={true} style={styles.divider} />
 
 							<View style={[styles.section, { marginBottom: 8 }]}>
 								<Text style={styles.label}>Healthcare Provider</Text>
 								<Text style={styles.contentText}>
-									{appointment.doctors.provider?.name} ({appointment.doctors.provider?.provider_type})
+									{appointment.doctor.provider?.name} (
+									{appointment.doctor.provider?.provider_type})
 								</Text>
 								<Text style={[styles.label, { marginTop: 12 }]}>Address</Text>
-								<Text style={styles.contentText}>{appointment.doctors.provider?.address}</Text>
-								{appointment.doctors.provider?.phone_number ? (
+								<Text style={styles.contentText}>
+									{appointment.doctor.provider?.address}
+								</Text>
+								{appointment.doctor.provider?.phone_number ? (
 									<>
 										<Text style={[styles.label, { marginTop: 12 }]}>Phone</Text>
 										<Text style={styles.contentText}>
-											{appointment.doctors.provider.phone_number}
+											{appointment.doctor.provider.phone_number}
 										</Text>
 									</>
 								) : null}
@@ -186,7 +200,7 @@ export default function AppointmentDetailScreen() {
 
 							<View style={styles.section}>
 								<Text style={styles.label}>Appointment Time</Text>
-								<Text variant="titleMedium" style={styles.dateTime}>
+								<Text style={styles.contentText}>
 									{formatKL(appointment.starts_at, "dd MMM yyyy, HH:mm")} -{" "}
 									{formatKL(appointment.ends_at, "HH:mm")}
 								</Text>
@@ -251,15 +265,33 @@ export default function AppointmentDetailScreen() {
 												<SupportingDocumentPreview
 													key={index}
 													file={file}
-													signedUrl={
-														file.signed_url
-													}
+													signedUrl={file.signed_url}
 												/>
 											)
 										)}
 									</ScrollView>
 								) : null}
 							</View>
+
+							<Button
+								mode="contained"
+								onPress={() => setRescheduleVisible(true)}
+								// disabled={!canReschedule(appointment.starts_at)}
+							>
+								Reschedule
+							</Button>
+
+							<Portal>
+								<RescheduleModal
+									visible={rescheduleVisible}
+									onClose={() => setRescheduleVisible(false)}
+									session={session}
+									onRecordSaved={() => {
+										setRescheduleVisible(false);
+									}}
+									appointment={appointment}
+								/>
+							</Portal>
 						</Card.Content>
 					</Card>
 				</ScrollView>

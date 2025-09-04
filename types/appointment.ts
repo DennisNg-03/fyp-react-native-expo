@@ -24,13 +24,14 @@ export type Appointment = {
 	// 	};
 	// }[];
 	// Flattened doctor and provider
-	doctor?: {
+	doctor?: { // doctor is an alias given to the join result
 		full_name: string;
 		email?: string;
 		phone_number?: string;
 		speciality: string;
+		slot_minutes?: string;
 	};
-	provider?: {
+	provider?: { // provider is an alias given to the join result
 		name: string;
 		provider_type: string;
 		address?: string;
