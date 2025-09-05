@@ -50,7 +50,7 @@ export default function LoginScreen() {
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
 			<SafeAreaView
-				style={{ flex: 1, backgroundColor: theme.colors.background }}
+				style={{ flex: 1, backgroundColor: theme.colors.tertiary }}
 			>
 				<KeyboardAvoidingView
 					style={styles.container}
