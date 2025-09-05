@@ -343,11 +343,6 @@ const styles = StyleSheet.create({
 		color: "#555",
 		marginBottom: 2,
 	},
-	// dateText: {
-	// 	fontSize: 13,
-	// 	color: "#777",
-	// 	marginBottom: 2,
-	// },
 	statusText: {
 		fontSize: 13,
 		fontWeight: "500",

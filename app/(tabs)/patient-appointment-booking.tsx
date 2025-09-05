@@ -54,14 +54,12 @@ export default function AppointmentBookingScreen() {
 	const [doctorQuery, setDoctorQuery] = useState("");
 	const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
 
-	const [loadingProviders, setLoadingProviders] = useState(false);
+	// const [loadingProviders, setLoadingProviders] = useState(false);
 	const [showProvidersLoading, setShowProvidersLoading] = useState(false);
-	const [loadingDoctors, setLoadingDoctors] = useState(false);
 	const [showDoctorsLoading, setShowDoctorsLoading] = useState(false);
 
 	const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 	const [slots, setSlots] = useState<Slot[]>([]);
-	const [loadingSlots, setLoadingSlots] = useState(false);
 	const [showSlotsLoading, setShowSlotsLoading] = useState(false);
 	const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
 
@@ -83,7 +81,6 @@ export default function AppointmentBookingScreen() {
 
 	// Providers load
 	const loadProviders = useCallback(async () => {
-		setLoadingProviders(true);
 		setShowProvidersLoading(true);
 
 		// Always hide spinner after certain amount of time for lazy loading
@@ -102,15 +99,12 @@ export default function AppointmentBookingScreen() {
 				setSelectedProvider(data[0] as Provider);
 		} catch (e) {
 			console.warn(e);
-		} finally {
-			setLoadingProviders(false);
 		}
 	}, [selectedProvider]);
 
 	// Doctors at selected provider
 	const loadDoctors = useCallback(
 		async (providerId?: string) => {
-			setLoadingDoctors(true);
 			setShowDoctorsLoading(true);
 
 			// Always hide spinner after certain amount of time for lazy loading
@@ -158,8 +152,6 @@ export default function AppointmentBookingScreen() {
 				// }
 			} catch (e) {
 				console.warn(e);
-			} finally {
-				setLoadingDoctors(false);
 			}
 		},
 		[selectedDoctor]
@@ -176,7 +168,6 @@ export default function AppointmentBookingScreen() {
 		}
 
 		try {
-			setLoadingSlots(true);
 			setShowSlotsLoading(true);
 			console.log(
 				"Fetching slots for doctor:",
@@ -214,8 +205,6 @@ export default function AppointmentBookingScreen() {
 		} catch (e: any) {
 			console.warn(e);
 			setSlots([]);
-		} finally {
-			setLoadingSlots(false);
 		}
 	}, [selectedDoctor, selectedDate]);
 
@@ -286,7 +275,7 @@ export default function AppointmentBookingScreen() {
 				"application/pdf",
 				"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 				"application/msword",
-			], // Allowed document types
+			],
 			copyToCacheDirectory: true,
 		});
 

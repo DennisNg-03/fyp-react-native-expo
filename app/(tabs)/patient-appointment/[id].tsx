@@ -130,99 +130,6 @@ export default function AppointmentDetailScreen() {
 		console.log("appointment:", appointment);
 	}, [appointment]);
 
-	// useEffect(() => {
-	// 	if (!id) return;
-	// 	if (!session) return;
-
-	// 	const loadData = async () => {
-	// 		setLoading(true);
-	// 		try {
-	// 			const { data, error } = await supabase
-	// 				.from("appointments")
-	// 				.select(
-	// 					`
-	// 					id,
-	// 					doctor_id,
-	// 					patient_id,
-	// 					starts_at,
-	// 					ends_at,
-	// 					status,
-	// 					reason,
-	// 					notes,
-	// 					for_whom,
-	// 					other_person,
-	// 					supporting_documents,
-	// 					doctor:doctor_id (
-	// 						speciality,
-	// 						slot_minutes,
-	// 						profiles(full_name, email, phone_number),
-	// 						provider:provider_id (
-	// 							name,
-	// 							provider_type,
-	// 							address,
-	// 							phone_number
-	// 							)
-	// 						)
-	// 					`
-	// 				)
-	// 				.eq("id", id)
-	// 				.single();
-
-	// 			console.log("Supabase returned data:", data);
-	// 			console.log("Supabase returned error:", error);
-
-	// 			if (!data) return;
-
-	// 			let result = data;
-
-	// 			if (data && data.supporting_documents.length > 0) {
-	// 				const res = await fetch(
-	// 					`https://zxyyegizcgbhctjjoido.functions.supabase.co/getAppointmentDocSignedUrl`,
-	// 					{
-	// 						method: "POST",
-	// 						headers: {
-	// 							"Content-Type": "application/json",
-	// 							Authorization: `Bearer ${session?.access_token}`,
-	// 						},
-	// 						body: JSON.stringify({
-	// 							supporting_documents: data.supporting_documents,
-	// 						}),
-	// 					}
-	// 				);
-
-	// 				if (!res.ok) {
-	// 					console.error(
-	// 						"Failed to fetch signed URLs for documents",
-	// 						await res.text()
-	// 					);
-	// 					return;
-	// 				}
-
-	// 				const signedUrlData = await res.json();
-	// 				const supportingDocsWithUrls =
-	// 					signedUrlData?.supporting_documents ?? [];
-
-	// 				// console.log("supportingDocsWithUrls:", supportingDocsWithUrls);
-
-	// 				// Replace supporting_documents with those with signed Urls
-	// 				result = {
-	// 					...data,
-	// 					supporting_documents: supportingDocsWithUrls,
-	// 				};
-	// 			}
-
-	// 			setAppointment(result);
-
-	// 			// setAppointment(data);
-	// 		} catch (e) {
-	// 			console.warn("Error fetching appointment:", e);
-	// 		} finally {
-	// 			setLoading(false);
-	// 		}
-	// 	};
-	// 	loadData();
-	// }, [session, id]);
-
 	if (loading || !appointment) {
 		return <ActivityIndicator loadingMsg="Fetching appointment record..." />;
 	}
@@ -376,7 +283,7 @@ export default function AppointmentDetailScreen() {
 							<Button
 								mode="contained"
 								onPress={() => setRescheduleVisible(true)}
-								disabled={!canReschedule(appointment.starts_at)}
+								disabled={!canReschedule(appointment.starts_at) || (displayStatus !== "pending" && displayStatus !== "scheduled")} // Only allow reschedule when it passes "canReschedule" and it has pending/scheduled displayStatus
 							>
 								Reschedule
 							</Button>

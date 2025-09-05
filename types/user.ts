@@ -1,5 +1,53 @@
 export type UserRole = "doctor" | "nurse" | "patient" | null;
 
+export type PatientProfile = {
+	id: string;
+	full_name: string;
+	email: string;
+	phone_number: string;
+	gender: string;
+	avatar_url?: string;
+	date_of_birth?: string;
+	insurance_info?: string;
+	medical_history?: string;
+}
+
+export type DoctorProfile = {
+	id: string;
+	full_name: string;
+	email: string;
+	phone_number: string;
+	gender: string;
+	avatar_url?: string;
+	speciality: string;
+	slot_minutes: number;
+	timezone?: string;
+	provider_id: string;
+	availability?: string;
+	bio?: string;
+};
+
+export type NurseProfile = {
+	id: string;
+	full_name: string;
+	email: string;
+	phone_number: string;
+	gender: string;
+	avatar_url?: string;
+	provider_id: string;
+	assigned_doctor_id?: string;
+}
+
+// Use when handling appointments
+export type Doctor = {
+	id: string;
+	profiles?: { full_name?: string | null } | null;
+	speciality: string;
+	slot_minutes: number;
+	timezone?: string;
+	provider_id: string;
+};
+
 export type Provider = {
 	id: string;
 	name: string;
@@ -7,13 +55,4 @@ export type Provider = {
 	address?: string;
 	phone?: string;
 	timezone?: string;
-};
-
-export type Doctor = {
-	id: string;
-	profiles?: { full_name?: string | null } | null;
-	speciality?: string | null;
-	slot_minutes: number;
-	timezone: string;
-	provider_id?: string | null;
 };

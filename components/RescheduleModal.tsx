@@ -14,6 +14,7 @@ import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { Button, Modal, Text, TextInput, useTheme } from "react-native-paper";
 import { ActivityIndicator } from "./ActivityIndicator";
 import CustomDatePicker from "./CustomDatePicker";
+import RescheduleConfirmationDialog from "./RescheduleConfirmationDialog";
 import { SlotPicker } from "./SlotPicker";
 import { SupportingDocumentPreview } from "./SupportingDocumentPreview";
 
@@ -34,6 +35,7 @@ export default function RescheduleModal({
 }: RescheduleModalProps) {
 	const theme = useTheme();
 	const [saving, setSaving] = useState(false);
+	const [dialogVisible, setDialogVisible] = useState(false);
 	const [slots, setSlots] = useState<Slot[]>([]);
 	const [loadingSlots, setLoadingSlots] = useState(false);
 	const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
@@ -208,21 +210,6 @@ export default function RescheduleModal({
 							};
 						})
 				);
-
-			// const supportingDocumentsToDelete: SupportingDocumentToUpload[] =
-			// 	await Promise.all(
-			// 		removedDocuments.map(async (file) => {
-			// 			const response = await fetch(file.uri);
-			// 			const blob = await response.blob();
-			// 			const base64 = await blobToBase64(blob);
-			// 			return {
-			// 				name: file.name,
-			// 				blobBase64: base64,
-			// 				type: blob.type,
-			// 				document_type: file.document_type,
-			// 			};
-			// 		})
-			// 	);
 
 			const res = await fetch(
 				"https://zxyyegizcgbhctjjoido.functions.supabase.co/rescheduleAppointment",
@@ -423,13 +410,20 @@ export default function RescheduleModal({
 				</Button>
 				<Button
 					mode="contained"
-					onPress={handleReschedule}
+					onPress={() => setDialogVisible(true)}
 					disabled={!selectedSlot || !reason}
 					style={{ marginTop: 16 }}
 				>
 					Confirm
 				</Button>
 			</ScrollView>
+
+			<RescheduleConfirmationDialog
+				visible={dialogVisible}
+				onCancel={() => setDialogVisible(false)}
+				onConfirm={handleReschedule}
+			/>
+
 			{saving && (
 				<ActivityIndicator
 					loadingMsg={"Saving rescheduling request..."}
