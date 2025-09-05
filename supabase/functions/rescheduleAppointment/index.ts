@@ -71,10 +71,13 @@ Deno.serve(async (req) => {
 		)
 			.filter((doc): doc is SupportingDocument => "uri" in doc) // type guard
 			.filter((doc) => !doc.is_new) // Exclude new documents from the final array first
-			.map((doc) => ({
-				...doc,
-				document_type: doc.document_type as SupportingDocumentType,
-			}));
+			.map((doc) => {
+				const { signed_url: _signed_url, ...rest } = doc;
+				return {
+					...rest,
+					document_type: doc.document_type as SupportingDocumentType,
+				};
+			});
 
 		if (new_documents) {
 			for (const file of new_documents) {

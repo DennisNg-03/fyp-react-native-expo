@@ -7,7 +7,7 @@ import { formatKL } from "@/utils/dateHelpers";
 import {
 	formatStatusLabel,
 	getStatusBarStyle,
-	getStatusFontColor
+	getStatusFontColor,
 } from "@/utils/labelHelpers";
 import { useNavigationState } from "@react-navigation/native";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -34,18 +34,6 @@ export default function MyAppointmentsScreen() {
 			routes.map((r) => r.name)
 		);
 	}, [routes]);
-
-	useFocusEffect(
-		useCallback(() => {
-			setLoading(true);
-
-			const timeout = setTimeout(() => {
-				setLoading(false);
-			}, 300);
-
-			return () => clearTimeout(timeout);
-		}, [])
-	);
 
 	const flattenAppointments = (appointments: any[]): Appointment[] => {
 		return (appointments ?? []).map((appointment) => {
@@ -74,7 +62,7 @@ export default function MyAppointmentsScreen() {
 	const loadAppointments = useCallback(async () => {
 		try {
 			console.log("loadAppointments triggered!");
-			setLoading(true);
+			// setLoading(true);
 
 			const { data: upcomingData } = await supabase
 				.from("appointments")
@@ -144,7 +132,7 @@ export default function MyAppointmentsScreen() {
 		} catch (e) {
 			console.warn(e);
 		} finally {
-			setLoading(false);
+			// setLoading(false);
 			setRefreshing(false);
 		}
 	}, [userId]);
@@ -161,10 +149,29 @@ export default function MyAppointmentsScreen() {
 
 	useFocusEffect(
 		useCallback(() => {
+			// setLoading(true);
 			loadAppointments();
+
+			// const timeout = setTimeout(() => {
+			// 	setLoading(false);
+			// }, 300);
+
 			console.log("Executed loadAppointments through useFocusEffect!");
+			// return () => clearTimeout(timeout);
 		}, [loadAppointments])
 	);
+
+	// useFocusEffect(
+	// 	useCallback(() => {
+	// 		setLoading(true);
+
+	// 		const timeout = setTimeout(() => {
+	// 			setLoading(false);
+	// 		}, 500);
+
+	// 		return () => clearTimeout(timeout);
+	// 	}, [])
+	// );
 
 	// useEffect(() => {
 	// 	console.log("Upcoming:", upcoming);
@@ -201,7 +208,7 @@ export default function MyAppointmentsScreen() {
 				}}
 				elevation={2}
 				key={item.id}
-				onPress={() => router.push(`/(tabs)/patient-appointment/${item.id}`)}
+				onPress={() => router.push(`/(tabs)/patient-appointment/${item.id}`)} // MUST use router.push here, otherwise Back button won't be shown
 			>
 				<View style={styles.cardHeader}>
 					<View style={getStatusBarStyle(displayStatus)} />
