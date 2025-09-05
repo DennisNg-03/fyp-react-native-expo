@@ -6,6 +6,7 @@ import { SlotPicker } from "./SlotPicker";
 import { supabase } from "@/lib/supabase";
 import type { Appointment, Slot } from "@/types/appointment";
 import { formatKL } from "@/utils/dateHelpers";
+import CustomDatePicker from "./CustomDatePicker";
 
 type RescheduleModalProps = {
 	visible: boolean;
@@ -27,9 +28,11 @@ export default function RescheduleModal({
 	const [slots, setSlots] = useState<Slot[]>([]);
 	const [loadingSlots, setLoadingSlots] = useState(false);
 	const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
-	const [selectedDate, setSelectedDate] = useState(
-		new Date(appointment.starts_at)
-	);
+	const [selectedDate, setSelectedDate] = useState<Date>(() => {
+		const today = new Date();
+		const appointmentDate = new Date(appointment.starts_at);
+		return appointmentDate > today ? appointmentDate : today;
+	});
 
 	const loadSlots = useCallback(async () => {
 		setLoadingSlots(true);
@@ -43,6 +46,7 @@ export default function RescheduleModal({
 			}
 
 			const dateISO = formatKL(selectedDate, "yyyy-MM-dd");
+			console.log("DateISO:", dateISO);
 
 			const { data, error } = await supabase.rpc("get_available_slots", {
 				p_doctor_id: doctorId,
@@ -64,13 +68,18 @@ export default function RescheduleModal({
 		}
 	}, [appointment, selectedDate]);
 
+	// useEffect(() => {
+	// 	loadSlots();
+	// }, [loadSlots]);
+
 	useEffect(() => {
+		console.log("Selected date:", formatKL(selectedDate, "yyyy-MM-dd"));
 		loadSlots();
-	}, [loadSlots]);
+	}, [selectedDate, loadSlots]);
 
 	const handleReschedule = () => {
 		setSaving(true);
-		// Perform reschedule logic here, e.g., API call
+
 		// After successful reschedule:
 		if (onRecordSaved) {
 			onRecordSaved();
@@ -83,17 +92,26 @@ export default function RescheduleModal({
 		<Modal
 			visible={visible}
 			onDismiss={onClose}
-			contentContainerStyle={{
-				backgroundColor: "white",
-				margin: 20,
-				borderRadius: 12,
-				padding: 16,
-			}}
+			contentContainerStyle={
+				// 	{
+				// 	backgroundColor: "white",
+				// 	margin: 20,
+				// 	borderRadius: 12,
+				// 	padding: 16,
+				// }
+				styles.modalContainer
+			}
 		>
 			<Text variant="titleMedium" style={{ marginBottom: 12 }}>
 				Reschedule Appointment
 			</Text>
-			{/* TODO: Date picker here if needed */}
+			<CustomDatePicker
+				label="Choose your reschedule date"
+				value={selectedDate}
+				onChange={setSelectedDate}
+				parent="appointments"
+				mode="future"
+			/>
 			<SlotPicker
 				slots={slots}
 				selectedSlot={selectedSlot}
@@ -115,10 +133,13 @@ export default function RescheduleModal({
 const styles = StyleSheet.create({
 	modalContainer: {
 		backgroundColor: "white",
-		borderRadius: 8,
-		padding: 2,
-		marginHorizontal: 15,
-		marginVertical: 5,
+		// borderRadius: 8,
+		// padding: 20,
+		// marginHorizontal: 15,
+		// marginVertical: 5,
+		margin: 20,
+		borderRadius: 12,
+		padding: 16,
 	},
 	modalTitle: {
 		textAlign: "center",

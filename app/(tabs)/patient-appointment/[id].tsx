@@ -138,8 +138,10 @@ export default function AppointmentDetailScreen() {
 				style={{
 					flex: 1,
 					backgroundColor: theme.colors.background,
-					marginBottom: 10,
+					paddingBottom: 10,
+					paddingTop: 20,
 				}}
+				edges={["left", "right", "bottom"]} // Remove extra spacing due to showm header + SafeAreaView
 			>
 				<ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
 					<Card

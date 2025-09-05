@@ -122,18 +122,18 @@ export default function AppointmentBookingScreen() {
 			try {
 				const { data, error } = await (providerId
 					? supabase
-							.from("doctors")
-							.select(
-								`id, speciality, slot_minutes, timezone, profiles(full_name, email, phone_number), provider_id`
-							)
-							.eq("provider_id", providerId)
-							.order("profiles (full_name)")
+						.from("doctors")
+						.select(
+							`id, speciality, slot_minutes, timezone, profiles(full_name, email, phone_number), provider_id`
+						)
+						.eq("provider_id", providerId)
+						.order("profiles (full_name)")
 					: supabase
-							.from("doctors")
-							.select(
-								`id, speciality, slot_minutes, timezone, profiles(full_name, email, phone_number), provider_id`
-							)
-							.order("profiles (full_name)"));
+						.from("doctors")
+						.select(
+							`id, speciality, slot_minutes, timezone, profiles(full_name, email, phone_number), provider_id`
+						)
+						.order("profiles (full_name)"));
 
 				console.log("Data:", data);
 				if (error) {

@@ -8,8 +8,9 @@ import {
 	getStatusBarStyle,
 	getStatusFontColor,
 } from "@/utils/labelHelpers";
+import { useNavigationState } from "@react-navigation/native";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { Card, Divider, List, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -24,6 +25,28 @@ export default function MyAppointmentsScreen() {
 	const [past, setPast] = useState<Appointment[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [refreshing, setRefreshing] = useState(false);
+
+	const routes = useNavigationState((state) => state.routes);
+	useEffect(() => {
+		console.log(
+			"Navigation state routes:",
+			routes.map((r) => r.name)
+		);
+	}, [routes]);
+
+	useFocusEffect(
+		useCallback(() => {
+			// This runs whenever the screen gains focus (including when tab button is clicked)
+			setLoading(true);
+
+			// Simulate a tiny delay to allow your data to load
+			const timeout = setTimeout(() => {
+				setLoading(false);
+			}, 100); // 100ms is enough to prevent flicker
+
+			return () => clearTimeout(timeout);
+		}, [])
+	);
 
 	const flattenAppointments = (appointments: any[]): Appointment[] => {
 		return (appointments ?? []).map((appointment) => {
@@ -51,6 +74,7 @@ export default function MyAppointmentsScreen() {
 
 	const loadAppointments = useCallback(async () => {
 		try {
+			console.log("loadAppointments triggered!");
 			setLoading(true);
 
 			const { data: upcomingData } = await supabase
@@ -131,6 +155,7 @@ export default function MyAppointmentsScreen() {
 	// }, [loadAppointments]);
 
 	const onRefresh = () => {
+		console.log("onRefresh triggered!");
 		setRefreshing(true);
 		loadAppointments();
 	};
@@ -138,6 +163,7 @@ export default function MyAppointmentsScreen() {
 	useFocusEffect(
 		useCallback(() => {
 			loadAppointments();
+			console.log("Executed loadAppointments through useFocusEffect!");
 		}, [loadAppointments])
 	);
 
@@ -154,11 +180,17 @@ export default function MyAppointmentsScreen() {
 
 		const docName = item.doctor?.full_name ?? "Doctor";
 		const providerName = item.provider?.name ?? "Provider";
-		const providerPhone = item.provider?.phone_number ?? "-"; // assuming phone is under doctor
+		const providerPhone = item.provider?.phone_number ?? "-";
 		const providerAddress = item.provider?.address ?? "-";
 		const reason = item.reason ?? "-";
 
 		return (
+			// <Link
+			// 	href={`/(tabs)/patient-appointment/${item.id}`}
+			// 	asChild
+			// 	replace
+			// 	key={item.id}
+			// >
 			<Card
 				style={{
 					marginHorizontal: 16,
@@ -221,6 +253,7 @@ export default function MyAppointmentsScreen() {
 					</View>
 				</View>
 			</Card>
+			// </Link>
 		);
 	};
 
