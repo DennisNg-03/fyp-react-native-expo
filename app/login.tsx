@@ -2,9 +2,11 @@ import { router } from "expo-router";
 import { useState } from "react";
 import {
 	Alert,
+	Keyboard,
 	KeyboardAvoidingView,
 	Platform,
 	StyleSheet,
+	TouchableWithoutFeedback,
 	View,
 } from "react-native";
 import { Button, Text, TextInput, useTheme } from "react-native-paper";
@@ -46,70 +48,74 @@ export default function LoginScreen() {
 	};
 
 	return (
-		<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-			<KeyboardAvoidingView
-				style={styles.container}
-				behavior={Platform.OS === "ios" ? "padding" : undefined}
+		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+			<SafeAreaView
+				style={{ flex: 1, backgroundColor: theme.colors.background }}
 			>
-				{loading && <ActivityIndicator loadingMsg="" />}
+				<KeyboardAvoidingView
+					style={styles.container}
+					behavior={Platform.OS === "ios" ? "padding" : undefined}
+				>
+					{loading && <ActivityIndicator loadingMsg="" />}
 
-				<View style={styles.header}>
-					<Text variant="headlineMedium" style={styles.title}>
-						MediNexis
-					</Text>
-					<Text variant="labelLarge" style={styles.subtitle}>
-						Log in to continue your journey with us!
-					</Text>
-				</View>
+					<View style={styles.header}>
+						<Text variant="headlineMedium" style={styles.title}>
+							MediNexis
+						</Text>
+						<Text variant="labelLarge" style={styles.subtitle}>
+							Log in to continue your journey with us!
+						</Text>
+					</View>
 
-				<View style={styles.form}>
-					<TextInput
-						label="Email"
-						mode="outlined"
-						value={email}
-						onChangeText={setEmail}
-						keyboardType="email-address"
-						autoCapitalize="none"
-						autoComplete="off"
-						autoCorrect={false}
-						spellCheck={false}
-						maxLength={50}
-						style={styles.input}
-						contentStyle={{
-							textAlign: undefined, // To prevent ellipsis from not working
-						}}
-					/>
-					<TextInput
-						label="Password"
-						mode="outlined"
-						value={password}
-						onChangeText={setPassword}
-						secureTextEntry
-						maxLength={30}
-						style={styles.input}
-						contentStyle={{
-							textAlign: undefined, // To prevent ellipsis from not working
-						}}
-					/>
+					<View style={styles.form}>
+						<TextInput
+							label="Email"
+							mode="outlined"
+							value={email}
+							onChangeText={setEmail}
+							keyboardType="email-address"
+							autoCapitalize="none"
+							autoComplete="off"
+							autoCorrect={false}
+							spellCheck={false}
+							maxLength={50}
+							style={styles.input}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
+						/>
+						<TextInput
+							label="Password"
+							mode="outlined"
+							value={password}
+							onChangeText={setPassword}
+							secureTextEntry
+							maxLength={30}
+							style={styles.input}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
+						/>
 
-					<Button
-						mode="contained"
-						onPress={handleLogin}
-						style={styles.loginButton}
-					>
-						Login
-					</Button>
+						<Button
+							mode="contained"
+							onPress={handleLogin}
+							style={styles.loginButton}
+						>
+							Login
+						</Button>
 
-					<Button
-						mode="text"
-						onPress={handleRegister}
-						style={styles.secondaryBtn}
-					>
-						{"Don't have an account? Register"}
-					</Button>
-				</View>
-			</KeyboardAvoidingView>
-		</SafeAreaView>
+						<Button
+							mode="text"
+							onPress={handleRegister}
+							style={styles.secondaryBtn}
+						>
+							{"Don't have an account? Register"}
+						</Button>
+					</View>
+				</KeyboardAvoidingView>
+			</SafeAreaView>
+		</TouchableWithoutFeedback>
 	);
 }
 

@@ -148,9 +148,9 @@ export default function TabLayout() {
 							color={color}
 						/>
 					),
-					href: "/doctor-availability",
-					// href:
-					//   role === "doctor" || role === "nurse" ? "/doctor-availability" : null,
+					// href: "/doctor-availability",
+					href:
+					  role === "doctor" || role === "nurse" ? "/doctor-availability" : null,
 				}}
 			/>
 			{/* <Tabs.Screen

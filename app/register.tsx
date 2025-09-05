@@ -2,10 +2,13 @@ import { router } from "expo-router";
 import { useState } from "react";
 import {
 	Alert,
+	Keyboard,
 	KeyboardAvoidingView,
 	Platform,
+	ScrollView,
 	StyleSheet,
 	TouchableOpacity,
+	TouchableWithoutFeedback,
 	View,
 } from "react-native";
 import {
@@ -19,7 +22,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ActivityIndicator } from "@/components/ActivityIndicator";
+import { GenderDropdown } from "@/components/GenderDropdown";
 import { HealthcareProviderDropdown } from "@/components/HealthcareProviderDropdown";
+import { SpecialityDropdown } from "@/components/SpecialityDropdown";
 import { supabase } from "@/lib/supabase";
 import { UserRole } from "@/types/user";
 
@@ -29,8 +34,11 @@ export default function RegisterScreen() {
 	const [role, setRole] = useState<UserRole | null>(null);
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
+	const [phoneNumber, setPhoneNumber] = useState("");
+	const [gender, setGender] = useState<string | undefined>(undefined);
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
+	const [speciality, setSpeciality] = useState<string | undefined>(undefined);
 	const [healthcareProvider, setHealthcareProvider] = useState<
 		string | undefined
 	>(undefined);
@@ -66,24 +74,32 @@ export default function RegisterScreen() {
 		setRole(null);
 		setName("");
 		setEmail("");
+		setPhoneNumber("");
+		setGender(undefined);
 		setPassword("");
 		setConfirmPassword("");
 		setHealthcareProvider(undefined);
+		setSpeciality(undefined);
 	};
 
 	const handleRegister = async () => {
-		if (!name || !email || !password || !role) {
+		if (
+			!name ||
+			!email ||
+			!phoneNumber ||
+			!gender ||
+			!password ||
+			!confirmPassword ||
+			!role ||
+			((role === "doctor" || role === "nurse") && !healthcareProvider) ||
+			(role === "doctor" && !speciality)
+		) {
 			Alert.alert("Alert", "Please fill up all the fields!");
 			return;
 		}
 
 		if (password !== confirmPassword) {
 			Alert.alert("Error", "Passwords do not match!");
-			return;
-		}
-
-		if ((role === "doctor" || role === "nurse") && !healthcareProvider) {
-			Alert.alert("Alert", "Please select your healthcare provider!");
 			return;
 		}
 
@@ -123,11 +139,17 @@ export default function RegisterScreen() {
 			const bodyData: Record<string, any> = {
 				user_id: userId,
 				email,
+				phone_number: phoneNumber,
+				gender,
 				role,
 			};
 
 			if (role === "doctor" || role === "nurse") {
 				bodyData.provider_id = healthcareProvider;
+			}
+
+			if (role === "doctor") {
+				bodyData.speciality = speciality;
 			}
 
 			// Store user role and user-specific data
@@ -161,149 +183,187 @@ export default function RegisterScreen() {
 	};
 
 	return (
-		<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-			<KeyboardAvoidingView
-				style={styles.container}
-				behavior={Platform.OS === "ios" ? "padding" : undefined}
+		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+			<SafeAreaView
+				style={{ flex: 1, backgroundColor: theme.colors.tertiary }}
 			>
-				{loading && <ActivityIndicator loadingMsg="" />}
-				{!role ? (
-					<View style={styles.roleSelection}>
-						<Text variant="headlineMedium" style={styles.title}>
-							Sign Up for an Account
-						</Text>
-						<Text variant="labelLarge" style={styles.subtitle}>
-							Choose your role to begin your journey with MediNexis!
-						</Text>
+				<KeyboardAvoidingView
+					style={styles.container}
+					behavior={Platform.OS === "ios" ? "padding" : undefined}
+				>
+					{loading && <ActivityIndicator loadingMsg="" />}
+					{!role ? (
+						<View style={styles.roleSelection}>
+							<Text variant="headlineMedium" style={styles.title}>
+								Sign Up for an Account
+							</Text>
+							<Text variant="labelLarge" style={styles.subtitle}>
+								Choose your role to begin your journey with MediNexis!
+							</Text>
 
-						<View style={styles.roleCardsContainer}>
-							{roles.map((r) => (
-								<TouchableOpacity
-									key={r.key}
-									onPress={() => setRole(r.key)}
-									activeOpacity={0.8}
-									style={{ width: 300 }}
-								>
-									<Card style={styles.roleCard} elevation={2}>
-										<Card.Content style={styles.roleCardContent}>
-											<Avatar.Icon
-												size={48}
-												icon={r.icon}
-												style={{ backgroundColor: theme.colors.primary }}
-											/>
-											<Text variant="titleMedium" style={{ marginTop: 8 }}>
-												{r.label}
-											</Text>
-											<Text
-												variant="bodySmall"
-												style={{
-													marginTop: 4,
-													color: theme.colors.onSurfaceVariant,
-												}}
-											>
-												{r.description}
-											</Text>
-										</Card.Content>
-									</Card>
-								</TouchableOpacity>
-							))}
+							<View style={styles.roleCardsContainer}>
+								{roles.map((r) => (
+									<TouchableOpacity
+										key={r.key}
+										onPress={() => setRole(r.key)}
+										activeOpacity={0.8}
+										style={{ width: 300 }}
+									>
+										<Card style={styles.roleCard} elevation={2}>
+											<Card.Content style={styles.roleCardContent}>
+												<Avatar.Icon
+													size={48}
+													icon={r.icon}
+													style={{ backgroundColor: theme.colors.tertiary }}
+												/>
+												<Text variant="titleMedium" style={{ marginTop: 8 }}>
+													{r.label}
+												</Text>
+												<Text
+													variant="bodySmall"
+													style={{
+														marginTop: 4,
+														color: theme.colors.onSurfaceVariant,
+													}}
+												>
+													{r.description}
+												</Text>
+											</Card.Content>
+										</Card>
+									</TouchableOpacity>
+								))}
+							</View>
+							<Button mode="text" onPress={() => router.replace("/login")}>
+								Back to Login
+							</Button>
 						</View>
-					</View>
-				) : (
-					<View style={styles.form}>
-						<Text variant="headlineMedium" style={styles.title}>
-							Create {role.charAt(0).toUpperCase() + role.slice(1)} Account
-						</Text>
-						<Text variant="labelLarge" style={styles.subtitle}>
-							Fill in your details to get started with MediNexis
-						</Text>
+					) : (
+						<ScrollView
+							style={styles.form}
+							contentContainerStyle={{
+								flexGrow: 1,
+								justifyContent: "center",
+							}}
+						>
+							<Text variant="headlineMedium" style={styles.title}>
+								Create {role.charAt(0).toUpperCase() + role.slice(1)} Account
+							</Text>
+							<Text variant="labelLarge" style={styles.subtitle}>
+								Fill in your details to get started with MediNexis
+							</Text>
 
-						<TextInput
-							label="Name"
-							value={name}
-							onChangeText={setName}
-							mode="outlined"
-							autoComplete="off"
-							autoCorrect={false}
-							spellCheck={false}
-							maxLength={50}
-							style={styles.input}
-							contentStyle={{
-								textAlign: undefined, // To prevent ellipsis from not working
-							}}
-						/>
-						<TextInput
-							label="Email"
-							value={email}
-							onChangeText={setEmail}
-							mode="outlined"
-							autoCapitalize="none"
-							keyboardType="email-address"
-							autoComplete="off"
-							autoCorrect={false}
-							spellCheck={false}
-							maxLength={50}
-							style={styles.input}
-							contentStyle={{
-								textAlign: undefined, // To prevent ellipsis from not working
-							}}
-						/>
-						<TextInput
-							label="Password"
-							value={password}
-							onChangeText={setPassword}
-							mode="outlined"
-							secureTextEntry
-							textContentType="oneTimeCode"
-							maxLength={30}
-							style={styles.input}
-							contentStyle={{
-								textAlign: undefined, // To prevent ellipsis from not working
-							}}
-						/>
-						<TextInput
-							label="Confirm Password"
-							value={confirmPassword}
-							onChangeText={setConfirmPassword}
-							mode="outlined"
-							secureTextEntry
-							textContentType="oneTimeCode"
-							maxLength={30}
-							style={styles.input}
-							contentStyle={{
-								textAlign: undefined, // To prevent ellipsis from not working
-							}}
-						/>
-
-						{(role === "doctor" || role === "nurse") && (
-							<HealthcareProviderDropdown
-								selectedProvider={healthcareProvider}
-								setSelectedProvider={setHealthcareProvider}
+							<TextInput
+								label="Name"
+								value={name}
+								onChangeText={setName}
+								mode="outlined"
+								autoComplete="off"
+								autoCorrect={false}
+								spellCheck={false}
+								maxLength={50}
+								style={styles.input}
+								contentStyle={{
+									textAlign: undefined, // To prevent ellipsis from not working
+								}}
 							/>
-						)}
+							<TextInput
+								label="Email"
+								value={email}
+								onChangeText={setEmail}
+								mode="outlined"
+								autoCapitalize="none"
+								keyboardType="email-address"
+								autoComplete="off"
+								autoCorrect={false}
+								spellCheck={false}
+								maxLength={50}
+								style={styles.input}
+								contentStyle={{
+									textAlign: undefined, // To prevent ellipsis from not working
+								}}
+							/>
+							<TextInput
+								label="Phone Number"
+								value={phoneNumber}
+								onChangeText={setPhoneNumber}
+								mode="outlined"
+								keyboardType="phone-pad"
+								autoComplete="tel"
+								autoCorrect={false}
+								spellCheck={false}
+								maxLength={20}
+								style={styles.input}
+								contentStyle={{
+									textAlign: undefined, // To prevent ellipsis from not working
+								}}
+							/>
+							<GenderDropdown
+								selectedGender={gender}
+								setSelectedGender={setGender}
+							/>
+							<TextInput
+								label="Password"
+								value={password}
+								onChangeText={setPassword}
+								mode="outlined"
+								secureTextEntry
+								textContentType="oneTimeCode"
+								maxLength={30}
+								style={styles.input}
+								contentStyle={{
+									textAlign: undefined, // To prevent ellipsis from not working
+								}}
+							/>
+							<TextInput
+								label="Confirm Password"
+								value={confirmPassword}
+								onChangeText={setConfirmPassword}
+								mode="outlined"
+								secureTextEntry
+								textContentType="oneTimeCode"
+								maxLength={30}
+								style={styles.input}
+								contentStyle={{
+									textAlign: undefined, // To prevent ellipsis from not working
+								}}
+							/>
 
-						<Button
-							mode="contained"
-							onPress={handleRegister}
-							style={styles.registerButton}
-						>
-							Register
-						</Button>
+							{(role === "doctor" || role === "nurse") && (
+								<HealthcareProviderDropdown
+									selectedProvider={healthcareProvider}
+									setSelectedProvider={setHealthcareProvider}
+								/>
+							)}
+							{role === "doctor" && (
+								<SpecialityDropdown
+									selectedSpeciality={speciality}
+									setSelectedSpeciality={setSpeciality}
+								/>
+							)}
 
-						<Button
-							mode="text"
-							onPress={handleChooseDifferentRole}
-							style={{ marginBottom: 3 }}
-						>
-							Choose a different role
-						</Button>
-						<Button mode="text" onPress={() => router.replace("/login")}>
-							Already have an account? Login
-						</Button>
-					</View>
-				)}
-			</KeyboardAvoidingView>
-		</SafeAreaView>
+							<Button
+								mode="contained"
+								onPress={handleRegister}
+								style={styles.registerButton}
+							>
+								Register
+							</Button>
+
+							<Button
+								mode="text"
+								onPress={handleChooseDifferentRole}
+								style={{ marginBottom: 3 }}
+							>
+								Choose a different role
+							</Button>
+							<Button mode="text" onPress={() => router.replace("/login")}>
+								Already have an account? Login
+							</Button>
+						</ScrollView>
+					)}
+				</KeyboardAvoidingView>
+			</SafeAreaView>
+		</TouchableWithoutFeedback>
 	);
 }
 

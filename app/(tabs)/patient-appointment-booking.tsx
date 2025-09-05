@@ -1,5 +1,6 @@
 import { ActivityIndicator } from "@/components/ActivityIndicator";
 import CustomDatePicker from "@/components/CustomDatePicker";
+import { GenderDropdown } from "@/components/GenderDropdown";
 import { SlotPicker } from "@/components/SlotPicker";
 import { SupportingDocumentPreview } from "@/components/SupportingDocumentPreview";
 import { supabase } from "@/lib/supabase";
@@ -443,7 +444,7 @@ export default function AppointmentBookingScreen() {
 			<SafeAreaView
 				style={{
 					flex: 1,
-					backgroundColor: theme.colors.background,
+					backgroundColor: theme.colors.tertiary,
 					marginBottom: 10,
 				}}
 			>
@@ -517,7 +518,6 @@ export default function AppointmentBookingScreen() {
 										data={filteredDoctors}
 										keyExtractor={(d) => d.id}
 										style={{ marginVertical: 10, paddingBottom: 12 }}
-										contentContainerStyle={{ width: "100%" }}
 										// scrollEnabled={!selectedProvider}
 										renderItem={({ item }) => {
 											const active = selectedDoctor?.id === item.id;
@@ -713,7 +713,7 @@ export default function AppointmentBookingScreen() {
 												mode="dob"
 											/>
 
-											<TextInput
+											{/* <TextInput
 												label="Gender"
 												placeholder="E.g. Male, Female"
 												value={otherPerson.gender}
@@ -731,7 +731,13 @@ export default function AppointmentBookingScreen() {
 												maxLength={100}
 												contentStyle={{
 													textAlign: undefined, // To prevent ellipsis from not working
-												}}
+												}} 
+											/> */}
+											<GenderDropdown
+												selectedGender={otherPerson.gender}
+												setSelectedGender={(g) =>
+													setOtherPerson({ ...otherPerson, gender: g ?? "" })
+												}
 											/>
 
 											<TextInput

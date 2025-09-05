@@ -235,7 +235,7 @@ export default function AppointmentDetailScreen() {
 			<SafeAreaView
 				style={{
 					flex: 1,
-					backgroundColor: theme.colors.background,
+					backgroundColor: theme.colors.tertiary,
 					// paddingBottom: 10,
 					// paddingTop: 20,
 				}}
@@ -338,7 +338,7 @@ export default function AppointmentDetailScreen() {
 										Name: {appointment.other_person.name}
 									</Text>
 									<Text style={styles.contentText}>
-										Gender: {appointment.other_person.gender}
+										Gender: {formatLabel(appointment.other_person.gender)}
 									</Text>
 									<Text style={styles.contentText}>
 										Relationship: {appointment.other_person.relationship}

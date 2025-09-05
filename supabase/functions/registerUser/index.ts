@@ -13,12 +13,11 @@ Deno.serve(async (req) => {
 	);
 
 	try {
-		const { user_id, email, role, provider_id } = await req.json();
-
+		const { user_id, email, phone_number, gender, role, provider_id, speciality } = await req.json();
 		// Update base profile
 		const { error: userError } = await supabase
 			.from("profiles")
-			.update({ email, role })
+			.update({ email, role, phone_number, gender })
 			.eq("id", user_id);
 
 		if (userError) {
@@ -39,7 +38,7 @@ Deno.serve(async (req) => {
 		if (role === "doctor") {
 			const { error: doctorError } = await supabase
 				.from("doctors")
-				.insert([{ id: user_id, provider_id }]);
+				.insert([{ id: user_id, provider_id, speciality }]);
 
 			if (doctorError) {
 				return new Response(doctorError.message, { status: 400 });

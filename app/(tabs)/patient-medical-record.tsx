@@ -395,7 +395,7 @@ export default function PatientMedicalRecordScreen() {
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
 			<SafeAreaView
-				style={{ flex: 1, backgroundColor: theme.colors.background }}
+				style={{ flex: 1, backgroundColor: theme.colors.tertiary }}
 			>
 				<FlatList
 					contentContainerStyle={{ paddingBottom: 50, paddingHorizontal: 16 }}

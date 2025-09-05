@@ -35,6 +35,17 @@ export default function RootLayout() {
 	const paperTheme = {
 		...baseTheme,
 		roundness: 10,
+		colors: {
+			...baseTheme.colors,
+			tertiary: baseTheme.colors.background, // Apply the default background colour, the rest of the system will depend on this as background
+			background: baseTheme.colors.onPrimary, // React-native-paper-dropdown's field bg colour depends on this
+			// surfaceVariant: baseTheme.colors.surface,
+			// onSurfaceVariant: baseTheme.colors.surface,
+			// secondary: baseTheme.colors.surface,
+			// secondaryContainer: baseTheme.colors.surface,
+			// surface: baseTheme.colors.surface,
+			// tertiaryContainer: baseTheme.colors.surface,
+		},
 	};
 
 	// const theme = {

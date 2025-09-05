@@ -193,7 +193,7 @@ export default function ProfileScreen() {
 
 	return (
 		<SafeAreaView>
-			<ScrollView style={{ backgroundColor: theme.colors.background }}>
+			<ScrollView style={{ backgroundColor: theme.colors.tertiary }}>
 				<View style={styles.header}>
 					<Avatar.Image
 						size={100}

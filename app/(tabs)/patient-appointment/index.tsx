@@ -266,7 +266,7 @@ export default function MyAppointmentsScreen() {
 	};
 
 	return (
-		<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+		<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.tertiary }}>
 			{loading && !refreshing ? (
 				<ActivityIndicator loadingMsg="" size="large" />
 			) : (
