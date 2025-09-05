@@ -13,7 +13,7 @@ import {
 } from "@/types/appointment";
 import { Doctor, Provider } from "@/types/user";
 import { formatKL } from "@/utils/dateHelpers";
-import { blobToBase64 } from "@/utils/fileHelpers";
+import { blobToBase64, MAX_FILE_SIZE } from "@/utils/fileHelpers";
 import * as DocumentPicker from "expo-document-picker";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -80,8 +80,6 @@ export default function AppointmentBookingScreen() {
 	const [booking, setBooking] = useState(false);
 	// const isFirstRender = useRef(true);
 
-	const MAX_FILE_SIZE = 20 * 1024 * 1024;
-
 	// Providers load
 	const loadProviders = useCallback(async () => {
 		setLoadingProviders(true);
@@ -122,18 +120,18 @@ export default function AppointmentBookingScreen() {
 			try {
 				const { data, error } = await (providerId
 					? supabase
-						.from("doctors")
-						.select(
-							`id, speciality, slot_minutes, timezone, profiles(full_name, email, phone_number), provider_id`
-						)
-						.eq("provider_id", providerId)
-						.order("profiles (full_name)")
+							.from("doctors")
+							.select(
+								`id, speciality, slot_minutes, timezone, profiles(full_name, email, phone_number), provider_id`
+							)
+							.eq("provider_id", providerId)
+							.order("profiles (full_name)")
 					: supabase
-						.from("doctors")
-						.select(
-							`id, speciality, slot_minutes, timezone, profiles(full_name, email, phone_number), provider_id`
-						)
-						.order("profiles (full_name)"));
+							.from("doctors")
+							.select(
+								`id, speciality, slot_minutes, timezone, profiles(full_name, email, phone_number), provider_id`
+							)
+							.order("profiles (full_name)"));
 
 				console.log("Data:", data);
 				if (error) {
@@ -302,8 +300,8 @@ export default function AppointmentBookingScreen() {
 			});
 
 			if (filteredAssets.length < result.assets.length) {
-				alert(
-					`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 *1024)} MB.`
+				Alert.alert(
+					`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 * 1024)} MB.`
 				);
 				return;
 			}
@@ -423,65 +421,22 @@ export default function AppointmentBookingScreen() {
 			// isFirstRender.current = true;
 			setSelectedDoctor(null);
 
-			Alert.alert("Success", "Appointment made successfully!", [
-				{
-					text: "OK",
-					onPress: () => router.push("/(tabs)/patient-appointment"),
-				},
-			]);
+			Alert.alert(
+				"Appointment Request Sent",
+				"Your appointment request has been submitted successfully. You can submit a rescheduling request at least 48 hours before the appointment start time.",
+				[
+					{
+						text: "OK",
+						onPress: () => router.push("/(tabs)/patient-appointment"),
+					},
+				]
+			);
 		} catch (err) {
 			console.error("Error saving record:", err);
 		} finally {
 			setBooking(false);
 		}
 	};
-
-	// const renderSlot = ({ item }: { item: Slot }) => {
-	// 	if (!selectedDoctor) {
-	// 		return (
-	// 			<View
-	// 				style={{
-	// 					flex: 1,
-	// 					alignItems: "center",
-	// 					justifyContent: "center",
-	// 					marginVertical: 10,
-	// 				}}
-	// 			>
-	// 				{/* <Text style={{ textAlign: "center" }}>
-	// 					No doctors found from this healthcare provider.
-	// 				</Text> */}
-	// 			</View>
-	// 		);
-	// 	}
-
-	// 	const startLocal = formatKL(item.slot_start, "HH:mm");
-	// 	const endLocal = formatKL(item.slot_end, "HH:mm");
-	// 	const disabled = item.is_blocked;
-	// 	const selected = selectedSlot?.slot_start === item.slot_start;
-	// 	return (
-	// 		<TouchableOpacity
-	// 			disabled={disabled}
-	// 			onPress={() => setSelectedSlot(item)}
-	// 			style={{
-	// 				// flexBasis: "32%",
-	// 				// flexGrow: 0,
-	// 				// flexShrink: 0,
-	// 				// width: "100%", // fill the parent container width (slotWidth)
-	// 				marginVertical: 4,
-	// 				opacity: disabled ? 0.4 : 1,
-	// 				borderRadius: 12,
-	// 				borderWidth: selected ? 2 : 1,
-	// 				borderColor: selected ? theme.colors.primary : "#ccc",
-	// 				paddingVertical: 8,
-	// 				// paddingHorizontal: 12,
-	// 				alignItems: "center",
-	// 				backgroundColor: selected ? "#eee" : "white",
-	// 			}}
-	// 		>
-	// 			<Text style={{ fontSize: 12 }}>{`${startLocal} – ${endLocal}`}</Text>
-	// 		</TouchableOpacity>
-	// 	);
-	// };
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -613,30 +568,6 @@ export default function AppointmentBookingScreen() {
 								parent="appointments"
 								mode="future"
 							/>
-
-							{/* <Text
-								variant="titleSmall"
-								style={{ marginTop: 12, marginBottom: 8 }}
-							>
-								Appointment Slots
-							</Text>
-							{showSlotsLoading ? (
-								<ActivityIndicator loadingMsg="" size="small" overlay={false} />
-							) : slots.length > 0 ? (
-								<View
-									style={{ flexDirection: "row", flexWrap: "wrap", gap: 4 }}
-								>
-									{slots.map((slot) => (
-										<View key={slot.slot_start} style={{ flexBasis: "32.5%" }}>
-											{renderSlot({ item: slot })}
-										</View>
-									))}
-								</View>
-							) : (
-								<View style={{ marginVertical: 10, alignItems: "center" }}>
-									<Text>No available slots.</Text>
-								</View>
-							)} */}
 
 							<Text
 								variant="titleSmall"

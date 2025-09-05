@@ -3,9 +3,13 @@ import RescheduleModal from "@/components/RescheduleModal";
 import { SupportingDocumentPreview } from "@/components/SupportingDocumentPreview";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
-import { getDisplayStatus } from "@/utils/appointmentRules";
+import { canReschedule, getDisplayStatus } from "@/utils/appointmentRules";
 import { formatKL } from "@/utils/dateHelpers";
-import { formatLabel, formatStatusLabel, getStatusColor } from "@/utils/labelHelpers";
+import {
+	formatLabel,
+	formatStatusLabel,
+	getStatusColor,
+} from "@/utils/labelHelpers";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -33,98 +37,191 @@ export default function AppointmentDetailScreen() {
 	const [loading, setLoading] = useState(false);
 	const [rescheduleVisible, setRescheduleVisible] = useState(false);
 
-	useEffect(() => {
-		if (!id) return;
-		if (!session) return;
+	const loadData = async () => {
+		if (!id || !session) return;
 
-		const loadData = async () => {
-			setLoading(true);
-			try {
-				const { data, error } = await supabase
-					.from("appointments")
-					.select(
-						`
-						id,
-						doctor_id,
-						patient_id,
-						starts_at,
-						ends_at,
-						status,
-						reason,
-						notes,
-						for_whom,
-						other_person,
-						supporting_documents,
-						doctor:doctor_id (
-							speciality,
-							slot_minutes,
-							profiles(full_name, email, phone_number),
-							provider:provider_id (
-								name,
-								provider_type,
-								address,
-								phone_number
-								)
+		setLoading(true);
+		try {
+			const { data, error } = await supabase
+				.from("appointments")
+				.select(
+					`
+					id,
+					doctor_id,
+					patient_id,
+					starts_at,
+					ends_at,
+					status,
+					reason,
+					notes,
+					for_whom,
+					other_person,
+					supporting_documents,
+					doctor:doctor_id (
+						speciality,
+						slot_minutes,
+						profiles(full_name, email, phone_number),
+						provider:provider_id (
+							name,
+							provider_type,
+							address,
+							phone_number
 							)
-						`
-					)
-					.eq("id", id)
-					.single();
+						)
+					`
+				)
+				.eq("id", id)
+				.single();
 
-				console.log("Supabase returned data:", data);
-				console.log("Supabase returned error:", error);
+			console.log("Supabase returned data:", data);
+			console.log("Supabase returned error:", error);
 
-				if (!data) return;
+			if (!data) return;
 
-				let result = data;
+			let result = data;
 
-				if (data && data.supporting_documents.length > 0) {
-					const res = await fetch(
-						`https://zxyyegizcgbhctjjoido.functions.supabase.co/getAppointmentDocSignedUrl`,
-						{
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-								Authorization: `Bearer ${session?.access_token}`,
-							},
-							body: JSON.stringify({
-								supporting_documents: data.supporting_documents,
-							}),
-						}
-					);
-
-					if (!res.ok) {
-						console.error(
-							"Failed to fetch signed URLs for documents",
-							await res.text()
-						);
-						return;
+			if (data.supporting_documents?.length > 0) {
+				const res = await fetch(
+					`https://zxyyegizcgbhctjjoido.functions.supabase.co/getAppointmentDocSignedUrl`,
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${session?.access_token}`,
+						},
+						body: JSON.stringify({
+							supporting_documents: data.supporting_documents,
+						}),
 					}
+				);
 
-					const signedUrlData = await res.json();
-					const supportingDocsWithUrls =
-						signedUrlData?.supporting_documents ?? [];
-
-					// console.log("supportingDocsWithUrls:", supportingDocsWithUrls);
-
-					// Replace supporting_documents with those with signed Urls
-					result = {
-						...data,
-						supporting_documents: supportingDocsWithUrls,
-					};
+				if (!res.ok) {
+					console.error(
+						"Failed to fetch signed URLs for documents",
+						await res.text()
+					);
+					return;
 				}
 
-				setAppointment(result);
+				const signedUrlData = await res.json();
+				const supportingDocsWithUrls =
+					signedUrlData?.supporting_documents ?? [];
 
-				// setAppointment(data);
-			} catch (e) {
-				console.warn("Error fetching appointment:", e);
-			} finally {
-				setLoading(false);
+				result = {
+					...data,
+					supporting_documents: supportingDocsWithUrls,
+				};
 			}
-		};
+
+			setAppointment(result);
+		} catch (e) {
+			console.warn("Error fetching appointment:", e);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	useEffect(() => {
 		loadData();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [session, id]);
+
+	useEffect(() => {
+		console.log("appointment:", appointment);
+	}, [appointment]);
+
+	// useEffect(() => {
+	// 	if (!id) return;
+	// 	if (!session) return;
+
+	// 	const loadData = async () => {
+	// 		setLoading(true);
+	// 		try {
+	// 			const { data, error } = await supabase
+	// 				.from("appointments")
+	// 				.select(
+	// 					`
+	// 					id,
+	// 					doctor_id,
+	// 					patient_id,
+	// 					starts_at,
+	// 					ends_at,
+	// 					status,
+	// 					reason,
+	// 					notes,
+	// 					for_whom,
+	// 					other_person,
+	// 					supporting_documents,
+	// 					doctor:doctor_id (
+	// 						speciality,
+	// 						slot_minutes,
+	// 						profiles(full_name, email, phone_number),
+	// 						provider:provider_id (
+	// 							name,
+	// 							provider_type,
+	// 							address,
+	// 							phone_number
+	// 							)
+	// 						)
+	// 					`
+	// 				)
+	// 				.eq("id", id)
+	// 				.single();
+
+	// 			console.log("Supabase returned data:", data);
+	// 			console.log("Supabase returned error:", error);
+
+	// 			if (!data) return;
+
+	// 			let result = data;
+
+	// 			if (data && data.supporting_documents.length > 0) {
+	// 				const res = await fetch(
+	// 					`https://zxyyegizcgbhctjjoido.functions.supabase.co/getAppointmentDocSignedUrl`,
+	// 					{
+	// 						method: "POST",
+	// 						headers: {
+	// 							"Content-Type": "application/json",
+	// 							Authorization: `Bearer ${session?.access_token}`,
+	// 						},
+	// 						body: JSON.stringify({
+	// 							supporting_documents: data.supporting_documents,
+	// 						}),
+	// 					}
+	// 				);
+
+	// 				if (!res.ok) {
+	// 					console.error(
+	// 						"Failed to fetch signed URLs for documents",
+	// 						await res.text()
+	// 					);
+	// 					return;
+	// 				}
+
+	// 				const signedUrlData = await res.json();
+	// 				const supportingDocsWithUrls =
+	// 					signedUrlData?.supporting_documents ?? [];
+
+	// 				// console.log("supportingDocsWithUrls:", supportingDocsWithUrls);
+
+	// 				// Replace supporting_documents with those with signed Urls
+	// 				result = {
+	// 					...data,
+	// 					supporting_documents: supportingDocsWithUrls,
+	// 				};
+	// 			}
+
+	// 			setAppointment(result);
+
+	// 			// setAppointment(data);
+	// 		} catch (e) {
+	// 			console.warn("Error fetching appointment:", e);
+	// 		} finally {
+	// 			setLoading(false);
+	// 		}
+	// 	};
+	// 	loadData();
+	// }, [session, id]);
 
 	if (loading || !appointment) {
 		return <ActivityIndicator loadingMsg="Fetching appointment record..." />;
@@ -139,12 +236,12 @@ export default function AppointmentDetailScreen() {
 				style={{
 					flex: 1,
 					backgroundColor: theme.colors.background,
-					paddingBottom: 10,
-					paddingTop: 20,
+					// paddingBottom: 10,
+					// paddingTop: 20,
 				}}
 				edges={["left", "right", "bottom"]} // Remove extra spacing due to showm header + SafeAreaView
 			>
-				<ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+				<ScrollView contentContainerStyle={{ paddingTop: 20, paddingBottom: 55 }}>
 					<Card
 						style={styles.card}
 						key={appointment.id}
@@ -279,25 +376,25 @@ export default function AppointmentDetailScreen() {
 							<Button
 								mode="contained"
 								onPress={() => setRescheduleVisible(true)}
-								// disabled={!canReschedule(appointment.starts_at)}
+								disabled={!canReschedule(appointment.starts_at)}
 							>
 								Reschedule
 							</Button>
-
-							<Portal>
-								<RescheduleModal
-									visible={rescheduleVisible}
-									onClose={() => setRescheduleVisible(false)}
-									session={session}
-									onRecordSaved={() => {
-										setRescheduleVisible(false);
-									}}
-									appointment={appointment}
-								/>
-							</Portal>
 						</Card.Content>
 					</Card>
 				</ScrollView>
+				<Portal>
+					<RescheduleModal
+						visible={rescheduleVisible}
+						onClose={() => setRescheduleVisible(false)}
+						session={session}
+						onRecordSaved={() => {
+							loadData();
+							setRescheduleVisible(false);
+						}}
+						appointment={appointment}
+					/>
+				</Portal>
 			</SafeAreaView>
 		</TouchableWithoutFeedback>
 	);

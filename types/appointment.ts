@@ -12,6 +12,8 @@ export type Appointment = {
 	for_whom: "me" | "someone_else";
 	other_person?: OtherPerson;
 	supporting_documents?: SupportingDocument[] | IncomingFile[];
+	new_documents?: SupportingDocument[] | IncomingFile[];
+	removed_documents?: SupportingDocument[]; // To be sent to backend for deletion
 	// doctor?: {
 	// 	speciality: string;
 	// 	profiles: {
@@ -77,6 +79,8 @@ export type SupportingDocument = {
 	name: string;
 	type: string; // actual MIME file type (pdf, txt, png etc.)
 	document_type: SupportingDocumentType;
+	signed_url?: string;
+	is_new?: boolean;
 };
 
 export type SupportingDocumentToUpload = {

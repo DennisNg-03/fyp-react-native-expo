@@ -37,13 +37,11 @@ export default function MyAppointmentsScreen() {
 
 	useFocusEffect(
 		useCallback(() => {
-			// This runs whenever the screen gains focus (including when tab button is clicked)
 			setLoading(true);
 
-			// Simulate a tiny delay to allow your data to load
 			const timeout = setTimeout(() => {
 				setLoading(false);
-			}, 100); // 100ms is enough to prevent flicker
+			}, 300);
 
 			return () => clearTimeout(timeout);
 		}, [])

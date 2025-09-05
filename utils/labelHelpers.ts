@@ -74,7 +74,7 @@ export const getStatusColor = (status: string) => {
 
 export const getStatusBarStyle = (status?: string) => ({
 	width: 6,
-	height: 100,
+	height: 200,
 	borderRadius: 3,
 	marginRight: 12,
 	backgroundColor: getStatusColor(status ?? ""), // provide fallback

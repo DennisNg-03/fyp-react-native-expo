@@ -11,3 +11,5 @@ export const blobToBase64 = (blob: Blob): Promise<string> =>
 		reader.onerror = reject;
 		reader.readAsDataURL(blob);
 	});
+
+export const MAX_FILE_SIZE = 20 * 1024 * 1024;

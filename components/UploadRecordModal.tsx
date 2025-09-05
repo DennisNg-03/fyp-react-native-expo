@@ -10,7 +10,7 @@ import {
 	SelectedFileToUpload,
 } from "@/types/medicalRecord";
 import { parseDateToISO } from "@/utils/dateHelpers";
-import { blobToBase64 } from "@/utils/fileHelpers";
+import { blobToBase64, MAX_FILE_SIZE } from "@/utils/fileHelpers";
 import { formatLabel } from "@/utils/labelHelpers";
 import { Session } from "@supabase/supabase-js";
 import * as DocumentPicker from "expo-document-picker";
@@ -85,7 +85,6 @@ export default function UploadRecordModal({
 
 	const isDateField = (field: string) => field.toLowerCase().includes("date");
 	const ALLOWED_IMAGE_TYPES = ["png", "jpg", "jpeg", "webp", "heic", "heif"]; // These are the supported image types by Gemini
-	const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 	// useEffect(() => {
 	// 	console.log("ocrData updated:", ocrData);
@@ -129,7 +128,7 @@ export default function UploadRecordModal({
 	const handleTakePhoto = async () => {
 		const { status } = await ImagePicker.requestCameraPermissionsAsync();
 		if (status !== "granted") {
-			alert("Permission to access camera is required!");
+			Alert.alert("Permission to access camera is required!");
 			return;
 		}
 
@@ -152,15 +151,15 @@ export default function UploadRecordModal({
 				console.log("Camera image file size:", fileName, file.fileSize);
 
 				if (!ext || !ALLOWED_IMAGE_TYPES.includes(ext)) {
-					alert(
+					Alert.alert(
 						"Unsupported file type. Only JPG, PNG, WEBP, HEIC, HEIF are allowed."
 					);
 					return;
 				}
 
 				if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
-					alert(
-						`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 *1024)} MB.`
+					Alert.alert(
+						`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 * 1024)} MB.`
 					);
 					return; // stop if any file is too big
 				}
@@ -185,7 +184,7 @@ export default function UploadRecordModal({
 		// Ask for permission to access media library
 		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 		if (status !== "granted") {
-			alert("Permission to access media library is required!");
+			Alert.alert("Permission to access media library is required!");
 			return;
 		}
 
@@ -217,30 +216,30 @@ export default function UploadRecordModal({
 					);
 
 					if (!ext || !ALLOWED_IMAGE_TYPES.includes(ext)) {
-						alert(
+						Alert.alert(
 							"Unsupported file type. Only JPG, PNG, WEBP, HEIC, HEIF are allowed."
 						);
 						return;
 					}
 
 					if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
-						alert(
-							`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 *1024)} MB.`
+						Alert.alert(
+							`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 * 1024)} MB.`
 						);
 						return; // stop if any file is too big
 					}
 				}
 
 				if (!ext || !ALLOWED_IMAGE_TYPES.includes(ext)) {
-					alert(
+					Alert.alert(
 						"Unsupported file type. Only JPG, PNG, WEBP, HEIC, HEIF are allowed."
 					);
 					return;
 				}
 
 				if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
-					alert(
-						`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 *1024)} MB.`
+					Alert.alert(
+						`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 * 1024)} MB.`
 					);
 					return; // stop if any file is too big
 				}
@@ -278,7 +277,7 @@ export default function UploadRecordModal({
 			});
 
 			if (filteredAssets.length < result.assets.length) {
-				alert("File too large. Maximum allowed size per file is 10 MB.");
+				Alert.alert("File too large. Maximum allowed size per file is 10 MB.");
 				return;
 			}
 			setSelectedFiles((prev) => [

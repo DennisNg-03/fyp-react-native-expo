@@ -14,8 +14,8 @@ export function getDisplayStatus(
   const startDate = new Date(appointment.starts_at);
   const status = appointment.status ?? "pending";
 
-	console.log("Start date received:", appointment.starts_at);
-	console.log("Status received:", appointment.status);
+	// console.log("Start date received:", appointment.starts_at);
+	// console.log("Status received:", appointment.status);
 
   if ((status === "pending" || status === "rescheduling") && startDate < now) {
     return `${status}_past` as "pending_past" | "rescheduling_past";

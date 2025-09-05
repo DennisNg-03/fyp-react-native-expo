@@ -14,6 +14,7 @@ type SupportingDocumentPreviewProps = {
 	signedUrl?: string;
 	onRemove?: () => void;
 	onTypeChange?: (type: SupportingDocumentType) => void;
+	disableDropdown?: boolean; // Disable when it's on Details page and for existing images (Cannot change because the file path depends on it)
 };
 
 export const SupportingDocumentPreview: FC<SupportingDocumentPreviewProps> = ({
@@ -21,6 +22,7 @@ export const SupportingDocumentPreview: FC<SupportingDocumentPreviewProps> = ({
 	signedUrl,
 	onRemove,
 	onTypeChange,
+	disableDropdown = false,
 }) => {
 	const { colors } = useTheme();
 	const [selectedDocumentType, setSelectedDocumentType] =
@@ -41,8 +43,8 @@ export const SupportingDocumentPreview: FC<SupportingDocumentPreviewProps> = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedDocumentType]);
 
-	// console.log("FilePreview received:", file);
-	// console.log("displayUri:", displayUri);
+	console.log("FilePreview received:", file);
+	console.log("displayUri:", displayUri);
 
 	const handlePreview = () => {
 		console.log("handlePreview with URL:", displayUri);
@@ -74,7 +76,7 @@ export const SupportingDocumentPreview: FC<SupportingDocumentPreviewProps> = ({
 					data={dropDownItems}
 					labelField="label"
 					valueField="value"
-					disable={!onRemove}
+					disable={disableDropdown || !onRemove}
 					value={selectedDocumentType}
 					onChange={(item) => setSelectedDocumentType(item.value)}
 					placeholder="Select type"
