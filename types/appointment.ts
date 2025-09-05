@@ -6,7 +6,7 @@ export type Appointment = {
 	// patient_identification_number: string;
 	starts_at: string; // timestamptz
 	ends_at: string; // timestamptz
-	status?: "pending" | "confirmed" | "cancelled" | "completed"; // Make it optional since it is not need when inserting
+	status?: AppointmentStatus; // Make it optional since it is not need when inserting
 	reason: string;
 	notes?: string;
 	for_whom: "me" | "someone_else";
@@ -24,20 +24,31 @@ export type Appointment = {
 	// 	};
 	// }[];
 	// Flattened doctor and provider
-	doctor?: { // doctor is an alias given to the join result
+	doctor?: {
+		// doctor is an alias given to the join result
 		full_name: string;
 		email?: string;
 		phone_number?: string;
 		speciality: string;
 		slot_minutes?: string;
 	};
-	provider?: { // provider is an alias given to the join result
+	provider?: {
+		// provider is an alias given to the join result
 		name: string;
 		provider_type: string;
 		address?: string;
 		phone_number?: string;
 	};
 };
+
+export type AppointmentStatus =
+	| "pending" // appointment requested but not yet approved
+	| "scheduled" // approved and upcoming
+	| "rescheduling" // patient requested new time
+	| "rescheduled" // appointment successfully moved to new time
+	| "cancelled" // cancelled by patient or doctor
+	| "completed" // appointment done
+	| "no_show"; // patient didn't attend
 
 export type IncomingFile = {
 	name: string;

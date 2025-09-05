@@ -3,8 +3,9 @@ import RescheduleModal from "@/components/RescheduleModal";
 import { SupportingDocumentPreview } from "@/components/SupportingDocumentPreview";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
+import { getDisplayStatus } from "@/utils/appointmentRules";
 import { formatKL } from "@/utils/dateHelpers";
-import { formatLabel, getStatusColor } from "@/utils/labelHelpers";
+import { formatLabel, formatStatusLabel, getStatusColor } from "@/utils/labelHelpers";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -129,8 +130,8 @@ export default function AppointmentDetailScreen() {
 		return <ActivityIndicator loadingMsg="Fetching appointment record..." />;
 	}
 
-	// const doc = appointment.doctor;
-	// const provider = doc?.provider;
+	const displayStatus = getDisplayStatus(appointment);
+	console.log("[id] displayStatus:", displayStatus);
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -160,11 +161,11 @@ export default function AppointmentDetailScreen() {
 							<View
 								style={[
 									styles.cardHeader,
-									{ backgroundColor: getStatusColor(appointment.status) },
+									{ backgroundColor: getStatusColor(displayStatus) },
 								]}
 							>
 								<Text variant="headlineSmall" style={styles.statusText}>
-									{formatLabel(appointment.status)}
+									{formatStatusLabel(displayStatus)}
 								</Text>
 							</View>
 						</View>

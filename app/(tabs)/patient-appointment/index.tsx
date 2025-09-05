@@ -2,11 +2,12 @@ import { ActivityIndicator } from "@/components/ActivityIndicator";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
 import { Appointment } from "@/types/appointment";
+import { getDisplayStatus } from "@/utils/appointmentRules";
 import { formatKL } from "@/utils/dateHelpers";
 import {
-	formatLabel,
+	formatStatusLabel,
 	getStatusBarStyle,
-	getStatusFontColor,
+	getStatusFontColor
 } from "@/utils/labelHelpers";
 import { useNavigationState } from "@react-navigation/native";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -173,6 +174,8 @@ export default function MyAppointmentsScreen() {
 	// }, [upcoming, past]);
 
 	const renderAppointmentSummary = (item: Appointment) => {
+		const displayStatus = getDisplayStatus(item);
+		console.log("displayStatus:", displayStatus);
 		const startTime = formatKL(item.starts_at, "HH:mm");
 		const endTime = formatKL(item.ends_at, "HH:mm");
 		const date = formatKL(item.starts_at, "dd MMM yyyy");
@@ -203,7 +206,7 @@ export default function MyAppointmentsScreen() {
 				onPress={() => router.push(`/(tabs)/patient-appointment/${item.id}`)}
 			>
 				<View style={styles.cardHeader}>
-					<View style={getStatusBarStyle(item.status)} />
+					<View style={getStatusBarStyle(displayStatus)} />
 					<View style={styles.cardContent}>
 						<Text variant="titleMedium" style={styles.docName}>
 							Dr {docName}
@@ -244,11 +247,11 @@ export default function MyAppointmentsScreen() {
 								fontSize: 14,
 								fontWeight: "600",
 								textAlign: "center",
-								color: getStatusFontColor(item.status ?? ""),
+								color: getStatusFontColor(displayStatus ?? ""),
 								marginTop: 8,
 							}}
 						>
-							{formatLabel(item.status)}
+							{formatStatusLabel(displayStatus)}
 						</Text>
 					</View>
 				</View>
