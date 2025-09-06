@@ -10,7 +10,7 @@ export default function PatientAppointmentLayout() {
 			screenOptions={{
 				headerShown: false,
 				headerStyle: {
-					backgroundColor: "#290145", // background colour of header
+					backgroundColor: "#5f1991ff", // background colour of header
 				},
 				headerTintColor: theme.colors.onSecondary, // text/icon colour
 				headerTitleStyle: {

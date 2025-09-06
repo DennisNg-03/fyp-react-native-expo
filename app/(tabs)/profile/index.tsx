@@ -270,9 +270,9 @@ export default function ProfileScreen() {
 				return (
 					<>
 						<List.Item
-							title="Assigned DoctorProfile"
+							title="Assigned Doctor Profile"
 							description={profile.assigned_doctor_id || "Not provided"}
-							left={(props) => <List.Icon {...props} icon="account-heart" />}
+							left={(props) => <List.Icon {...props} icon="account-supervisor" />}
 						/>
 					</>
 				);

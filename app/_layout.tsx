@@ -83,6 +83,7 @@ export default function RootLayout() {
 										name="register"
 										options={{ headerShown: false }}
 									/>
+									<Stack.Screen name="appointment" options={{ headerShown: false }} />
 									<Stack.Screen name="+not-found" />
 								</Stack>
 							</AuthProvider>

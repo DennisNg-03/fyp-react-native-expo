@@ -8,7 +8,7 @@ import {
 	getStatusBarStyle,
 	getStatusColor,
 } from "@/utils/labelHelpers";
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { Card, Divider, List, Text, useTheme } from "react-native-paper";
@@ -153,25 +153,25 @@ export default function DoctorAppointmentScreen() {
 		}`;
 
 		return (
-			<Card key={item.id} style={styles.card} elevation={3}>
+			<Card
+				key={item.id}
+				style={styles.card}
+				elevation={3}
+				onPress={() => router.push(`/(tabs)/patient-appointment/${item.id}`)}
+			>
 				<View style={styles.cardHeader}>
-					{/* Status Bar */}
 					<View style={getStatusBarStyle(displayStatus, 150)} />
 
-					{/* Card Content */}
 					<View style={styles.cardContent}>
-						{/* Date & Time */}
 						<Text style={styles.dateText}>
 							📅 {date} ⏰ {startTime} - {endTime}
 						</Text>
 
-						{/* Patient Details */}
 						<Text style={styles.patientName}>{patientName}</Text>
 						<Text style={styles.patientInfo}>
 							📞 {item.patient?.phone_number ?? "-"}
 						</Text>
 
-						{/* Status */}
 						<Text style={styles.statusText}>
 							Status:{" "}
 							<Text style={{ color: getStatusColor(displayStatus) }}>
@@ -179,7 +179,6 @@ export default function DoctorAppointmentScreen() {
 							</Text>
 						</Text>
 
-						{/* Reason & Notes */}
 						{item.reason && (
 							<Text style={styles.reasonText}>Reason: {item.reason}</Text>
 						)}
