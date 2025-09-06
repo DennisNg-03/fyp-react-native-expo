@@ -140,7 +140,7 @@ export default function PatientAppointmentDetailScreen() {
             appointment={appointment}
             session={session}
             reload={loadData}
-            showActions={true}
+            showActions={false}
           />
 				</ScrollView>
 			</SafeAreaView>

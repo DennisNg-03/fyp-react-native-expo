@@ -157,7 +157,7 @@ export default function DoctorAppointmentScreen() {
 				key={item.id}
 				style={styles.card}
 				elevation={3}
-				onPress={() => router.push(`/(tabs)/patient-appointment/${item.id}`)}
+				onPress={() => router.push(`/(tabs)/doctor-appointment/${item.id}`)}
 			>
 				<View style={styles.cardHeader}>
 					<View style={getStatusBarStyle(displayStatus, 150)} />

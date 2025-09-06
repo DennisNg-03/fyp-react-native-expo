@@ -35,7 +35,10 @@ export default function ProfileScreen() {
 
 	useEffect(() => {
 		const fetchProfile = async () => {
-			if (!userId || !role) return;
+			if (!userId || !role) {
+				console.log("userId:", userId);
+				console.log("role:", role);
+			};
 			setLoading(true);
 
 			try {
@@ -243,22 +246,22 @@ export default function ProfileScreen() {
 					<>
 						<List.Item
 							title="Specialisation"
-							description={profile.speciality}
+							description={typeof profile.speciality === "string" ? profile.speciality : "Not provided"}
 							left={(props) => <List.Icon {...props} icon="stethoscope" />}
 						/>
 						<List.Item
 							title="Availability"
-							description={profile.availability || "Not provided"}
+							description={typeof profile.availability === "string" ? profile.availability : "Not provided"}
 							left={(props) => <List.Icon {...props} icon="calendar-clock" />}
 						/>
 						<List.Item
 							title="Timezone"
-							description={profile.timezone || "Not provided"}
+							description={typeof profile.timezone === "string" ? profile.timezone : "Not provided"}
 							left={(props) => <List.Icon {...props} icon="earth" />}
 						/>
 						<List.Item
 							title="Bio"
-							description={profile.bio || "Not provided"}
+							description={typeof profile.bio === "string" ? profile.bio : "Not provided"}
 							left={(props) => (
 								<List.Icon {...props} icon="information-outline" />
 							)}
@@ -271,8 +274,10 @@ export default function ProfileScreen() {
 					<>
 						<List.Item
 							title="Assigned Doctor Profile"
-							description={profile.assigned_doctor_id || "Not provided"}
-							left={(props) => <List.Icon {...props} icon="account-supervisor" />}
+							description={typeof profile.assigned_doctor_id === "string" ? profile.assigned_doctor_id : "Not provided"}
+							left={(props) => (
+								<List.Icon {...props} icon="account-supervisor" />
+							)}
 						/>
 					</>
 				);
@@ -282,50 +287,50 @@ export default function ProfileScreen() {
 					<>
 						<List.Item
 							title="Date of Birth"
-							description={profile.date_of_birth || "Not provided"}
+							description={typeof profile.date_of_birth === "string" ? profile.date_of_birth : "Not provided"}
 							left={(props) => <List.Icon {...props} icon="calendar" />}
 						/>
 						<List.Item
 							title="Blood Type"
-							description={profile.blood_type || "Not provided"}
+							description={typeof profile.blood_type === "string" ? profile.blood_type : "Not provided"}
 							left={(props) => <List.Icon {...props} icon="water" />}
 						/>
 						<List.Item
 							title="Allergies"
-							description={profile.allergies || "Not provided"}
+							description={typeof profile.allergies === "string" ? profile.allergies : "Not provided"}
 							left={(props) => <List.Icon {...props} icon="alert-circle" />}
 						/>
 						<List.Item
 							title="Current Medications"
-							description={profile.current_medications || "Not provided"}
+							description={typeof profile.current_medications === "string" ? profile.current_medications : "Not provided"}
 							left={(props) => <List.Icon {...props} icon="pill" />}
 						/>
 						<List.Item
 							title="Chronic Conditions"
-							description={profile.chronic_conditions || "Not provided"}
+							description={typeof profile.chronic_conditions === "string" ? profile.chronic_conditions : "Not provided"}
 							left={(props) => <List.Icon {...props} icon="heart-pulse" />}
 						/>
 						<List.Item
 							title="Past Surgeries"
-							description={profile.past_surgeries || "Not provided"}
+							description={typeof profile.past_surgeries === "string" ? profile.past_surgeries : "Not provided"}
 							left={(props) => <List.Icon {...props} icon="hospital" />}
 						/>
 						<List.Item
 							title="Insurance Info"
-							description={profile.insurance_info || "Not provided"}
+							description={typeof profile.insurance_info === "string" ? profile.insurance_info : "Not provided"}
 							left={(props) => (
 								<List.Icon {...props} icon="card-account-details" />
 							)}
 						/>
 						<List.Item
 							title="Medical History"
-							description={profile.medical_history || "Not provided"}
+							description={typeof profile.medical_history === "string" ? profile.medical_history : "Not provided"}
 							left={(props) => <List.Icon {...props} icon="history" />}
 						/>
 						{/* Emergency info */}
 						<List.Item
 							title="Emergency Contact"
-							description={profile.emergency_contact || "Not provided"}
+							description={typeof profile.emergency_contact === "string" ? profile.emergency_contact : "Not provided"}
 							left={(props) => <List.Icon {...props} icon="phone" />}
 						/>
 					</>
@@ -356,10 +361,10 @@ export default function ProfileScreen() {
 							onPress={handleAttachAvatar}
 						/>
 					</View>
-					<Text variant="headlineSmall" style={{ marginTop: 10 }}>
-						{profile?.full_name}
+					<Text variant="headlineSmall">{profile?.full_name ?? ""}</Text>
+					<Text variant="bodyMedium">
+						{typeof profile?.role === "string" ? profile.role.toUpperCase() : ""}
 					</Text>
-					<Text variant="bodyMedium">{profile?.role.toUpperCase()}</Text>
 					<IconButton
 						icon="square-edit-outline"
 						size={26}
@@ -374,17 +379,17 @@ export default function ProfileScreen() {
 				{/* Common Info */}
 				<List.Item
 					title="Email"
-					description={profile?.email}
+					description={profile?.email ?? "Not provided"}
 					left={(props) => <List.Icon {...props} icon="email" />}
 				/>
 				<List.Item
 					title="Phone"
-					description={profile?.phone_number}
+					description={profile?.phone_number ?? "Not provided"}
 					left={(props) => <List.Icon {...props} icon="phone" />}
 				/>
 				<List.Item
 					title="Gender"
-					description={formatLabel(profile?.gender)}
+					description={typeof formatLabel(profile?.gender) === "string" ? formatLabel(profile?.gender) : "Not provided"}
 					left={(props) => <List.Icon {...props} icon="gender-male-female" />}
 				/>
 

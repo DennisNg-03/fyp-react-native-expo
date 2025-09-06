@@ -15,8 +15,7 @@ import {
 	Card,
 	Divider,
 	Portal,
-	Text,
-	useTheme,
+	Text
 } from "react-native-paper";
 
 export default function AppointmentDetailCard({
@@ -30,7 +29,7 @@ export default function AppointmentDetailCard({
 	showActions?: boolean;
 	reload: () => void;
 }) {
-	const theme = useTheme();
+	// const theme = useTheme();
 	const displayStatus = getDisplayStatus(appointment);
 	const [updateModalVisible, setUpdateModalVisible] = useState(false);
 	const [rescheduleModalVisible, setRescheduleModalVisible] = useState(false);
