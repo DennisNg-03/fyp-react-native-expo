@@ -4,12 +4,18 @@ type Props = {
 	visible: boolean;
 	onCancel: () => void;
 	onConfirm: () => void;
+	title?: string;
+	messagePrimary?: string;
+	messageSecondary?: string;
 };
 
-export default function RescheduleConfirmationDialog({
+export default function ConfirmationDialog({
 	visible,
 	onCancel,
 	onConfirm,
+	title = "Confirmation",
+	messagePrimary = "Are you sure?",
+	messageSecondary = "",
 }: Props) {
 	return (
 		<Portal>
@@ -28,16 +34,17 @@ export default function RescheduleConfirmationDialog({
 						lineHeight: 25,
 					}}
 				>
-					Reschedule Appointment Confirmation
+					{title}
 				</Dialog.Title>
 				<Dialog.Content>
 					<Text variant="bodyMedium" style={{ marginBottom: 6, textAlign: "center" }}>
-						Are you sure you want to reschedule this appointment?
+						{messagePrimary}
 					</Text>
-					<Text variant="bodyMedium" style={{ textAlign: "center" }}>
-						You will not be able to submit another request before this request
-						is responded.
-					</Text>
+					{messageSecondary ? (
+						<Text variant="bodyMedium" style={{ textAlign: "center" }}>
+							{messageSecondary}
+						</Text>
+					) : null}
 				</Dialog.Content>
 				<Dialog.Actions>
 					<Button onPress={onCancel} labelStyle={{ fontSize: 16 }}>

@@ -10,7 +10,7 @@ import {
 	getStatusFontColor,
 } from "@/utils/labelHelpers";
 import { useNavigationState } from "@react-navigation/native";
-import { useFocusEffect, useRouter } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { Card, Divider, List, Text, useTheme } from "react-native-paper";
@@ -20,7 +20,6 @@ export default function MyAppointmentsScreen() {
 	const theme = useTheme();
 	const { session } = useAuth();
 	const userId = session?.user.id;
-	const router = useRouter();
 
 	const [upcoming, setUpcoming] = useState<Appointment[]>([]);
 	const [past, setPast] = useState<Appointment[]>([]);
@@ -193,12 +192,6 @@ export default function MyAppointmentsScreen() {
 		const reason = item.reason ?? "-";
 
 		return (
-			// <Link
-			// 	href={`/(tabs)/patient-appointment/${item.id}`}
-			// 	asChild
-			// 	replace
-			// 	key={item.id}
-			// >
 			<Card
 				style={{
 					marginHorizontal: 16,
@@ -261,7 +254,6 @@ export default function MyAppointmentsScreen() {
 					</View>
 				</View>
 			</Card>
-			// </Link>
 		);
 	};
 

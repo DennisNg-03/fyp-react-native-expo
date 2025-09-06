@@ -1,3 +1,8 @@
+export type FlattenedUser =
+	| (PatientProfile & { role: "patient" })
+	| (DoctorProfile & { role: "doctor" })
+	| (NurseProfile & { role: "nurse" });
+
 export type UserRole = "doctor" | "nurse" | "patient" | null;
 
 export type PatientProfile = {
@@ -10,7 +15,13 @@ export type PatientProfile = {
 	date_of_birth?: string;
 	insurance_info?: string;
 	medical_history?: string;
-}
+	blood_type?: string;
+	allergies?: string;
+	current_medications?: string;
+	chronic_conditions?: string;
+	past_surgeries?: string;
+	emergency_contact?: string;
+};
 
 export type DoctorProfile = {
 	id: string;
@@ -36,7 +47,7 @@ export type NurseProfile = {
 	avatar_url?: string;
 	provider_id: string;
 	assigned_doctor_id?: string;
-}
+};
 
 // Use when handling appointments
 export type Doctor = {

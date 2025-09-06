@@ -13,3 +13,5 @@ export const blobToBase64 = (blob: Blob): Promise<string> =>
 	});
 
 export const MAX_FILE_SIZE = 20 * 1024 * 1024;
+
+export const ALLOWED_IMAGE_TYPES = ["png", "jpg", "jpeg", "webp", "heic", "heif"]; // These are the supported image types by Gemini

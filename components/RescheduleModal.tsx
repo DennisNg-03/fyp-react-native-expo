@@ -13,8 +13,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { Button, Modal, Text, TextInput, useTheme } from "react-native-paper";
 import { ActivityIndicator } from "./ActivityIndicator";
+import ConfirmationDialog from "./ConfirmationDialog";
 import CustomDatePicker from "./CustomDatePicker";
-import RescheduleConfirmationDialog from "./RescheduleConfirmationDialog";
 import { SlotPicker } from "./SlotPicker";
 import { SupportingDocumentPreview } from "./SupportingDocumentPreview";
 
@@ -418,10 +418,13 @@ export default function RescheduleModal({
 				</Button>
 			</ScrollView>
 
-			<RescheduleConfirmationDialog
+			<ConfirmationDialog
 				visible={dialogVisible}
 				onCancel={() => setDialogVisible(false)}
 				onConfirm={handleReschedule}
+				title="Reschedule Appointment Confirmation"
+				messagePrimary="Are you sure you want to reschedule this appointment?"
+				messageSecondary="You will not be able to submit another request before this request is responded."
 			/>
 
 			{saving && (

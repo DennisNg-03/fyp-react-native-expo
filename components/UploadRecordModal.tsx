@@ -10,7 +10,11 @@ import {
 	SelectedFileToUpload,
 } from "@/types/medicalRecord";
 import { parseDateToISO } from "@/utils/dateHelpers";
-import { blobToBase64, MAX_FILE_SIZE } from "@/utils/fileHelpers";
+import {
+	ALLOWED_IMAGE_TYPES,
+	blobToBase64,
+	MAX_FILE_SIZE,
+} from "@/utils/fileHelpers";
 import { formatLabel } from "@/utils/labelHelpers";
 import { Session } from "@supabase/supabase-js";
 import * as DocumentPicker from "expo-document-picker";
@@ -62,7 +66,7 @@ export default function UploadRecordModal({
 	>({});
 	const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
 	const [saving, setSaving] = useState(false);
-	
+
 	const multilineFields = new Set([
 		"address",
 		"healthcare_provider_address",
@@ -84,7 +88,6 @@ export default function UploadRecordModal({
 	};
 
 	const isDateField = (field: string) => field.toLowerCase().includes("date");
-	const ALLOWED_IMAGE_TYPES = ["png", "jpg", "jpeg", "webp", "heic", "heif"]; // These are the supported image types by Gemini
 
 	// useEffect(() => {
 	// 	console.log("ocrData updated:", ocrData);
@@ -148,6 +151,7 @@ export default function UploadRecordModal({
 				const ext = file.uri.split(".").pop()?.toLowerCase();
 				const fileName =
 					file.fileName ?? file.uri.split("/").pop() ?? "unknown";
+					
 				console.log("Camera image file size:", fileName, file.fileSize);
 
 				if (!ext || !ALLOWED_IMAGE_TYPES.includes(ext)) {
@@ -204,31 +208,10 @@ export default function UploadRecordModal({
 		if (!result.canceled) {
 			for (const file of result.assets) {
 				const ext = file.uri.split(".").pop()?.toLowerCase();
-				for (const file of result.assets) {
-					const ext = file.uri.split(".").pop()?.toLowerCase();
+				const fileName =
+					file.fileName ?? file.uri.split("/").pop() ?? "unknown";
 
-					const fileName =
-						file.fileName ?? file.uri.split("/").pop() ?? "unknown";
-					console.log(
-						"Media library image file size:",
-						fileName,
-						file.fileSize
-					);
-
-					if (!ext || !ALLOWED_IMAGE_TYPES.includes(ext)) {
-						Alert.alert(
-							"Unsupported file type. Only JPG, PNG, WEBP, HEIC, HEIF are allowed."
-						);
-						return;
-					}
-
-					if (file.fileSize && file.fileSize > MAX_FILE_SIZE) {
-						Alert.alert(
-							`File too large. Maximum allowed size per file is {MAX_FILE_SIZE / (1024 * 1024)} MB.`
-						);
-						return; // stop if any file is too big
-					}
-				}
+				console.log("Media library image file size:", fileName, file.fileSize);
 
 				if (!ext || !ALLOWED_IMAGE_TYPES.includes(ext)) {
 					Alert.alert(
@@ -584,7 +567,7 @@ export default function UploadRecordModal({
 								textAlign: undefined, // To prevent ellipsis from not working
 							}}
 							outlineStyle={{
-								borderRadius: 10
+								borderRadius: 10,
 							}}
 						/>
 						<RecordTypeDropdown

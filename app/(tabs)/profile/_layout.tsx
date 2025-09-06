@@ -21,11 +21,11 @@ export default function AppointmentLayout() {
 		>
 			<Stack.Screen
 				name="index"
-				options={{ title: "My Appointments", headerShown: false }}
+				options={{ title: "My Profile", headerShown: false }}
 			/>
 			<Stack.Screen
 				name="[id]"
-				options={{ title: "Appointment Details", headerShown: true }}
+				options={{ title: "Edit Profile", headerShown: true }}
 			/>
 		</Stack>
 	);
