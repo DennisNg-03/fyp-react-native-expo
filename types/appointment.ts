@@ -2,11 +2,9 @@ export type Appointment = {
 	id: string;
 	doctor_id: string;
 	patient_id: string;
-	// patient_name: string;
-	// patient_identification_number: string;
 	starts_at: string; // timestamptz
 	ends_at: string; // timestamptz
-	status?: AppointmentStatus; // Make it optional since it is not need when inserting
+	status?: AppointmentStatus; // Make it optional since it is not needed when inserting
 	reason: string;
 	notes?: string;
 	for_whom: "me" | "someone_else";
@@ -14,17 +12,8 @@ export type Appointment = {
 	supporting_documents?: SupportingDocument[] | IncomingFile[];
 	new_documents?: SupportingDocument[] | IncomingFile[];
 	removed_documents?: SupportingDocument[]; // To be sent to backend for deletion
-	// doctor?: {
-	// 	speciality: string;
-	// 	profiles: {
-	// 		full_name: string;
-	// 	};
-	// 	provider: {
-	// 		name: string;
-	// 		provider_type: string;
-	// 		address: string;
-	// 	};
-	// }[];
+	created_at?: string;
+	updated_at?: string;
 	// Flattened doctor and provider
 	doctor?: {
 		// doctor is an alias given to the join result
@@ -105,3 +94,17 @@ export type SupportingDocumentType =
 	| "referral_letter"
 	| "lab_result"
 	| "others";
+
+export type RequestStatus = "pending" | "approved" | "rejected";
+
+export type AppointmentRescheduleRequest = {
+	id: string;
+	appointment_id: string;
+	requested_by: string; // patient.id
+	new_starts_at: string; // timestamptz
+	new_ends_at: string; // timestamptz
+	status?: RequestStatus; // Make it optional since it is not needed when inserting
+	type?: string;
+	created_at?: string;
+	updated_at?: string;
+};

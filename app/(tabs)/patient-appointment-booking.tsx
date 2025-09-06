@@ -860,25 +860,9 @@ const styles = StyleSheet.create({
 	filePreviewHorizontalScroll: {
 		// marginBottom: 0,
 	},
-	uploadButtonRow: {
-		flexDirection: "row",
-		flexWrap: "wrap",
-		justifyContent: "space-between",
-		gap: 10,
-		marginTop: 5,
-	},
 	uploadButton: {
 		flex: 1,
 		marginVertical: 5,
-	},
-	actionButtonRow: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		marginTop: 16,
-	},
-	actionButton: {
-		flex: 1,
-		marginHorizontal: 4,
 	},
 	confirmationText: {
 		fontSize: 16,

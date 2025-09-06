@@ -1,6 +1,7 @@
 import { ActivityIndicator } from "@/components/ActivityIndicator";
 import RescheduleModal from "@/components/RescheduleModal";
 import { SupportingDocumentPreview } from "@/components/SupportingDocumentPreview";
+import UpdateAppointmentDetailsModal from "@/components/UpdateAppointmentDetailsModal";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
 import { canReschedule, getDisplayStatus } from "@/utils/appointmentRules";
@@ -35,7 +36,8 @@ export default function AppointmentDetailScreen() {
 	const theme = useTheme();
 	const [appointment, setAppointment] = useState<any>(null);
 	const [loading, setLoading] = useState(false);
-	const [rescheduleVisible, setRescheduleVisible] = useState(false);
+	const [updateModalVisible, setUpdateModalVisible] = useState(false);
+	const [rescheduleModalVisible, setRescheduleModalVisible] = useState(false);
 
 	const loadData = async () => {
 		if (!id || !session) return;
@@ -134,6 +136,10 @@ export default function AppointmentDetailScreen() {
 		return <ActivityIndicator loadingMsg="Fetching appointment record..." />;
 	}
 
+	const handleUpdateAppointmentDetails = async () => {
+		console.log("");
+	};
+
 	const displayStatus = getDisplayStatus(appointment);
 	console.log("[id] displayStatus:", displayStatus);
 
@@ -148,7 +154,9 @@ export default function AppointmentDetailScreen() {
 				}}
 				edges={["left", "right", "bottom"]} // Remove extra spacing due to showm header + SafeAreaView
 			>
-				<ScrollView contentContainerStyle={{ paddingTop: 20, paddingBottom: 55 }}>
+				<ScrollView
+					contentContainerStyle={{ paddingTop: 20, paddingBottom: 55 }}
+				>
 					<Card
 						style={styles.card}
 						key={appointment.id}
@@ -277,13 +285,36 @@ export default function AppointmentDetailScreen() {
 											)
 										)}
 									</ScrollView>
-								) : null}
+								) : (
+									<View style={{ marginBottom: 10}}>
+										<Text style={styles.contentText}>
+											No documents uploaded
+										</Text>
+									</View>
+								)}
 							</View>
 
 							<Button
+								mode="elevated"
+								onPress={() => setUpdateModalVisible(true)}
+								style={styles.uploadButton}
+								disabled={
+									!canReschedule(appointment.starts_at) ||
+									(displayStatus !== "pending" &&
+										displayStatus !== "scheduled" &&
+										displayStatus !== "rescheduling")
+								} // Only allow reschedule when it passes "canReschedule" and it has pending/scheduled/rescheduling displayStatus
+							>
+								Update Appointment Details
+							</Button>
+
+							<Button
 								mode="contained"
-								onPress={() => setRescheduleVisible(true)}
-								disabled={!canReschedule(appointment.starts_at) || (displayStatus !== "pending" && displayStatus !== "scheduled")} // Only allow reschedule when it passes "canReschedule" and it has pending/scheduled displayStatus
+								onPress={() => setRescheduleModalVisible(true)}
+								disabled={
+									!canReschedule(appointment.starts_at) ||
+									(displayStatus !== "pending" && displayStatus !== "scheduled")
+								} // Only allow reschedule when it passes "canReschedule" and it has pending/scheduled displayStatus
 							>
 								Reschedule
 							</Button>
@@ -291,13 +322,23 @@ export default function AppointmentDetailScreen() {
 					</Card>
 				</ScrollView>
 				<Portal>
-					<RescheduleModal
-						visible={rescheduleVisible}
-						onClose={() => setRescheduleVisible(false)}
+					<UpdateAppointmentDetailsModal
+						visible={updateModalVisible}
+						onClose={() => setUpdateModalVisible(false)}
 						session={session}
 						onRecordSaved={() => {
 							loadData();
-							setRescheduleVisible(false);
+							setUpdateModalVisible(false);
+						}}
+						appointment={appointment}
+					/>
+					<RescheduleModal
+						visible={rescheduleModalVisible}
+						onClose={() => setRescheduleModalVisible(false)}
+						session={session}
+						onRecordSaved={() => {
+							loadData();
+							setRescheduleModalVisible(false);
 						}}
 						appointment={appointment}
 					/>
@@ -381,5 +422,9 @@ const styles = StyleSheet.create({
 	},
 	contentText: {
 		marginBottom: 8,
+	},
+	uploadButton: {
+		flex: 1,
+		marginBottom: 15,
 	},
 });

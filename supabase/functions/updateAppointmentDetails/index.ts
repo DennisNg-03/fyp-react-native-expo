@@ -11,14 +11,17 @@ Deno.serve(async (req) => {
 	try {
 		const supabase = createClient(
 			Deno.env.get("SUPABASE_URL")!,
-			Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+			Deno.env.get("SUPABASE_ANON_KEY")!,
+			{
+				global: {
+					headers: { Authorization: req.headers.get("Authorization")! },
+				},
+			}
 		);
 
 		const {
 			id,
 			patient_id,
-			starts_at,
-			ends_at,
 			reason,
 			notes,
 			supporting_documents,
@@ -29,8 +32,6 @@ Deno.serve(async (req) => {
 		console.log("Parsed request body:", {
 			id,
 			patient_id,
-			starts_at,
-			ends_at,
 			reason,
 			notes,
 			supporting_documents,
@@ -39,7 +40,7 @@ Deno.serve(async (req) => {
 		});
 
 		// Validation
-		if (!id || !starts_at || !ends_at || !reason) {
+		if (!id || !reason) {
 			return new Response(
 				JSON.stringify({ error: "Missing required fields" }),
 				{ status: 400 }
@@ -125,10 +126,9 @@ Deno.serve(async (req) => {
 		const updates: Partial<Appointment> = {};
 		if (reason) updates.reason = reason;
 		if (notes) updates.notes = notes;
-		if (starts_at) updates.starts_at = starts_at;
-		if (ends_at) updates.ends_at = ends_at;
 		updates.supporting_documents =
 			finalSupportingDocuments as SupportingDocument[];
+		updates.updated_at = new Date().toISOString();
 
 		// Insert into appointments
 		const { data, error: updateError } = await supabase
@@ -147,6 +147,8 @@ Deno.serve(async (req) => {
 		return new Response(JSON.stringify({ data }), {
 			headers: { "Content-Type": "application/json" },
 		});
+
+		// deno-lint-ignore no-explicit-any
 	} catch (err: any) {
 		console.error("Error booking appointment:", err);
 		return new Response(

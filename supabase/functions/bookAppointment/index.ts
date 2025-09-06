@@ -132,6 +132,7 @@ Deno.serve(async (req) => {
 			headers: { "Content-Type": "application/json" },
 		});
 
+	// deno-lint-ignore no-explicit-any
 	} catch (err: any) {
 		console.error("Error booking appointment:", err);
 		return new Response(

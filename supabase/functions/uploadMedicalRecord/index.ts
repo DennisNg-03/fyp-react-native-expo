@@ -132,6 +132,8 @@ Deno.serve(async (req) => {
 		return new Response(JSON.stringify({ record_id: newRecordId }), {
 			headers: { "Content-Type": "application/json" },
 		});
+
+		// deno-lint-ignore no-explicit-any
 	} catch (err: any) {
 		console.error("Error in Edge Function:", err);
 		return new Response("Error: " + err.message, { status: 500 });

@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
 			return new Response("Missing record_id", { status: 400 });
 		}
 
-		// Update only the fields provided
+		// deno-lint-ignore no-explicit-any
 		const updates: any = {};
 		if (title) updates.title = title;
 		if (record_type) updates.record_type = record_type;
@@ -62,6 +62,7 @@ Deno.serve(async (req) => {
 		return new Response(JSON.stringify({ data }), {
 			headers: { "Content-Type": "application/json" },
 		});
+	// deno-lint-ignore no-explicit-any
 	} catch (err: any) {
 		console.error("Error in Edge Function:", err);
 		return new Response("Error: " + err.message, { status: 500 });

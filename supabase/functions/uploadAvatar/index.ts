@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
 			return new Response("Missing UID", { status: 400 });
 		}
 
-		const { name, blobBase64, type } = avatar_file;
+		const { name, blobBase64 } = avatar_file;
 		console.log("Processing file:", name);
 
 		const filePath = `${uid}/${name}`;
@@ -72,6 +72,8 @@ Deno.serve(async (req) => {
 		return new Response(JSON.stringify({ avatar_url }), {
 			headers: { "Content-Type": "application/json" },
 		});
+
+		// deno-lint-ignore no-explicit-any
 	} catch (err: any) {
 		console.error("Error in uploadAvatar Edge Function:", err);
 		return new Response("Error: " + err.message, { status: 500 });

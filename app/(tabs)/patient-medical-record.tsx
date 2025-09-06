@@ -489,6 +489,7 @@ export default function PatientMedicalRecordScreen() {
 					onCancel={() => setDialogVisible(false)}
 					onConfirm={handleDelete}
 				/>
+				
 				{/* Popup Modal for Uploading Medical Records */}
 				<Portal>
 					<UploadRecordModal

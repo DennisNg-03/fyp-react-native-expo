@@ -10,7 +10,7 @@ export default function AppointmentLayout() {
 			screenOptions={{
 				headerShown: false,
 				headerStyle: {
-					backgroundColor: theme.colors.secondary, // background colour of header
+					backgroundColor: "#290145", // background colour of header
 				},
 				headerTintColor: theme.colors.onSecondary, // text/icon colour
 				headerTitleStyle: {
