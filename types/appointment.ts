@@ -108,3 +108,46 @@ export type AppointmentRescheduleRequest = {
 	created_at?: string;
 	updated_at?: string;
 };
+
+export type DoctorSchedule = {
+  id: string;
+  patient_id: string;
+  patient: {
+    full_name: string;
+    email?: string;
+    phone_number?: string;
+  };
+  starts_at: string;
+  ends_at: string;
+  status: AppointmentStatus;
+  reason: string;
+  notes?: string;
+  supporting_documents?: SupportingDocument[];
+  reschedule_requests?: AppointmentRescheduleRequest[];
+};
+
+export type DoctorRescheduleRequest = {
+  id: string; // reschedule request id
+  appointment_id: string;
+  requested_by_id: string; // patient id
+  requested_by: {
+    full_name: string;
+    email?: string;
+    phone_number?: string;
+  };
+  appointment: {
+    starts_at: string;
+    ends_at: string;
+    patient_id: string;
+    reason?: string;
+    notes?: string;
+  };
+  new_starts_at: string;
+  new_ends_at: string;
+  status: RequestStatus; // "pending" | "approved" | "rejected"
+  type?: string;
+  created_at?: string;
+  updated_at?: string;
+  decision_by?: string;
+  decided_at?: string;
+};

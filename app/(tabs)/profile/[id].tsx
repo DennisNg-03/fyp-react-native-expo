@@ -7,7 +7,7 @@ import { DoctorProfile, FlattenedUser, NurseProfile } from "@/types/user";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet } from "react-native";
-import { Button, Text, TextInput, useTheme } from "react-native-paper";
+import { Button, TextInput, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function EditProfileScreen() {
@@ -259,16 +259,6 @@ export default function EditProfileScreen() {
 		);
 	}
 
-	if (!profile) {
-		return (
-			<SafeAreaView
-				style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-			>
-				<Text>No profile data found.</Text>
-			</SafeAreaView>
-		);
-	}
-
 	return (
 		<SafeAreaView
 			style={{ flex: 1, backgroundColor: theme.colors.tertiary }}
@@ -302,7 +292,7 @@ export default function EditProfileScreen() {
 				<GenderDropdown selectedGender={gender} setSelectedGender={setGender} />
 
 				{/* Patient fields */}
-				{profile.role === "patient" && (
+				{profile?.role === "patient" && (
 					<>
 						<TextInput
 							label="Date of Birth"
@@ -371,7 +361,7 @@ export default function EditProfileScreen() {
 				)}
 
 				{/* Doctor fields */}
-				{profile.role === "doctor" && (
+				{profile?.role === "doctor" && (
 					<>
 						<SpecialityDropdown
 							selectedSpeciality={speciality}
@@ -404,7 +394,7 @@ export default function EditProfileScreen() {
 				)}
 
 				{/* Nurse fields */}
-				{profile.role === "nurse" && (
+				{profile?.role === "nurse" && (
 					<TextInput
 						label="Assigned Doctor ID"
 						value={assignedDoctorId}

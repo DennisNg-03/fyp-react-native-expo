@@ -106,6 +106,17 @@ export default function TabLayout() {
 					),
 					href: role === "doctor" || role === "nurse" ? "/schedule" : null,
 				}}
+				listeners={({ navigation }) => ({ // *** This code prevents the stack flickering issue when clicking tab button on Details page
+					tabPress: (e) => {
+						if (navigation.isFocused()) {
+							e.preventDefault();
+							console.log(
+								"Already on Schedules tab – ignoring re-press."
+							);
+							router.replace("/(tabs)/schedule"); // MUST use router.replace here, otherwise it will form a long list of nav routes, making Back function not working
+						}
+					},
+				})}
 			/>
 			<Tabs.Screen
 				name="doctor-medical-record"
@@ -136,6 +147,17 @@ export default function TabLayout() {
 						/>
 					),
 				}}
+				listeners={({ navigation }) => ({ // *** This code prevents the stack flickering issue when clicking tab button on Details page
+					tabPress: (e) => {
+						if (navigation.isFocused()) {
+							e.preventDefault();
+							console.log(
+								"Already on My Profiles tab – ignoring re-press."
+							);
+							router.replace("/(tabs)/profile"); // MUST use router.replace here, otherwise it will form a long list of nav routes, making Back function not working
+						}
+					},
+				})}
 			/>
 			<Tabs.Screen
 				name="doctor-availability"

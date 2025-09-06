@@ -1,4 +1,3 @@
-import { ActivityIndicator } from "@/components/ActivityIndicator";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
@@ -29,7 +28,7 @@ export default function ProfileScreen() {
 	const userId = session?.user.id;
 	const [profile, setProfile] = useState<FlattenedUser | null>(null);
 	const [loading, setLoading] = useState(true);
-	const [dialogVisible, setDialogVisible] = useState(true);
+	const [dialogVisible, setDialogVisible] = useState(false);
 	const [pendingAvatarFile, setPendingAvatarFile] = useState<
 		ImagePicker.ImagePickerAsset | undefined
 	>(undefined);
@@ -337,21 +336,6 @@ export default function ProfileScreen() {
 		}
 	};
 
-	if (!profile) {
-		return (
-			<SafeAreaView
-				style={{
-					flex: 1,
-					backgroundColor: theme.colors.tertiary,
-					justifyContent: "center",
-					alignItems: "center",
-				}}
-			>
-				<Text>No profile data found.</Text>
-			</SafeAreaView>
-		);
-	}
-
 	return (
 		<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.tertiary }}>
 			<ScrollView style={{ backgroundColor: theme.colors.tertiary }}>
@@ -360,8 +344,8 @@ export default function ProfileScreen() {
 						<Avatar.Image
 							size={100}
 							source={
-								profile.avatar_url
-									? { uri: profile.avatar_url }
+								profile?.avatar_url
+									? { uri: profile?.avatar_url }
 									: require("@/assets/images/default-profile-pic.png")
 							}
 						/>
@@ -373,13 +357,13 @@ export default function ProfileScreen() {
 						/>
 					</View>
 					<Text variant="headlineSmall" style={{ marginTop: 10 }}>
-						{profile.full_name}
+						{profile?.full_name}
 					</Text>
-					<Text variant="bodyMedium">{profile.role.toUpperCase()}</Text>
+					<Text variant="bodyMedium">{profile?.role.toUpperCase()}</Text>
 					<IconButton
 						icon="square-edit-outline"
 						size={26}
-						onPress={() => router.push(`/profile/${profile.id}`)}
+						onPress={() => router.push(`/profile/${profile?.id}`)}
 						style={styles.editButton}
 						accessibilityLabel="Edit profile"
 					/>
@@ -390,17 +374,17 @@ export default function ProfileScreen() {
 				{/* Common Info */}
 				<List.Item
 					title="Email"
-					description={profile.email}
+					description={profile?.email}
 					left={(props) => <List.Icon {...props} icon="email" />}
 				/>
 				<List.Item
 					title="Phone"
-					description={profile.phone_number}
+					description={profile?.phone_number}
 					left={(props) => <List.Icon {...props} icon="phone" />}
 				/>
 				<List.Item
 					title="Gender"
-					description={formatLabel(profile.gender)}
+					description={formatLabel(profile?.gender)}
 					left={(props) => <List.Icon {...props} icon="gender-male-female" />}
 				/>
 
@@ -447,9 +431,9 @@ export default function ProfileScreen() {
 				messageSecondary=""
 			/>
 
-			{loading && (
+			{/* {loading && (
 				<ActivityIndicator loadingMsg="" overlay={true} size="large" />
-			)}
+			)} */}
 		</SafeAreaView>
 	);
 }

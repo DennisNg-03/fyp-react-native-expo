@@ -1,4 +1,4 @@
-import type { Appointment, AppointmentStatus } from "@/types/appointment";
+import type { Appointment, AppointmentStatus, DoctorSchedule } from "@/types/appointment";
 import { differenceInHours } from "date-fns";
 
 export function canReschedule(startsAtISO: string, now: Date = new Date()) {
@@ -8,7 +8,7 @@ export function canReschedule(startsAtISO: string, now: Date = new Date()) {
 
 // For determining whether the pending and rescheduling has past the start time
 export function getDisplayStatus(
-  appointment: Appointment
+  appointment: Appointment | DoctorSchedule
 ): AppointmentStatus | "pending_past" | "rescheduling_past" {
   const now = new Date();
   const startDate = new Date(appointment.starts_at);
