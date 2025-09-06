@@ -22,7 +22,7 @@ export default function DeleteConfirmationDialog({
 					<Text variant="bodyMedium" style={{ marginBottom: 6 }}>Are you sure you want to delete this record?</Text>
 					<Text variant="bodyMedium">This action cannot be undone.</Text>
 				</Dialog.Content>
-				<Dialog.Actions>
+				<Dialog.Actions style={{ justifyContent: "space-between" }}>
 					<Button onPress={onCancel} labelStyle={{ fontSize: 16 }}>Cancel</Button>
 					<Button
 						onPress={() => {

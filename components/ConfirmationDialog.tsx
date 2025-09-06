@@ -46,7 +46,7 @@ export default function ConfirmationDialog({
 						</Text>
 					) : null}
 				</Dialog.Content>
-				<Dialog.Actions>
+				<Dialog.Actions style={{ justifyContent: "space-between" }}>
 					<Button onPress={onCancel} labelStyle={{ fontSize: 16 }}>
 						Cancel
 					</Button>

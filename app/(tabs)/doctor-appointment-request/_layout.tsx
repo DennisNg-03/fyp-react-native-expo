@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import { useTheme } from "react-native-paper";
 
-export default function ProfileLayout() {
+export default function DoctorAppointmentRequestsLayout() {
 	const theme = useTheme();
 	return (
 		// intialRouteName is to prevent entering Details page when clicking tab bar button
@@ -21,12 +21,12 @@ export default function ProfileLayout() {
 		>
 			<Stack.Screen
 				name="index"
-				options={{ title: "My Profile", headerShown: false }}
+				options={{ title: "Appointment Requests", headerShown: false }}
 			/>
-			<Stack.Screen
+			{/* <Stack.Screen
 				name="[id]"
-				options={{ title: "Edit Profile", headerShown: true }}
-			/>
+				options={{ title: "Appointment Request Details", headerShown: true }}
+			/> */}
 		</Stack>
 	);
 }

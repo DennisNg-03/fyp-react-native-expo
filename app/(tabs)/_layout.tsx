@@ -94,9 +94,9 @@ export default function TabLayout() {
 				}}
 			/>
 			<Tabs.Screen
-				name="schedule"
+				name="doctor-appointment"
 				options={{
-					title: "Schedules",
+					title: "Appointments",
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons
 							name="clock-outline"
@@ -104,7 +104,7 @@ export default function TabLayout() {
 							color={color}
 						/>
 					),
-					href: role === "doctor" || role === "nurse" ? "/schedule" : null,
+					href: role === "doctor" || role === "nurse" ? "/doctor-appointment" : null,
 				}}
 				listeners={({ navigation }) => ({ // *** This code prevents the stack flickering issue when clicking tab button on Details page
 					tabPress: (e) => {
@@ -113,7 +113,32 @@ export default function TabLayout() {
 							console.log(
 								"Already on Schedules tab – ignoring re-press."
 							);
-							router.replace("/(tabs)/schedule"); // MUST use router.replace here, otherwise it will form a long list of nav routes, making Back function not working
+							router.replace("/(tabs)/doctor-appointment"); // MUST use router.replace here, otherwise it will form a long list of nav routes, making Back function not working
+						}
+					},
+				})}
+			/>
+			<Tabs.Screen
+				name="doctor-appointment-request"
+				options={{
+					title: "Appointment Requests",
+					tabBarIcon: ({ color }) => (
+						<MaterialCommunityIcons
+							name="clock-outline"
+							size={28}
+							color={color}
+						/>
+					),
+					href: role === "doctor" || role === "nurse" ? "/doctor-appointment-request" : null,
+				}}
+				listeners={({ navigation }) => ({ // *** This code prevents the stack flickering issue when clicking tab button on Details page
+					tabPress: (e) => {
+						if (navigation.isFocused()) {
+							e.preventDefault();
+							console.log(
+								"Already on Schedules tab – ignoring re-press."
+							);
+							router.replace("/(tabs)/doctor-appointment-request"); // MUST use router.replace here, otherwise it will form a long list of nav routes, making Back function not working
 						}
 					},
 				})}

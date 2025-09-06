@@ -7,7 +7,7 @@ import { formatKL } from "@/utils/dateHelpers";
 import {
 	formatStatusLabel,
 	getStatusBarStyle,
-	getStatusFontColor,
+	getStatusColor,
 } from "@/utils/labelHelpers";
 import { useNavigationState } from "@react-navigation/native";
 import { router, useFocusEffect } from "expo-router";
@@ -16,7 +16,7 @@ import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { Card, Divider, List, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function MyAppointmentsScreen() {
+export default function PatientAppointmentsScreen() {
 	const theme = useTheme();
 	const { session } = useAuth();
 	const userId = session?.user.id;
@@ -245,7 +245,7 @@ export default function MyAppointmentsScreen() {
 								fontSize: 14,
 								fontWeight: "600",
 								textAlign: "center",
-								color: getStatusFontColor(displayStatus ?? ""),
+								color: getStatusColor(displayStatus ?? ""),
 								marginTop: 8,
 							}}
 						>

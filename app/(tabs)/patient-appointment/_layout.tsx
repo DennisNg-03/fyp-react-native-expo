@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import { useTheme } from "react-native-paper";
 
-export default function AppointmentLayout() {
+export default function PatientAppointmentLayout() {
 	const theme = useTheme();
 	return (
 		// intialRouteName is to prevent entering Details page when clicking tab bar button

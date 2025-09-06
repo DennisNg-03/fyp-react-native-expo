@@ -30,7 +30,7 @@ import {
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function AppointmentDetailScreen() {
+export default function PatientAppointmentDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const { session, role } = useAuth();
 	const theme = useTheme();

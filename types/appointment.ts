@@ -95,7 +95,7 @@ export type SupportingDocumentType =
 	| "lab_result"
 	| "others";
 
-export type RequestStatus = "pending" | "approved" | "rejected";
+export type RequestStatus = "pending" | "accepted" | "rejected";
 
 export type AppointmentRescheduleRequest = {
 	id: string;
@@ -109,13 +109,19 @@ export type AppointmentRescheduleRequest = {
 	updated_at?: string;
 };
 
-export type DoctorSchedule = {
+export type DoctorAppointment= { // DoctorSchedule
   id: string;
+	doctor_id: string;
   patient_id: string;
+	doctor: {
+		full_name: string;
+	}
   patient: {
     full_name: string;
-    email?: string;
-    phone_number?: string;
+    email: string;
+    phone_number: string;
+		gender: string;
+		date_of_birth?: string;
   };
   starts_at: string;
   ends_at: string;
@@ -133,7 +139,8 @@ export type DoctorRescheduleRequest = {
   requested_by: {
     full_name: string;
     email?: string;
-    phone_number?: string;
+    phone_number: string;
+		gender?: string;
   };
   appointment: {
     starts_at: string;
@@ -144,7 +151,7 @@ export type DoctorRescheduleRequest = {
   };
   new_starts_at: string;
   new_ends_at: string;
-  status: RequestStatus; // "pending" | "approved" | "rejected"
+  status: RequestStatus; // "pending" | "accepted" | "rejected"
   type?: string;
   created_at?: string;
   updated_at?: string;
