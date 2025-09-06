@@ -99,7 +99,7 @@ export default function TabLayout() {
 					title: "Appointments",
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons
-							name="clock-outline"
+							name="calendar-clock"
 							size={28}
 							color={color}
 						/>
@@ -124,7 +124,7 @@ export default function TabLayout() {
 					title: "Appointment Requests",
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons
-							name="clock-outline"
+							name="inbox-arrow-down-outline"
 							size={28}
 							color={color}
 						/>

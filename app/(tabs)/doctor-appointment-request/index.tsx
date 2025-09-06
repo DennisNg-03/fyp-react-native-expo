@@ -24,7 +24,7 @@ import {
 	TouchableOpacity,
 	View,
 } from "react-native";
-import { Card, Text, useTheme } from "react-native-paper";
+import { Card, IconButton, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function DoctorAppointmentRequestsScreen() {
@@ -50,6 +50,7 @@ export default function DoctorAppointmentRequestsScreen() {
 	const [confirmVisible, setConfirmVisible] = useState(false);
 	const [pendingAction, setPendingAction] = useState<string | null>(null);
 	const [pendingPayload, setPendingPayload] = useState<any>(null); // optional: store item/req
+	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
 	const flattenDoctorAppointments = (
 		appointments: any[]
@@ -461,56 +462,66 @@ export default function DoctorAppointmentRequestsScreen() {
 	};
 
 	const filterRequests = () => {
-		if (activeTab === "booking")
-			return bookingRequests.filter((req) => {
-				// const now = new Date();
-				// console.log("Now:", now);
-				// const startTime = new Date(req.starts_at);
-				// console.log("startTime:", startTime);
+		let filtered: (DoctorAppointment | DoctorRescheduleRequest)[];
+		filtered =
+			activeTab === "booking"
+				? bookingRequests.filter((req) => {
+						if (statusFilter === "overdue") {
+							return req.status === "pending" && isPast(req.starts_at);
+						}
+						if (statusFilter === "pending") {
+							return req.status === "pending" && !isPast(req.starts_at);
+						}
+						if (statusFilter === "accepted") {
+							return (
+								req.status === "scheduled" ||
+								req.status === "completed" ||
+								req.status === "no_show"
+							);
+						}
+						if (statusFilter === "rejected") {
+							return req.status === "cancelled";
+						}
+						return true;
+				  })
+				: rescheduleRequests.filter((req) => {
+						if (statusFilter === "overdue") {
+							return (
+								req.status === "pending" && isPast(req.appointment.starts_at)
+							);
+						}
+						if (statusFilter === "pending") {
+							return (
+								req.status === "pending" && !isPast(req.appointment.starts_at)
+							);
+						}
+						if (statusFilter === "accepted") {
+							return req.status === "accepted";
+						}
+						if (statusFilter === "rejected") {
+							return req.status === "rejected";
+						}
+						return true;
+				  });
 
-				if (statusFilter === "overdue") {
-					return req.status === "pending" && isPast(req.starts_at);
-				}
-				if (statusFilter === "pending") {
-					return req.status === "pending" && !isPast(req.starts_at);
-				}
-				if (statusFilter === "accepted") {
-					return (
-						req.status === "scheduled" ||
-						req.status === "completed" ||
-						req.status === "no_show"
-					);
-				}
-				if (statusFilter === "rejected") {
-					return req.status === "cancelled";
-				}
-				return true;
-			});
+		filtered = [...filtered].sort((a, b) => {
+			const aTime =
+				activeTab === "booking"
+					? new Date((a as DoctorAppointment).starts_at).getTime()
+					: new Date(
+							(a as DoctorRescheduleRequest).appointment.starts_at
+					  ).getTime();
+			const bTime =
+				activeTab === "booking"
+					? new Date((b as DoctorAppointment).starts_at).getTime()
+					: new Date(
+							(b as DoctorRescheduleRequest).appointment.starts_at
+					  ).getTime();
 
-		if (activeTab === "reschedule") {
-			return rescheduleRequests.filter((req) => {
-				// const now = new Date();
-				// console.log("Now:", now);
-				// const originalStartTime = new Date(req.appointment.starts_at);
-				// console.log("originalStartTime:", originalStartTime);
+			return sortOrder === "asc" ? aTime - bTime : bTime - aTime;
+		});
 
-				if (statusFilter === "overdue") {
-					return req.status === "pending" && isPast(req.appointment.starts_at);
-				}
-
-				if (statusFilter === "pending") {
-					return req.status === "pending" && !isPast(req.appointment.starts_at);
-				}
-				if (statusFilter === "accepted") {
-					return req.status === "accepted";
-				}
-				if (statusFilter === "rejected") {
-					return req.status === "rejected";
-				}
-				return true;
-			});
-		}
-		return [];
+		return filtered;
 	};
 
 	const renderTabButtons = () => (
@@ -570,28 +581,40 @@ export default function DoctorAppointmentRequestsScreen() {
 		const filters = ["pending", "accepted", "rejected", "overdue"];
 		return (
 			<View style={styles.filterContainer}>
-				{filters.map((f) => (
-					<TouchableOpacity
-						key={f}
-						onPress={() => setStatusFilter(f)}
-						style={[
-							styles.filterButton,
-							{
-								backgroundColor:
-									statusFilter === f ? getStatusColor(f) : "#e0e0e0",
-							},
-						]}
-					>
-						<Text
+				<View style={{ flexDirection: "row", flex: 1 }}>
+					{filters.map((f) => (
+						<TouchableOpacity
+							key={f}
+							onPress={() => setStatusFilter(f)}
 							style={[
-								styles.filterButtonText,
-								{ color: statusFilter === f ? "#fff" : "#555" },
+								styles.filterButton,
+								{
+									backgroundColor:
+										statusFilter === f ? getStatusColor(f) : "#e0e0e0",
+								},
 							]}
 						>
-							{f.charAt(0).toUpperCase() + f.slice(1)}
-						</Text>
-					</TouchableOpacity>
-				))}
+							<Text
+								style={[
+									styles.filterButtonText,
+									{ color: statusFilter === f ? "#fff" : "#555" },
+								]}
+							>
+								{f.charAt(0).toUpperCase() + f.slice(1)}
+							</Text>
+						</TouchableOpacity>
+					))}
+				</View>
+				<IconButton
+					icon={
+						sortOrder === "asc"
+							? "sort-calendar-ascending"
+							: "sort-calendar-descending"
+					}
+					size={24}
+					style={{ margin: 0 }}
+					onPress={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+				/>
 			</View>
 		);
 	};
@@ -670,11 +693,12 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		marginHorizontal: 16,
 		marginBottom: 12,
+		alignItems: "center",
 		justifyContent: "space-between",
 	},
 	filterButton: {
 		flex: 1,
-		marginHorizontal: 4,
+		marginHorizontal: 3,
 		paddingVertical: 8,
 		backgroundColor: "#e0e0e0",
 		borderRadius: 20,

@@ -13,7 +13,14 @@ import { useNavigationState } from "@react-navigation/native";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { Card, Divider, List, Text, useTheme } from "react-native-paper";
+import {
+	Card,
+	Divider,
+	IconButton,
+	List,
+	Text,
+	useTheme,
+} from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PatientAppointmentsScreen() {
@@ -25,6 +32,12 @@ export default function PatientAppointmentsScreen() {
 	const [past, setPast] = useState<Appointment[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [refreshing, setRefreshing] = useState(false);
+	const [showUpcoming, setShowUpcoming] = useState(true);
+	const [showPast, setShowPast] = useState(false);
+	const [upcomingSortOrder, setUpcomingSortOrder] = useState<"asc" | "desc">("asc");
+	const [pastSortOrder, setPastSortOrder] = useState<"asc" | "desc">("desc");
+	const [upcomingFilter, setUpcomingFilter] = useState<string | null>(null);
+	const [pastFilter, setPastFilter] = useState<string | null>(null);
 
 	const routes = useNavigationState((state) => state.routes);
 	useEffect(() => {
@@ -160,22 +173,21 @@ export default function PatientAppointmentsScreen() {
 		}, [loadAppointments])
 	);
 
-	// useFocusEffect(
-	// 	useCallback(() => {
-	// 		setLoading(true);
+	const sortedUpcoming = [...upcoming]
+		.filter((item) => (upcomingFilter ? item.status === upcomingFilter : true))
+		.sort((a, b) =>
+			upcomingSortOrder === "asc"
+				? new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
+				: new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime()
+		);
 
-	// 		const timeout = setTimeout(() => {
-	// 			setLoading(false);
-	// 		}, 500);
-
-	// 		return () => clearTimeout(timeout);
-	// 	}, [])
-	// );
-
-	// useEffect(() => {
-	// 	console.log("Upcoming:", upcoming);
-	// 	console.log("Past:", past);
-	// }, [upcoming, past]);
+	const sortedPast = [...past]
+		.filter((item) => (pastFilter ? item.status === pastFilter : true))
+		.sort((a, b) =>
+			pastSortOrder === "asc"
+				? new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
+				: new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime()
+		);
 
 	const renderAppointmentSummary = (item: Appointment) => {
 		const displayStatus = getDisplayStatus(item);
@@ -268,36 +280,92 @@ export default function PatientAppointmentsScreen() {
 					}
 					contentContainerStyle={{ paddingBottom: 40 }}
 				>
-					<List.Section>
-						<List.Subheader style={styles.sectionHeader}>
-							Upcoming Appointments
-						</List.Subheader>
-						{upcoming.length > 0 ? (
-							upcoming.map(renderAppointmentSummary)
-						) : (
-							<View style={styles.emptyContainer}>
-								<Text style={{ color: theme.colors.onSurface }}>
-									No upcoming appointments.
-								</Text>
+					{/* Upcoming Section */}
+					<List.Section style={{ marginTop: 10 }}>
+						<View style={styles.sectionRow}>
+							<List.Subheader
+								style={styles.sectionHeader}
+								onPress={() => setShowUpcoming(!showUpcoming)}
+							>
+								Upcoming Appointments
+							</List.Subheader>
+							<View style={{ flexDirection: "row", alignItems: "center" }}>
+								<IconButton
+									icon={showUpcoming ? "chevron-down" : "chevron-right"}
+									size={24}
+									onPress={() => setShowUpcoming(!showUpcoming)}
+								/>
+								<IconButton
+									icon={
+										upcomingSortOrder === "asc"
+											? "sort-calendar-ascending"
+											: "sort-calendar-descending"
+									}
+									size={24}
+									onPress={() =>
+										setUpcomingSortOrder(
+											upcomingSortOrder === "asc" ? "desc" : "asc"
+										)
+									}
+								/>
 							</View>
-						)}
+						</View>
+
+						{showUpcoming &&
+							(sortedUpcoming.length > 0 ? (
+								sortedUpcoming.map(renderAppointmentSummary)
+							) : (
+								<View style={styles.emptyContainer}>
+									<Text style={{ color: theme.colors.onSurface }}>
+										No upcoming appointments.
+									</Text>
+								</View>
+							))}
 					</List.Section>
 
 					<Divider bold={true} style={{ marginHorizontal: 16 }} />
 
+					{/* Past Section */}
 					<List.Section>
-						<List.Subheader style={styles.sectionHeader}>
-							Past Appointments
-						</List.Subheader>
-						{past.length > 0 ? (
-							past.map(renderAppointmentSummary)
-						) : (
-							<View style={styles.emptyContainer}>
-								<Text style={{ color: theme.colors.onSurface }}>
-									No past appointments.
-								</Text>
+						<View style={styles.sectionRow}>
+							<List.Subheader
+								style={styles.sectionHeader}
+								onPress={() => setShowPast(!showPast)}
+							>
+								Past Appointments
+							</List.Subheader>
+							<View style={{ flexDirection: "row", alignItems: "center" }}>
+								<IconButton
+									icon={showPast ? "chevron-down" : "chevron-right"}
+									size={24}
+									onPress={() => setShowPast(!showPast)}
+								/>
+								<IconButton
+									icon={
+										pastSortOrder === "asc"
+											? "sort-calendar-ascending"
+											: "sort-calendar-descending"
+									}
+									size={24}
+									onPress={() =>
+										setPastSortOrder(
+											pastSortOrder === "asc" ? "desc" : "asc"
+										)
+									}
+								/>
 							</View>
-						)}
+						</View>
+
+						{showPast &&
+							(sortedPast.length > 0 ? (
+								sortedPast.map(renderAppointmentSummary)
+							) : (
+								<View style={styles.emptyContainer}>
+									<Text style={{ color: theme.colors.onSurface }}>
+										No past appointments.
+									</Text>
+								</View>
+							))}
 					</List.Section>
 				</ScrollView>
 			)}
@@ -344,11 +412,17 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		marginVertical: 16,
 	},
+	sectionRow: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+		paddingHorizontal: 16,
+	},
 	sectionHeader: {
 		fontWeight: "700",
 		fontSize: 16,
-		backgroundColor: "transparent",
-		marginBottom: 8,
+		// backgroundColor: "transparent",
+		// marginBottom: 8,
 	},
 	dateText: {
 		fontSize: 14, // bigger

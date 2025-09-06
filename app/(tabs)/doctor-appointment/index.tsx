@@ -11,7 +11,7 @@ import {
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { Card, Divider, List, Text, useTheme } from "react-native-paper";
+import { Card, Divider, IconButton, List, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function DoctorAppointmentScreen() {
@@ -23,6 +23,11 @@ export default function DoctorAppointmentScreen() {
 	const [past, setPast] = useState<DoctorAppointment[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [refreshing, setRefreshing] = useState(false);
+
+	const [showUpcoming, setShowUpcoming] = useState(true);
+	const [showPast, setShowPast] = useState(true);
+	const [upcomingSortOrder, setUpcomingSortOrder] = useState<"asc" | "desc">("asc");
+	const [pastSortOrder, setPastSortOrder] = useState<"asc" | "desc">("desc");
 
 	// Flatten DoctorAppointment after Supabase query
 	const flattenDoctorAppointments = (
@@ -140,6 +145,22 @@ export default function DoctorAppointmentScreen() {
 		console.log("Past data:", past);
 	}, [past]);
 
+	const sortedUpcoming = [...upcoming].sort((a, b) => {
+		if (upcomingSortOrder === "asc") {
+			return new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime();
+		} else {
+			return new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime();
+		}
+	});
+
+	const sortedPast = [...past].sort((a, b) => {
+		if (pastSortOrder === "asc") {
+			return new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime();
+		} else {
+			return new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime();
+		}
+	});
+
 	const renderAppointmentCard = (item: DoctorAppointment) => {
 		const displayStatus = getDisplayStatus(item);
 		const date = formatKL(item.starts_at, "dd MMM yyyy");
@@ -164,7 +185,7 @@ export default function DoctorAppointmentScreen() {
 
 					<View style={styles.cardContent}>
 						<Text style={styles.dateText}>
-							📅 {date} ⏰ {startTime} - {endTime}
+							{date} {startTime} - {endTime}
 						</Text>
 
 						<Text style={styles.patientName}>{patientName}</Text>
@@ -199,32 +220,78 @@ export default function DoctorAppointmentScreen() {
 				}
 				contentContainerStyle={{ paddingBottom: 40 }}
 			>
-				<List.Section>
-					<List.Subheader style={styles.sectionHeader}>
-						Upcoming Appointments
-					</List.Subheader>
-					{upcoming.length > 0 ? (
-						upcoming.map(renderAppointmentCard)
-					) : (
-						<View style={styles.emptyContainer}>
-							<Text>No upcoming appointments.</Text>
+				<List.Section style={{ marginTop: 10 }}>
+					<View style={styles.sectionRow}>
+						<List.Subheader style={styles.sectionHeader}>
+							Upcoming Appointments
+						</List.Subheader>
+						<View style={{ flexDirection: "row", alignItems: "center" }}>
+							<IconButton
+								icon={showUpcoming ? "chevron-down" : "chevron-right"}
+								size={24}
+								onPress={() => setShowUpcoming(!showUpcoming)}
+							/>
+							<IconButton
+								icon={
+									upcomingSortOrder === "asc"
+										? "sort-calendar-ascending"
+										: "sort-calendar-descending"
+								}
+								size={24}
+								onPress={() =>
+									setUpcomingSortOrder(
+										upcomingSortOrder === "asc" ? "desc" : "asc"
+									)
+								}
+							/>
 						</View>
-					)}
+					</View>
+					{showUpcoming ? (
+						sortedUpcoming.length > 0 ? (
+							sortedUpcoming.map(renderAppointmentCard)
+						) : (
+							<View style={styles.emptyContainer}>
+								<Text>No upcoming appointments.</Text>
+							</View>
+						)
+					) : null}
 				</List.Section>
 
 				<Divider bold style={{ marginHorizontal: 16 }} />
 
 				<List.Section>
-					<List.Subheader style={styles.sectionHeader}>
-						Past Appointments
-					</List.Subheader>
-					{past.length > 0 ? (
-						past.map(renderAppointmentCard)
-					) : (
-						<View style={styles.emptyContainer}>
-							<Text>No past appointments.</Text>
+					<View style={styles.sectionRow}>
+						<List.Subheader style={styles.sectionHeader}>
+							Past Appointments
+						</List.Subheader>
+						<View style={{ flexDirection: "row", alignItems: "center" }}>
+							<IconButton
+								icon={showPast ? "chevron-down" : "chevron-right"}
+								size={24}
+								onPress={() => setShowPast(!showPast)}
+							/>
+							<IconButton
+								icon={
+									pastSortOrder === "asc"
+										? "sort-calendar-ascending"
+										: "sort-calendar-descending"
+								}
+								size={24}
+								onPress={() =>
+									setPastSortOrder(pastSortOrder === "asc" ? "desc" : "asc")
+								}
+							/>
 						</View>
-					)}
+					</View>
+					{showPast ? (
+						sortedPast.length > 0 ? (
+							sortedPast.map(renderAppointmentCard)
+						) : (
+							<View style={styles.emptyContainer}>
+								<Text>No past appointments.</Text>
+							</View>
+						)
+					) : null}
 				</List.Section>
 			</ScrollView>
 		</SafeAreaView>
@@ -260,8 +327,13 @@ const styles = StyleSheet.create({
 	sectionHeader: {
 		fontWeight: "700",
 		fontSize: 16,
-		marginBottom: 8,
 		backgroundColor: "transparent",
+	},
+	sectionRow: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+		paddingHorizontal: 16,
 	},
 	emptyContainer: {
 		alignItems: "center",
