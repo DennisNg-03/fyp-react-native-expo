@@ -23,10 +23,10 @@ export default function DoctorAppointmentRequestsLayout() {
 				name="index"
 				options={{ title: "Appointment Requests", headerShown: false }}
 			/>
-			{/* <Stack.Screen
+			<Stack.Screen
 				name="[id]"
 				options={{ title: "Appointment Request Details", headerShown: true }}
-			/> */}
+			/>
 		</Stack>
 	);
 }

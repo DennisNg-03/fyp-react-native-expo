@@ -14,7 +14,7 @@ import {
 	getStatusBarStyle,
 	getStatusColor,
 } from "@/utils/labelHelpers";
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
 	Alert,
@@ -73,6 +73,31 @@ export default function DoctorAppointmentRequestsScreen() {
 			};
 		});
 
+	const flattenRescheduleRequests = (
+		requests: any[]
+	): DoctorRescheduleRequest[] =>
+		(requests ?? []).map((req) => {
+			const appointment = req.appointment ?? {};
+			const patient = appointment.patient ?? {};
+			const doctorProfile = appointment.doctors?.profiles ?? {};
+
+			return {
+				...req,
+				appointment: {
+					...appointment,
+					doctor: {
+						full_name: doctorProfile.full_name ?? "",
+					},
+				},
+				requested_by: {
+					full_name: req.requested_by?.full_name ?? "",
+					email: req.requested_by?.email ?? "",
+					phone_number: req.requested_by?.phone_number ?? "",
+					gender: req.requested_by?.gender ?? "",
+				},
+			};
+		});
+
 	const loadRequests = useCallback(async () => {
 		if (!userId) return;
 
@@ -106,6 +131,11 @@ export default function DoctorAppointmentRequestsScreen() {
 							phone_number,
 							gender
 						)
+					),
+					doctor:doctor_id (
+						profiles (
+							full_name
+						)
 					)
 				`
 				)
@@ -126,8 +156,14 @@ export default function DoctorAppointmentRequestsScreen() {
 						starts_at,
 						ends_at,
 						patient_id,
+						doctor_id,
 						reason,
-						notes
+						notes,
+						doctors (
+							profiles(
+								full_name
+							)
+						)
 					),
 					requested_by (
 						full_name,
@@ -142,7 +178,7 @@ export default function DoctorAppointmentRequestsScreen() {
 
 			console.log("rescheduleData:", rescheduleData);
 
-			setRescheduleRequests(rescheduleData ?? []);
+			setRescheduleRequests(flattenRescheduleRequests(rescheduleData ?? []));
 		} catch (err) {
 			console.error(err);
 		} finally {
@@ -328,19 +364,36 @@ export default function DoctorAppointmentRequestsScreen() {
 		const patientName = `${genderPrefix} ${
 			item.patient?.full_name ?? "Patient"
 		}`;
+		console.log("Booking item:", item);
 
 		return (
-			<Card key={item.id} style={styles.card} elevation={3}>
+			<Card
+				key={item.id}
+				style={styles.card}
+				elevation={3}
+				onPress={() =>
+					router.push(`/(tabs)/doctor-appointment-request/${item.id}`)
+				}
+			>
 				<View style={styles.cardHeader}>
 					<View style={getStatusBarStyle(displayStatus, 150)} />
 					<View style={styles.cardContent}>
 						<Text style={styles.dateText}>
 							{date} {startTime} - {endTime}
 						</Text>
+
+						{/* Show Assigned Doctor only for nurses */}
+						{role === "nurse" && item.doctor?.full_name && (
+							<Text style={styles.doctorInfo}>
+								Assigned Doctor: Dr {item.doctor.full_name}
+							</Text>
+						)}
+
 						<Text style={styles.patientName}>{patientName}</Text>
 						<Text style={styles.patientInfo}>
 							📞 {item.patient?.phone_number ?? "-"}
 						</Text>
+
 						<Text style={styles.statusText}>
 							Status:{" "}
 							<Text style={{ color: getStatusColor(displayStatus) }}>
@@ -395,7 +448,16 @@ export default function DoctorAppointmentRequestsScreen() {
 		}`;
 
 		return (
-			<Card key={req.id} style={styles.card} elevation={3}>
+			<Card
+				key={req.id}
+				style={styles.card}
+				elevation={3}
+				onPress={() =>
+					router.push(
+						`/(tabs)/doctor-appointment-request/${req.appointment_id}`
+					)
+				}
+			>
 				<View style={styles.cardHeader}>
 					<View style={getRescheduleStatusBarStyle(req.status, 200)} />
 					<View style={styles.cardContent}>
@@ -407,13 +469,23 @@ export default function DoctorAppointmentRequestsScreen() {
 									{ fontWeight: "600", marginBottom: 6 },
 								]}
 							>
-								Original Date: {originalDate} {originalStartTime} -{" "}
-								{originalEndTime}
+								<Text style={{ fontWeight: "600", color: "#555" }}>
+									Original:
+								</Text>{" "}
+								{originalDate} {originalStartTime} - {originalEndTime}
 							</Text>
 							<Text style={[styles.dateText, { fontWeight: "600" }]}>
-								New Date: {newDate} {newStartTime} - {newEndTime}
+								<Text style={{ fontWeight: "600", color: "#555" }}>New:</Text>{" "}
+								{newDate} {newStartTime} - {newEndTime}
 							</Text>
 						</View>
+
+						{/* Show Assigned Doctor only for nurses */}
+						{role === "nurse" && req.appointment.doctor?.full_name && (
+							<Text style={styles.doctorInfo}>
+								Assigned Doctor: Dr {req.appointment.doctor?.full_name}
+							</Text>
+						)}
 
 						<Text style={styles.patientName}>{patientName}</Text>
 						<Text style={styles.patientInfo}>
@@ -754,6 +826,7 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		fontWeight: "500",
 		color: "#333",
+		marginTop: 6,
 		marginBottom: 6,
 	},
 	reasonText: {
@@ -764,7 +837,7 @@ const styles = StyleSheet.create({
 	},
 	notesText: { fontSize: 14, color: "#444", marginBottom: 4 },
 	patientName: {
-		fontSize: 15,
+		fontSize: 14,
 		fontWeight: "600",
 		marginBottom: 2,
 		color: "#222",
@@ -774,7 +847,12 @@ const styles = StyleSheet.create({
 		color: "#555",
 		marginVertical: 6,
 	},
-
+	doctorInfo: {
+		fontSize: 14,
+		fontWeight: "600",
+		color: "#444",
+		marginBottom: 10,
+	},
 	actionButton: {
 		flex: 1,
 		paddingVertical: 8,

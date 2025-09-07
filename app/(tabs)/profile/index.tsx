@@ -344,10 +344,10 @@ export default function ProfileScreen() {
 							left={(props) => <List.Icon {...props} icon="hospital" />}
 						/>
 						<List.Item
-							title="Assigned Doctor Profile"
+							title="Assigned Doctor Name"
 							description={
 								typeof profile.assigned_doctor_name === "string"
-									? profile.assigned_doctor_name
+									? `Dr ${profile.assigned_doctor_name}`
 									: "Not provided"
 							}
 							left={(props) => (
@@ -472,7 +472,14 @@ export default function ProfileScreen() {
 							onPress={handleAttachAvatar}
 						/>
 					</View>
-					<Text variant="headlineSmall">{profile?.full_name ?? ""}</Text>
+					{/* Profile full_name */}
+					<Text variant="headlineSmall">
+						{profile?.role === "doctor"
+							? `Dr ${profile.full_name}`
+							: profile?.role === "nurse"
+							? `Nurse ${profile.full_name}`
+							: profile?.full_name ?? ""}
+					</Text>
 					<Text variant="bodyMedium">
 						{typeof profile?.role === "string"
 							? profile.role.toUpperCase()

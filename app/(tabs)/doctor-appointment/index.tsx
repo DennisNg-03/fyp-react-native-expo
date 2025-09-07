@@ -339,12 +339,6 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		marginVertical: 16,
 	},
-	statusText: {
-		fontSize: 14,
-		fontWeight: "500",
-		color: "#333",
-		marginBottom: 6,
-	},
 	// dateText: {
 	// 	fontSize: 14, // bigger
 	// 	color: "#333", // darker
@@ -356,19 +350,26 @@ const styles = StyleSheet.create({
 		color: "#555",
 		marginBottom: 4, // slightly more spacing
 	},
+	notesText: {
+		fontSize: 14,
+		color: "#444",
+		marginBottom: 4,
+	},
+	statusText: {
+		fontSize: 14,
+		fontWeight: "500",
+		color: "#333",
+		marginTop: 6,
+		marginBottom: 6,
+	},
 	reasonText: {
 		fontSize: 14,
 		color: "#333",
 		fontStyle: "italic",
 		marginBottom: 4,
 	},
-	notesText: {
-		fontSize: 14,
-		color: "#444",
-		marginBottom: 4,
-	},
 	patientName: {
-		fontSize: 15,
+		fontSize: 14,
 		fontWeight: "600",
 		marginBottom: 2,
 		color: "#222",

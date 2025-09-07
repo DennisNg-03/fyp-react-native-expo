@@ -74,6 +74,7 @@ export default function EditProfileScreen() {
 			if (!userId || !role) return;
 
 			try {
+				setLoading(true);
 				const { data: baseProfile, error: baseError } = await supabase
 					.from("profiles")
 					.select("id, full_name, email, phone_number, gender, avatar_url")
@@ -261,16 +262,20 @@ export default function EditProfileScreen() {
 
 	if (saving) {
 		return (
-			<SafeAreaView
-				style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-			>
-				<ActivityIndicator
-					loadingMsg="Saving your profile details.."
-					overlay={true}
-					size="large"
-				/>
-			</SafeAreaView>
+			// <SafeAreaView
+			// 	style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+			// >
+			<ActivityIndicator
+				loadingMsg="Saving your profile details.."
+				overlay={true}
+				size="large"
+			/>
+			// </SafeAreaView>
 		);
+	}
+
+	if (loading) {
+		return <ActivityIndicator loadingMsg="" overlay={true} size="large" />;
 	}
 
 	return (
@@ -475,6 +480,7 @@ export default function EditProfileScreen() {
 					<HealthcareProviderDropdown
 						selectedProvider={healthcareProvider}
 						setSelectedProvider={setHealthcareProvider}
+						disabled={true}
 					/>
 				)}
 				{/* Doctor fields */}

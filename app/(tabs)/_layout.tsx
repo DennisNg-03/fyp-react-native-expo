@@ -104,7 +104,7 @@ export default function TabLayout() {
 							color={color}
 						/>
 					),
-					href: role === "doctor" || role === "nurse" ? "/doctor-appointment" : null,
+					href: role === "doctor" ? "/doctor-appointment" : null,
 				}}
 				listeners={({ navigation }) => ({ // *** This code prevents the stack flickering issue when clicking tab button on Details page
 					tabPress: (e) => {

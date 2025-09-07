@@ -148,6 +148,9 @@ export type DoctorRescheduleRequest = {
     patient_id: string;
     reason?: string;
     notes?: string;
+		doctor?: {
+			full_name?: string;
+		}
   };
   new_starts_at: string;
   new_ends_at: string;

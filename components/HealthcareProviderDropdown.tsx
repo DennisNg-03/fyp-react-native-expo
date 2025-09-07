@@ -7,6 +7,7 @@ import { Dropdown } from "react-native-paper-dropdown";
 interface HealthcareProviderDropdownProps {
   selectedProvider: string | undefined;
   setSelectedProvider: (value?: string) => void;
+	disabled?: boolean;
 }
 
 interface Provider {
@@ -17,6 +18,7 @@ interface Provider {
 export const HealthcareProviderDropdown = ({
   selectedProvider,
   setSelectedProvider,
+	disabled = false,
 }: HealthcareProviderDropdownProps) => {
   const theme = useTheme();
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -60,6 +62,7 @@ export const HealthcareProviderDropdown = ({
           borderRadius: 8,
         }}
         hideMenuHeader
+				disabled={disabled}
       />
       {providers.length === 0 && !loading && (
         <Text style={{ color: theme.colors.error, marginTop: 4 }}>
