@@ -171,6 +171,7 @@ export default function TabLayout() {
 							color={color}
 						/>
 					),
+					href: "/(tabs)/profile"
 				}}
 				listeners={({ navigation }) => ({ // *** This code prevents the stack flickering issue when clicking tab button on Details page
 					tabPress: (e) => {
