@@ -10,11 +10,11 @@ export default function DoctorAppointmentRequestsLayout() {
 			screenOptions={{
 				headerShown: false,
 				headerStyle: {
-					backgroundColor: "#290145", // background colour of header
+					backgroundColor: theme.colors.primaryContainer, // background colour of header
 				},
-				headerTintColor: theme.colors.onSecondary, // text/icon colour
+				headerTintColor: theme.colors.onPrimaryContainer, // text/icon colour
 				headerTitleStyle: {
-					fontWeight: "bold",
+					// fontWeight: "bold",
 					fontSize: 18,
 				},
 			}}

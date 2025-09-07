@@ -80,27 +80,27 @@ export default function PatientAppointmentsScreen() {
 				.from("appointments")
 				.select(
 					`
-				  id,
-				  doctor_id,
-				  patient_id,
-				  starts_at,
-				  ends_at,
-				  status,
-				  reason,
-				  notes,
-				  for_whom,
-				  other_person,
-				  supporting_documents,
-				  doctor:doctor_id (
-						speciality,
-						profiles(full_name, email, phone_number),
-						provider:provider_id (
-							name,
-							provider_type,
-							address,
-							phone_number
+						id,
+						doctor_id,
+						patient_id,
+						starts_at,
+						ends_at,
+						status,
+						reason,
+						notes,
+						for_whom,
+						other_person,
+						supporting_documents,
+						doctor:doctor_id (
+							speciality,
+							profiles(full_name, email, phone_number),
+							provider:provider_id (
+								name,
+								provider_type,
+								address,
+								phone_number
+								)
 							)
-						)
 					`
 				)
 				.eq("patient_id", userId)
@@ -113,28 +113,28 @@ export default function PatientAppointmentsScreen() {
 				.from("appointments")
 				.select(
 					`
-				  id,
-				  doctor_id,
-				  patient_id,
-				  starts_at,
-				  ends_at,
-				  status,
-				  reason,
-				  notes,
-				  for_whom,
-				  other_person,
-				  supporting_documents,
-				  doctor:doctor_id (
-					speciality,
-					profiles(full_name, email, phone_number),
-					provider:provider_id (
-						name,
-						provider_type,
-						address,
-						phone_number
-					  )
-				  )
-				`
+						id,
+						doctor_id,
+						patient_id,
+						starts_at,
+						ends_at,
+						status,
+						reason,
+						notes,
+						for_whom,
+						other_person,
+						supporting_documents,
+						doctor:doctor_id (
+							speciality,
+							profiles(full_name, email, phone_number),
+							provider:provider_id (
+								name,
+								provider_type,
+								address,
+								phone_number
+								)
+							)
+					`
 				)
 				.eq("patient_id", userId)
 				.lt("ends_at", new Date().toISOString())

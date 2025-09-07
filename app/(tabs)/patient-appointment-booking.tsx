@@ -117,14 +117,14 @@ export default function AppointmentBookingScreen() {
 					? supabase
 							.from("doctors")
 							.select(
-								`id, speciality, slot_minutes, timezone, profiles(full_name, email, phone_number), provider_id`
+								`id, speciality, slot_minutes, profiles(full_name, email, phone_number), provider_id`
 							)
 							.eq("provider_id", providerId)
 							.order("profiles (full_name)")
 					: supabase
 							.from("doctors")
 							.select(
-								`id, speciality, slot_minutes, timezone, profiles(full_name, email, phone_number), provider_id`
+								`id, speciality, slot_minutes, profiles(full_name, email, phone_number), provider_id`
 							)
 							.order("profiles (full_name)"));
 
@@ -447,7 +447,7 @@ export default function AppointmentBookingScreen() {
 						onStartShouldSetResponder={() => true} // Enable this child respond to scroll, otherwise the Touchable component will affect scrolling
 					>
 						<Card.Content>
-							<Text variant="titleMedium" style={{ marginBottom: 8 }}>
+							<Text style={{ marginBottom: 8, fontWeight: "700", fontSize: 16, textAlign: "center" }}>
 								Book an appointment
 							</Text>
 
@@ -455,7 +455,7 @@ export default function AppointmentBookingScreen() {
 								placeholder="Search provider..."
 								value={providerQuery}
 								onChangeText={setProviderQuery}
-								style={{ marginBottom: 8 }}
+								style={{ marginVertical: 8 }}
 							/>
 							{showProvidersLoading ? (
 								// <ActivityIndicator />

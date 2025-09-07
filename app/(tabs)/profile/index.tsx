@@ -9,8 +9,8 @@ import {
 } from "@/utils/fileHelpers";
 import { formatLabel } from "@/utils/labelHelpers";
 import * as ImagePicker from "expo-image-picker";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, Platform, ScrollView, StyleSheet, View } from "react-native";
 import {
 	Avatar,
@@ -33,94 +33,142 @@ export default function ProfileScreen() {
 		ImagePicker.ImagePickerAsset | undefined
 	>(undefined);
 
-	useEffect(() => {
-		const fetchProfile = async () => {
-			if (!userId || !role) {
-				console.log("userId:", userId);
-				console.log("role:", role);
-			};
-			setLoading(true);
+	const flattenDoctorData = (doctorData: any): DoctorProfile => {
+		return {
+			...doctorData,
+			provider_name: doctorData?.provider?.name ?? null,
+		};
+	};
 
-			try {
-				// First fetch the base profile row from the `profiles` table. This avoids relying on
-				// cross-table foreign key naming/relationships in a single select and is more robust.
-				const { data: baseProfile, error: baseError } = await supabase
-					.from("profiles")
-					.select("id, full_name, email, phone_number, gender, avatar_url")
+	const flattenNurseData = (nurseData: any): NurseProfile => {
+		return {
+			...nurseData,
+			assigned_doctor_name:
+				nurseData?.assigned_doctor?.profiles?.full_name ?? null,
+			provider_name: nurseData?.provider?.name ?? null,
+		};
+	};
+
+	const fetchProfile = useCallback(async () => {
+		if (!userId || !role) {
+			console.log("userId:", userId);
+			console.log("role:", role);
+		}
+		setLoading(true);
+
+		try {
+			// First fetch the base profile row from the `profiles` table. This avoids relying on
+			// cross-table foreign key naming/relationships in a single select and is more robust.
+			const { data: baseProfile, error: baseError } = await supabase
+				.from("profiles")
+				.select("id, full_name, email, phone_number, gender, avatar_url")
+				.eq("id", userId)
+				.maybeSingle();
+
+			if (baseError) throw baseError;
+			if (!baseProfile) {
+				setProfile(null);
+				return;
+			}
+
+			// Then query role-specific table and merge
+			if (role === "patient") {
+				const { data: patientData, error: patientError } = await supabase
+					.from("patients")
+					.select(
+						"date_of_birth, insurance_info, medical_history, blood_type, allergies, current_medications, chronic_conditions, past_surgeries, emergency_contact"
+					)
+					.eq("id", userId)
+					.maybeSingle();
+				if (patientError) throw patientError;
+				setProfile({
+					role: "patient",
+					...baseProfile,
+					...(patientData ?? {}),
+				});
+				return;
+			}
+
+			if (role === "doctor") {
+				const { data: doctorData, error: doctorError } = await supabase
+					.from("doctors")
+					.select(
+						`
+							speciality,
+							slot_minutes,
+							bio,
+							provider_id,
+							provider:provider_id (
+								name
+							)
+						`
+					)
 					.eq("id", userId)
 					.maybeSingle();
 
-				if (baseError) throw baseError;
-				if (!baseProfile) {
-					setProfile(null);
-					return;
-				}
+				if (doctorError) throw doctorError;
 
-				// Then query role-specific table and merge
-				if (role === "patient") {
-					const { data: patientData, error: patientError } = await supabase
-						.from("patients")
-						.select(
-							"date_of_birth, insurance_info, medical_history, blood_type, allergies, current_medications, chronic_conditions, past_surgeries, emergency_contact"
-						)
-						.eq("id", userId)
-						.maybeSingle();
-					if (patientError) throw patientError;
-					setProfile({
-						role: "patient",
-						...baseProfile,
-						...(patientData ?? {}),
-					});
-					return;
-				}
+				const flattenedDoctorProfile = flattenDoctorData(doctorData);
 
-				if (role === "doctor") {
-					const { data: doctorData, error: doctorError } = await supabase
-						.from("doctors")
-						.select("speciality, slot_minutes, timezone, bio, provider_id")
-						.eq("id", userId)
-						.maybeSingle();
+				setProfile({
+					role: "doctor",
+					...baseProfile, // has id, full_name, email, phone_number, gender, avatar_url
+					...flattenedDoctorProfile,
+				} as DoctorProfile & { role: "doctor" });
 
-					if (doctorError) throw doctorError;
-
-					setProfile({
-						role: "doctor",
-						...baseProfile, // has id, full_name, email, phone_number, gender, avatar_url
-						...doctorData, // doctor-specific fields
-					} as DoctorProfile & { role: "doctor" });
-
-					return;
-				}
-
-				if (role === "nurse") {
-					const { data: nurseData, error: nurseError } = await supabase
-						.from("nurses")
-						.select("assigned_doctor_id, provider_id")
-						.eq("id", userId)
-						.maybeSingle();
-					if (nurseError) throw nurseError;
-					setProfile({
-						role: "nurse",
-						...baseProfile, // has id, full_name, email, phone_number, gender, avatar_url
-						...nurseData, // nurse-specific fields
-					} as NurseProfile & { role: "nurse" });
-
-					return;
-				}
-			} catch (err) {
-				console.error("Error loading profile:", err);
-				setProfile(null);
-			} finally {
-				setLoading(false);
+				return;
 			}
-		};
 
-		fetchProfile();
+			if (role === "nurse") {
+				const { data: nurseData, error: nurseError } = await supabase
+					.from("nurses")
+					.select(
+						`
+							assigned_doctor_id,
+							provider_id,
+							assigned_doctor:assigned_doctor_id (
+								profiles(
+									full_name
+								)
+							),
+							provider:provider_id (
+								name
+							)
+						`
+					)
+					.eq("id", userId)
+					.maybeSingle();
+				if (nurseError) throw nurseError;
+
+				const flattenedNurseProfile = flattenNurseData(nurseData);
+				console.log("flattenedNurseProfile:", flattenedNurseProfile);
+
+				setProfile({
+					role: "nurse",
+					...baseProfile, // has id, full_name, email, phone_number, gender, avatar_url
+					...flattenedNurseProfile,
+				} as NurseProfile & { role: "nurse" });
+
+				return;
+			}
+		} catch (err) {
+			console.error("Error loading profile:", err);
+			setProfile(null);
+		} finally {
+			setLoading(false);
+		}
 	}, [userId, role]);
 
 	useEffect(() => {
 		console.log("Fetched profile:", profile);
 	}, [profile]);
+
+	useFocusEffect(
+		useCallback(() => {
+			fetchProfile();
+			console.log("Executed fetchProfile through useFocusEffect!");
+		}, [fetchProfile])
+	);
 
 	const handleAttachAvatar = async () => {
 		console.log("handleAttachAvatar pressed!");
@@ -245,23 +293,37 @@ export default function ProfileScreen() {
 				return (
 					<>
 						<List.Item
+							title="Healthcare Provider"
+							description={
+								typeof profile.provider_name === "string"
+									? profile.provider_name
+									: "Not provided"
+							}
+							left={(props) => <List.Icon {...props} icon="hospital" />}
+						/>
+						<List.Item
 							title="Specialisation"
-							description={typeof profile.speciality === "string" ? profile.speciality : "Not provided"}
+							description={
+								typeof profile.speciality === "string"
+									? profile.speciality
+									: "Not provided"
+							}
 							left={(props) => <List.Icon {...props} icon="stethoscope" />}
 						/>
 						<List.Item
 							title="Availability"
-							description={typeof profile.availability === "string" ? profile.availability : "Not provided"}
+							description={
+								typeof profile.availability === "string"
+									? profile.availability
+									: "Not provided"
+							}
 							left={(props) => <List.Icon {...props} icon="calendar-clock" />}
 						/>
 						<List.Item
-							title="Timezone"
-							description={typeof profile.timezone === "string" ? profile.timezone : "Not provided"}
-							left={(props) => <List.Icon {...props} icon="earth" />}
-						/>
-						<List.Item
 							title="Bio"
-							description={typeof profile.bio === "string" ? profile.bio : "Not provided"}
+							description={
+								typeof profile.bio === "string" ? profile.bio : "Not provided"
+							}
 							left={(props) => (
 								<List.Icon {...props} icon="information-outline" />
 							)}
@@ -273,8 +335,21 @@ export default function ProfileScreen() {
 				return (
 					<>
 						<List.Item
+							title="Healthcare Provider"
+							description={
+								typeof profile.provider_name === "string"
+									? profile.provider_name
+									: "Not provided"
+							}
+							left={(props) => <List.Icon {...props} icon="hospital" />}
+						/>
+						<List.Item
 							title="Assigned Doctor Profile"
-							description={typeof profile.assigned_doctor_id === "string" ? profile.assigned_doctor_id : "Not provided"}
+							description={
+								typeof profile.assigned_doctor_name === "string"
+									? profile.assigned_doctor_name
+									: "Not provided"
+							}
 							left={(props) => (
 								<List.Icon {...props} icon="account-supervisor" />
 							)}
@@ -287,50 +362,86 @@ export default function ProfileScreen() {
 					<>
 						<List.Item
 							title="Date of Birth"
-							description={typeof profile.date_of_birth === "string" ? profile.date_of_birth : "Not provided"}
+							description={
+								typeof profile.date_of_birth === "string"
+									? profile.date_of_birth
+									: "Not provided"
+							}
 							left={(props) => <List.Icon {...props} icon="calendar" />}
 						/>
 						<List.Item
 							title="Blood Type"
-							description={typeof profile.blood_type === "string" ? profile.blood_type : "Not provided"}
+							description={
+								typeof profile.blood_type === "string"
+									? profile.blood_type
+									: "Not provided"
+							}
 							left={(props) => <List.Icon {...props} icon="water" />}
 						/>
 						<List.Item
 							title="Allergies"
-							description={typeof profile.allergies === "string" ? profile.allergies : "Not provided"}
+							description={
+								typeof profile.allergies === "string"
+									? profile.allergies
+									: "Not provided"
+							}
 							left={(props) => <List.Icon {...props} icon="alert-circle" />}
 						/>
 						<List.Item
 							title="Current Medications"
-							description={typeof profile.current_medications === "string" ? profile.current_medications : "Not provided"}
+							description={
+								typeof profile.current_medications === "string"
+									? profile.current_medications
+									: "Not provided"
+							}
 							left={(props) => <List.Icon {...props} icon="pill" />}
 						/>
 						<List.Item
 							title="Chronic Conditions"
-							description={typeof profile.chronic_conditions === "string" ? profile.chronic_conditions : "Not provided"}
+							description={
+								typeof profile.chronic_conditions === "string"
+									? profile.chronic_conditions
+									: "Not provided"
+							}
 							left={(props) => <List.Icon {...props} icon="heart-pulse" />}
 						/>
 						<List.Item
 							title="Past Surgeries"
-							description={typeof profile.past_surgeries === "string" ? profile.past_surgeries : "Not provided"}
+							description={
+								typeof profile.past_surgeries === "string"
+									? profile.past_surgeries
+									: "Not provided"
+							}
 							left={(props) => <List.Icon {...props} icon="hospital" />}
 						/>
 						<List.Item
 							title="Insurance Info"
-							description={typeof profile.insurance_info === "string" ? profile.insurance_info : "Not provided"}
+							description={
+								typeof profile.insurance_info === "string"
+									? profile.insurance_info
+									: "Not provided"
+							}
 							left={(props) => (
 								<List.Icon {...props} icon="card-account-details" />
 							)}
 						/>
 						<List.Item
 							title="Medical History"
-							description={typeof profile.medical_history === "string" ? profile.medical_history : "Not provided"}
+							description={
+								typeof profile.medical_history === "string"
+									? profile.medical_history
+									: "Not provided"
+							}
 							left={(props) => <List.Icon {...props} icon="history" />}
 						/>
 						{/* Emergency info */}
 						<List.Item
 							title="Emergency Contact"
-							description={typeof profile.emergency_contact === "string" ? profile.emergency_contact : "Not provided"}
+							description={
+								typeof profile.emergency_contact === "string"
+									? profile.emergency_contact
+									: "Not provided"
+							}
 							left={(props) => <List.Icon {...props} icon="phone" />}
 						/>
 					</>
@@ -363,7 +474,9 @@ export default function ProfileScreen() {
 					</View>
 					<Text variant="headlineSmall">{profile?.full_name ?? ""}</Text>
 					<Text variant="bodyMedium">
-						{typeof profile?.role === "string" ? profile.role.toUpperCase() : ""}
+						{typeof profile?.role === "string"
+							? profile.role.toUpperCase()
+							: ""}
 					</Text>
 					<IconButton
 						icon="square-edit-outline"
@@ -389,7 +502,11 @@ export default function ProfileScreen() {
 				/>
 				<List.Item
 					title="Gender"
-					description={typeof formatLabel(profile?.gender) === "string" ? formatLabel(profile?.gender) : "Not provided"}
+					description={
+						typeof formatLabel(profile?.gender) === "string"
+							? formatLabel(profile?.gender)
+							: "Not provided"
+					}
 					left={(props) => <List.Icon {...props} icon="gender-male-female" />}
 				/>
 

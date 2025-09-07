@@ -253,7 +253,7 @@ export default function RegisterScreen() {
 							</Text>
 
 							<TextInput
-								label="Name"
+								label="Full Name"
 								value={name}
 								onChangeText={setName}
 								mode="outlined"

@@ -41,8 +41,8 @@ export const SpecialityDropdown = ({
   return (
     <View style={{ marginBottom: 16 }}>
       <Dropdown
-        label="Speciality"
-        placeholder="Select speciality"
+        label="Specialisation"
+        placeholder="Select your specialisation"
         options={specialityOptions}
         value={selectedSpeciality}
         onSelect={setSelectedSpeciality}

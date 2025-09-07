@@ -25,7 +25,7 @@ export default function DoctorAppointmentScreen() {
 	const [refreshing, setRefreshing] = useState(false);
 
 	const [showUpcoming, setShowUpcoming] = useState(true);
-	const [showPast, setShowPast] = useState(true);
+	const [showPast, setShowPast] = useState(false);
 	const [upcomingSortOrder, setUpcomingSortOrder] = useState<"asc" | "desc">("asc");
 	const [pastSortOrder, setPastSortOrder] = useState<"asc" | "desc">("desc");
 

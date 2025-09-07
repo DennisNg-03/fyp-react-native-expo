@@ -32,10 +32,10 @@ export type DoctorProfile = {
 	avatar_url?: string;
 	speciality: string;
 	slot_minutes: number;
-	timezone?: string;
 	provider_id: string;
 	availability?: string;
 	bio?: string;
+	provider_name?: string;
 };
 
 export type NurseProfile = {
@@ -46,7 +46,9 @@ export type NurseProfile = {
 	gender: string;
 	avatar_url?: string;
 	provider_id: string;
+	provider_name?: string;
 	assigned_doctor_id?: string;
+	assigned_doctor_name?: string;
 };
 
 // Use when handling appointments
@@ -55,7 +57,6 @@ export type Doctor = {
 	profiles?: { full_name?: string | null } | null;
 	speciality: string;
 	slot_minutes: number;
-	timezone?: string;
 	provider_id: string;
 };
 
@@ -65,5 +66,4 @@ export type Provider = {
 	provider_type: string;
 	address?: string;
 	phone?: string;
-	timezone?: string;
 };

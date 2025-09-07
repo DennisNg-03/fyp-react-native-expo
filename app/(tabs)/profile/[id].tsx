@@ -1,5 +1,7 @@
 import { ActivityIndicator } from "@/components/ActivityIndicator";
+import { DoctorDropdown } from "@/components/DoctorDropdown";
 import { GenderDropdown } from "@/components/GenderDropdown";
+import { HealthcareProviderDropdown } from "@/components/HealthcareProviderDropdown";
 import { SpecialityDropdown } from "@/components/SpecialityDropdown";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
@@ -51,11 +53,13 @@ export default function EditProfileScreen() {
 	);
 
 	// Doctor-specific fields
+	const [healthcareProvider, setHealthcareProvider] = useState<
+		string | undefined
+	>(undefined);
 	const [speciality, setSpeciality] = useState<string | undefined>(undefined);
-	const [availability, setAvailability] = useState<string | undefined>(
-		undefined
-	);
-	const [timezone, setTimezone] = useState<string | undefined>(undefined);
+	// const [availability, setAvailability] = useState<string | undefined>(
+	// 	undefined
+	// );
 	const [bio, setBio] = useState<string | undefined>(undefined);
 
 	// Nurse-specific fields
@@ -104,13 +108,12 @@ export default function EditProfileScreen() {
 						...baseProfile,
 						...patientData,
 					});
-					return;
 				}
 
 				if (role === "doctor") {
 					const { data, error } = await supabase
 						.from("doctors")
-						.select("speciality, slot_minutes, timezone, bio, provider_id")
+						.select("speciality, slot_minutes, bio, provider_id")
 						.eq("id", userId)
 						.maybeSingle();
 
@@ -122,8 +125,6 @@ export default function EditProfileScreen() {
 						...baseProfile,
 						...doctorData,
 					} as DoctorProfile & { role: "doctor" });
-
-					return;
 				}
 
 				if (role === "nurse") {
@@ -140,8 +141,6 @@ export default function EditProfileScreen() {
 						...baseProfile,
 						...nurseData,
 					} as NurseProfile & { role: "nurse" });
-
-					return;
 				}
 
 				// Initialize state
@@ -164,12 +163,13 @@ export default function EditProfileScreen() {
 
 				if (role === "doctor" && doctorData) {
 					setSpeciality(doctorData.speciality);
-					setAvailability(doctorData.availability);
-					setTimezone(doctorData.timezone);
+					// setAvailability(doctorData.availability);
 					setBio(doctorData.bio);
+					setHealthcareProvider(doctorData.provider_id);
 				}
 
 				if (role === "nurse" && nurseData) {
+					setHealthcareProvider(nurseData.provider_id);
 					setAssignedDoctorId(nurseData.assigned_doctor_id);
 				}
 			} catch (err) {
@@ -182,79 +182,78 @@ export default function EditProfileScreen() {
 		fetchProfile();
 	}, [userId, role]);
 
+	useEffect(() => {
+		console.log("profile:", profile);
+	}, [profile]);
+
 	const handleSave = async () => {
-		if (!profile) return;
+		if (!profile || !session) return;
 		setSaving(true);
 
 		try {
-			// Update base profile
-			const { error: profileError } = await supabase
-				.from("profiles")
-				.update({
-					full_name: fullName,
-					email,
-					phone_number: phoneNumber,
-					gender,
-				})
-				.eq("id", userId);
+			const payload: any = {
+				user_id: userId,
+				full_name: fullName,
+				email,
+				phone_number: phoneNumber,
+				gender,
+				role,
+			};
 
-			if (profileError) throw profileError;
-
-			// Update role-specific tables
+			// Add role-specific fields
 			if (role === "patient") {
-				const { error: patientError } = await supabase
-					.from("patients")
-					.update({
-						date_of_birth: dateOfBirth,
-						blood_type: bloodType,
-						allergies,
-						current_medications: currentMedications,
-						chronic_conditions: chronicConditions,
-						past_surgeries: pastSurgeries,
-						insurance_info: insuranceInfo,
-						medical_history: medicalHistory,
-						emergency_contact: emergencyContact,
-					})
-					.eq("id", userId);
-
-				if (patientError) throw patientError;
+				payload.date_of_birth = dateOfBirth;
+				payload.blood_type = bloodType;
+				payload.allergies = allergies;
+				payload.current_medications = currentMedications;
+				payload.chronic_conditions = chronicConditions;
+				payload.past_surgeries = pastSurgeries;
+				payload.insurance_info = insuranceInfo;
+				payload.medical_history = medicalHistory;
+				payload.emergency_contact = emergencyContact;
 			} else if (role === "doctor") {
-				const { error: doctorError } = await supabase
-					.from("doctors")
-					.update({
-						speciality,
-						availability,
-						timezone,
-						bio,
-					})
-					.eq("id", userId);
-
-				if (doctorError) throw doctorError;
+				payload.speciality = speciality;
+				// payload.availability = availability;
+				payload.bio = bio;
+				payload.provider_id = healthcareProvider;
 			} else if (role === "nurse") {
-				const { error: nurseError } = await supabase
-					.from("nurses")
-					.update({ assigned_doctor_id: assignedDoctorId })
-					.eq("id", userId);
+				payload.assigned_doctor_id = assignedDoctorId;
+				payload.provider_id = healthcareProvider;
+			}
 
-				if (nurseError) throw nurseError;
+			const res = await fetch(
+				"https://zxyyegizcgbhctjjoido.functions.supabase.co/updateUserProfile",
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${session.access_token}`,
+					},
+					body: JSON.stringify(payload),
+				}
+			);
+
+			if (!res.ok) {
+				const errText = await res.text();
+				throw new Error(errText);
 			}
 
 			Alert.alert("Success", "Profile updated successfully!");
 			router.back();
-		} catch (err) {
-			console.error("Error saving profile:", err);
-			Alert.alert("Error", "Failed to update profile.");
+		} catch (err: any) {
+			console.error("Error updating profile:", err);
+			Alert.alert("Error", err.message || "Failed to update profile.");
 		} finally {
 			setSaving(false);
 		}
 	};
 
-	if (loading) {
+	if (saving) {
 		return (
 			<SafeAreaView
 				style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
 			>
-				<ActivityIndicator loadingMsg="" overlay={true} size="large" />
+				<ActivityIndicator loadingMsg="Saving your profile details.." overlay={true} size="large" />
 			</SafeAreaView>
 		);
 	}
@@ -264,30 +263,60 @@ export default function EditProfileScreen() {
 			style={{ flex: 1, backgroundColor: theme.colors.tertiary }}
 			edges={["left", "right", "bottom"]}
 		>
-			<ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 65 }}>
+			<ScrollView
+				contentContainerStyle={{
+					padding: 20,
+					paddingBottom: 65,
+					flexGrow: 1,
+					justifyContent: "center",
+				}}
+			>
 				{/* Common fields */}
 				<TextInput
 					label="Full Name"
 					value={fullName}
 					onChangeText={setFullName}
 					mode="outlined"
+					autoComplete="off"
+					autoCorrect={false}
+					spellCheck={false}
+					maxLength={50}
 					style={styles.input}
+					contentStyle={{
+						textAlign: undefined, // To prevent ellipsis from not working
+					}}
 				/>
 				<TextInput
 					label="Email"
 					value={email}
 					onChangeText={setEmail}
 					mode="outlined"
-					style={styles.input}
+					autoCapitalize="none"
 					keyboardType="email-address"
+					autoComplete="off"
+					autoCorrect={false}
+					spellCheck={false}
+					maxLength={50}
+					style={styles.input}
+					contentStyle={{
+						textAlign: undefined, // To prevent ellipsis from not working
+					}}
+					disabled
 				/>
 				<TextInput
 					label="Phone Number"
 					value={phoneNumber}
 					onChangeText={setPhoneNumber}
 					mode="outlined"
-					style={styles.input}
 					keyboardType="phone-pad"
+					autoComplete="tel"
+					autoCorrect={false}
+					spellCheck={false}
+					maxLength={20}
+					style={styles.input}
+					contentStyle={{
+						textAlign: undefined, // To prevent ellipsis from not working
+					}}
 				/>
 				<GenderDropdown selectedGender={gender} setSelectedGender={setGender} />
 
@@ -307,6 +336,13 @@ export default function EditProfileScreen() {
 							onChangeText={setBloodType}
 							mode="outlined"
 							style={styles.input}
+							autoComplete="off"
+							autoCorrect={false}
+							spellCheck={false}
+							maxLength={10}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
 						/>
 						<TextInput
 							label="Allergies"
@@ -314,6 +350,15 @@ export default function EditProfileScreen() {
 							onChangeText={setAllergies}
 							mode="outlined"
 							style={styles.input}
+							autoComplete="off"
+							autoCorrect={false}
+							spellCheck={false}
+							maxLength={200}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
+							multiline={true}
+							numberOfLines={3}
 						/>
 						<TextInput
 							label="Current Medications"
@@ -321,6 +366,15 @@ export default function EditProfileScreen() {
 							onChangeText={setCurrentMedications}
 							mode="outlined"
 							style={styles.input}
+							autoComplete="off"
+							autoCorrect={false}
+							spellCheck={false}
+							maxLength={200}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
+							multiline={true}
+							numberOfLines={3}
 						/>
 						<TextInput
 							label="Chronic Conditions"
@@ -328,6 +382,15 @@ export default function EditProfileScreen() {
 							onChangeText={setChronicConditions}
 							mode="outlined"
 							style={styles.input}
+							autoComplete="off"
+							autoCorrect={false}
+							spellCheck={false}
+							maxLength={200}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
+							multiline={true}
+							numberOfLines={3}
 						/>
 						<TextInput
 							label="Past Surgeries"
@@ -335,6 +398,15 @@ export default function EditProfileScreen() {
 							onChangeText={setPastSurgeries}
 							mode="outlined"
 							style={styles.input}
+							autoComplete="off"
+							autoCorrect={false}
+							spellCheck={false}
+							maxLength={200}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
+							multiline={true}
+							numberOfLines={3}
 						/>
 						<TextInput
 							label="Insurance Info"
@@ -342,24 +414,45 @@ export default function EditProfileScreen() {
 							onChangeText={setInsuranceInfo}
 							mode="outlined"
 							style={styles.input}
+							autoComplete="off"
+							autoCorrect={false}
+							spellCheck={false}
+							maxLength={100}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
 						/>
-						<TextInput
+						{/* <TextInput
 							label="Medical History"
 							value={medicalHistory}
 							onChangeText={setMedicalHistory}
 							mode="outlined"
 							style={styles.input}
-						/>
+						/> */}
 						<TextInput
 							label="Emergency Contact"
 							value={emergencyContact}
 							onChangeText={setEmergencyContact}
 							mode="outlined"
 							style={styles.input}
+							keyboardType="phone-pad"
+							autoComplete="tel"
+							autoCorrect={false}
+							spellCheck={false}
+							maxLength={20}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
 						/>
 					</>
 				)}
 
+				{(profile?.role === "doctor" || profile?.role === "nurse") && (
+					<HealthcareProviderDropdown
+						selectedProvider={healthcareProvider}
+						setSelectedProvider={setHealthcareProvider}
+					/>
+				)}
 				{/* Doctor fields */}
 				{profile?.role === "doctor" && (
 					<>
@@ -367,27 +460,27 @@ export default function EditProfileScreen() {
 							selectedSpeciality={speciality}
 							setSelectedSpeciality={setSpeciality}
 						/>
-						<TextInput
+						{/* <TextInput
 							label="Availability"
 							value={availability}
 							onChangeText={setAvailability}
 							mode="outlined"
 							style={styles.input}
-						/>
-						<TextInput
-							label="Timezone"
-							value={timezone}
-							onChangeText={setTimezone}
-							mode="outlined"
-							style={styles.input}
-						/>
+						/> */}
 						<TextInput
 							label="Bio"
 							value={bio}
 							onChangeText={setBio}
 							mode="outlined"
 							style={styles.input}
-							multiline
+							autoComplete="off"
+							autoCorrect={false}
+							spellCheck={false}
+							maxLength={200}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
+							multiline={true}
 							numberOfLines={3}
 						/>
 					</>
@@ -395,19 +488,16 @@ export default function EditProfileScreen() {
 
 				{/* Nurse fields */}
 				{profile?.role === "nurse" && (
-					<TextInput
-						label="Assigned Doctor ID"
-						value={assignedDoctorId}
-						onChangeText={setAssignedDoctorId}
-						mode="outlined"
-						style={styles.input}
+					<DoctorDropdown
+						providerId={profile.provider_id}
+						selectedDoctorId={assignedDoctorId}
+						setSelectedDoctor={setAssignedDoctorId}
 					/>
 				)}
 
 				<Button
 					mode="contained"
 					onPress={handleSave}
-					loading={saving}
 					style={{ marginTop: 16 }}
 				>
 					Save Changes
