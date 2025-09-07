@@ -17,7 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PatientAppointmentDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
-	const { session } = useAuth();
+	const { session, role } = useAuth();
 	const theme = useTheme();
 	const [appointment, setAppointment] = useState<any>(null);
 	const [loading, setLoading] = useState(false);
@@ -41,6 +41,7 @@ export default function PatientAppointmentDetailScreen() {
 					notes,
 					for_whom,
 					other_person,
+					grant_doctor_access,
 					supporting_documents,
 					doctor:doctor_id (
 						speciality,
@@ -139,6 +140,7 @@ export default function PatientAppointmentDetailScreen() {
 					<AppointmentDetailsCard
             appointment={appointment}
             session={session}
+						role={role}
             reload={loadData}
             showActions={false}
           />

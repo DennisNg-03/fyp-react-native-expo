@@ -477,7 +477,8 @@ export default function ProfileScreen() {
 						{profile?.role === "doctor"
 							? `Dr ${profile.full_name}`
 							: profile?.role === "nurse"
-							? `Nurse ${profile.full_name}`
+							? `${profile.full_name}`
+							// ? `Nurse ${profile.full_name}`
 							: profile?.full_name ?? ""}
 					</Text>
 					<Text variant="bodyMedium">

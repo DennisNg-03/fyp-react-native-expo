@@ -36,6 +36,7 @@ Deno.serve(async (req) => {
 			notes,
 			for_whom,
 			other_person,
+			grant_doctor_access,
 			supporting_documents,
 		} = (await req.json()) as Appointment;
 
@@ -48,6 +49,7 @@ Deno.serve(async (req) => {
 			notes,
 			for_whom,
 			other_person,
+			grant_doctor_access,
 			supporting_documents,
 		});
 
@@ -115,6 +117,7 @@ Deno.serve(async (req) => {
 					notes: notes ?? null,
 					for_whom,
 					other_person: other_person ?? null,
+					grant_doctor_access,
 					supporting_documents: supportingDocuments ?? null,
 				},
 			])

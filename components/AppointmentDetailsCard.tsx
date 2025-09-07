@@ -10,22 +10,18 @@ import {
 } from "@/utils/labelHelpers";
 import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import {
-	Button,
-	Card,
-	Divider,
-	Portal,
-	Text
-} from "react-native-paper";
+import { Button, Card, Divider, Portal, Text } from "react-native-paper";
 
 export default function AppointmentDetailCard({
 	appointment,
 	session,
+	role,
 	showActions = false,
 	reload,
 }: {
 	appointment: any;
 	session: any;
+	role: string | null;
 	showActions?: boolean;
 	reload: () => void;
 }) {
@@ -118,7 +114,7 @@ export default function AppointmentDetailCard({
 					</View>
 				) : null}
 
-				{appointment.other_person ? (
+				{appointment.for_whom === "someone_else" && appointment.other_person ? (
 					<View style={styles.section}>
 						<Text style={styles.label}>Patient Details</Text>
 						<Text style={styles.contentText}>
@@ -136,6 +132,25 @@ export default function AppointmentDetailCard({
 						</Text>
 					</View>
 				) : null}
+
+				<View style={styles.section}>
+					<Text style={styles.label}>Past Records Access</Text>
+					<Text style={styles.contentText}>
+						{role === "patient"
+							? appointment.grant_doctor_access
+								? "You have allowed the doctor to view your past medical records."
+								: "You have not allowed the doctor to view your past medical records."
+							: role === "doctor"
+							? appointment.grant_doctor_access
+								? "Patient has granted you access to view their past medical records."
+								: "Patient has not granted you access to view their past medical records."
+							: role === "nurse"
+							? appointment.grant_doctor_access
+								? "Patient has granted access to view their past medical records via the assigned doctor."
+								: "Patient has not granted access to view their past medical records via the assigned doctor."
+							: ""}
+					</Text>
+				</View>
 
 				<View style={styles.section}>
 					<Text style={styles.label}>Supporting Documents</Text>

@@ -60,7 +60,8 @@ Deno.serve(async (req) => {
 						})
 					);
 
-					const { id, title, record_type, patient_id, file_paths, ...ocrData } = record;
+					const { id, title, record_type, patient_id, file_paths, ...ocrData } =
+						record;
 
 					return {
 						id,
@@ -74,7 +75,98 @@ Deno.serve(async (req) => {
 				})
 			);
 
-			console.log("Page:", page, "Records:", recordsWithUrls.map(r => r.id));
+			console.log(
+				"Page:",
+				page,
+				"Records:",
+				recordsWithUrls.map((r) => r.id)
+			);
+
+			const hasMore = records.length === limit;
+
+			return new Response(JSON.stringify({ recordsWithUrls, hasMore }), {
+				headers: { "Content-Type": "application/json" },
+			});
+		} else if (role === "doctor" || role === "nurse") {
+			// Doctor: only records with explicit access granted
+			let effectiveDoctorId = uid;
+
+			if (role === "nurse") {
+				// Fetch assigned doctor for the nurse
+				const { data: nurseData, error: nurseError } = await supabase
+					.from("nurses")
+					.select("assigned_doctor_id")
+					.eq("id", uid)
+					.single();
+
+				if (nurseError)
+					return new Response("DB error: " + nurseError.message, {
+						status: 500,
+					});
+				if (!nurseData?.assigned_doctor_id)
+					return new Response("No assigned doctor", { status: 403 });
+
+				effectiveDoctorId = nurseData.assigned_doctor_id;
+			}
+
+			// Fetch all patient IDs this doctor has access to
+			const { data: accessData, error: accessError } = await supabase
+				.from("patient_access")
+				.select("patient_id")
+				.eq("doctor_id", effectiveDoctorId)
+				.is("revoked_at", null);
+
+			if (accessError)
+				return new Response("DB error: " + accessError.message, {
+					status: 500,
+				});
+
+			const allowedPatientIds = accessData?.map((r) => r.patient_id) ?? [];
+
+			// Now fetch medical records for these patient IDs
+			const { data: records, error } = await supabase
+				.from("medical_records")
+				.select("*")
+				.in("patient_id", allowedPatientIds)
+				.order("record_date", { ascending: false })
+				.order("updated_at", { ascending: false })
+				.range(offset, offset + limit - 1);
+
+			if (error)
+				return new Response("DB error: " + error.message, { status: 500 });
+
+			if (!records || records.length === 0)
+				return new Response(JSON.stringify({ signedUrls: [] }), {
+					status: 200,
+				});
+				
+			const recordsWithUrls = await Promise.all(
+				records.map(async (record) => {
+					const files: SelectedFile[] = record.file_paths ?? [];
+
+					const signedUrls = await Promise.all(
+						files.map(async (file) => {
+							const { data, error } = await supabase.storage
+								.from("medical-records")
+								.createSignedUrl(file.uri, 60 * 60);
+							if (error || !data) return null;
+							return data.signedUrl;
+						})
+					);
+
+					const { id, title, record_type, patient_id, file_paths, ...ocrData } =
+						record;
+					return {
+						id,
+						title,
+						record_type,
+						patient_id,
+						file_paths: file_paths as SelectedFile[],
+						signed_urls: signedUrls,
+						...ocrData,
+					};
+				})
+			);
 
 			const hasMore = records.length === limit;
 
@@ -82,8 +174,9 @@ Deno.serve(async (req) => {
 				headers: { "Content-Type": "application/json" },
 			});
 		} else {
-			return new Response("Doctor logic to be handled", { status: 250 });
+			return new Response("Invalid role", { status: 400 });
 		}
+	// deno-lint-ignore no-explicit-any
 	} catch (err: any) {
 		console.error("Error in getMedicalRecord Edge Function:", err);
 		return new Response("Error: " + err.message, { status: 500 });

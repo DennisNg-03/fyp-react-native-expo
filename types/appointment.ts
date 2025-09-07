@@ -9,6 +9,7 @@ export type Appointment = {
 	notes?: string;
 	for_whom: "me" | "someone_else";
 	other_person?: OtherPerson;
+	grant_doctor_access?: boolean;
 	supporting_documents?: SupportingDocument[] | IncomingFile[];
 	new_documents?: SupportingDocument[] | IncomingFile[];
 	removed_documents?: SupportingDocument[]; // To be sent to backend for deletion
@@ -128,6 +129,7 @@ export type DoctorAppointment= { // DoctorSchedule
   status: AppointmentStatus;
   reason: string;
   notes?: string;
+	grant_doctor_access?: boolean;
   supporting_documents?: SupportingDocument[];
   reschedule_requests?: AppointmentRescheduleRequest[];
 };
@@ -150,7 +152,8 @@ export type DoctorRescheduleRequest = {
     notes?: string;
 		doctor?: {
 			full_name?: string;
-		}
+		};
+		grant_doctor_access?: boolean;
   };
   new_starts_at: string;
   new_ends_at: string;

@@ -31,6 +31,7 @@ import {
 import {
 	Button,
 	Card,
+	Checkbox,
 	RadioButton,
 	Searchbar,
 	Text,
@@ -77,9 +78,8 @@ export default function AppointmentBookingScreen() {
 		SupportingDocument[]
 	>([]);
 	const [booking, setBooking] = useState(false);
-	// const isFirstRender = useRef(true);
+	const [grantDoctorAccess, setGrantDoctorAccess] = useState(false);
 
-	// Providers load
 	const loadProviders = useCallback(async () => {
 		setShowProvidersLoading(true);
 
@@ -317,6 +317,7 @@ export default function AppointmentBookingScreen() {
 			gender: "",
 			relationship: "",
 		});
+		setGrantDoctorAccess(false);
 		setSupportingDocuments([]);
 	};
 
@@ -376,6 +377,7 @@ export default function AppointmentBookingScreen() {
 						notes: notes ?? null,
 						for_whom: forWhom,
 						other_person: otherPerson ?? null,
+						grant_doctor_access: grantDoctorAccess,
 						supporting_documents: supportingDocumentsToUpload, // Contains base64
 					}),
 				}
@@ -447,7 +449,14 @@ export default function AppointmentBookingScreen() {
 						onStartShouldSetResponder={() => true} // Enable this child respond to scroll, otherwise the Touchable component will affect scrolling
 					>
 						<Card.Content>
-							<Text style={{ marginBottom: 8, fontWeight: "700", fontSize: 16, textAlign: "center" }}>
+							<Text
+								style={{
+									marginBottom: 8,
+									fontWeight: "700",
+									fontSize: 16,
+									textAlign: "center",
+								}}
+							>
 								Book an appointment
 							</Text>
 
@@ -702,26 +711,6 @@ export default function AppointmentBookingScreen() {
 												mode="dob"
 											/>
 
-											{/* <TextInput
-												label="Gender"
-												placeholder="E.g. Male, Female"
-												value={otherPerson.gender}
-												onChangeText={(t) =>
-													setOtherPerson({ ...otherPerson, gender: t })
-												}
-												mode="outlined"
-												style={[
-													styles.input,
-													{
-														backgroundColor: theme.colors.onPrimary,
-													},
-												]}
-												autoComplete="off"
-												maxLength={100}
-												contentStyle={{
-													textAlign: undefined, // To prevent ellipsis from not working
-												}} 
-											/> */}
 											<GenderDropdown
 												selectedGender={otherPerson.gender}
 												setSelectedGender={(g) =>
@@ -751,6 +740,34 @@ export default function AppointmentBookingScreen() {
 											/>
 										</View>
 									)}
+
+									<View
+										style={{
+											flexDirection: "row",
+											alignItems: "center",
+											marginTop: 12,
+										}}
+									>
+										<Text variant="titleSmall" style={{ flexShrink: 1 }}>
+											Allow the doctor to access your past medical records?
+										</Text>
+										<Checkbox.Android
+											status={grantDoctorAccess ? "checked" : "unchecked"}
+											onPress={() => setGrantDoctorAccess(!grantDoctorAccess)}
+											color={theme.colors.primary}
+											// style={{ marginLeft: 8 }}
+										/>
+									</View>
+									<Text
+									variant="labelSmall"
+										style={{
+											color: theme.colors.onSurfaceVariant,
+											marginTop: 2,
+											marginBottom: 12,
+										}}
+									>
+										You can change this anytime in your Privacy Settings.
+									</Text>
 
 									<Text
 										variant="titleSmall"
