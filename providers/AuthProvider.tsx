@@ -79,7 +79,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
 	}, []);
 
 	if (initialising) {
-		return <ActivityIndicator />;
+		return <ActivityIndicator loadingMsg="" overlay={true} size="large" />;
 	}
 
 	return (

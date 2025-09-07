@@ -27,6 +27,10 @@ export default function ProfileLayout() {
 				name="[id]"
 				options={{ title: "Edit Profile", headerShown: true }}
 			/>
+			<Stack.Screen
+				name="privacy"
+				options={{ title: "Privacy Settings", headerShown: true }}
+			/>
 		</Stack>
 	);
 }

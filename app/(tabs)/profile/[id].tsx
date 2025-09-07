@@ -260,29 +260,21 @@ export default function EditProfileScreen() {
 		}
 	};
 
-	if (saving) {
-		return (
-			// <SafeAreaView
-			// 	style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-			// >
-			<ActivityIndicator
-				loadingMsg="Saving your profile details.."
-				overlay={true}
-				size="large"
-			/>
-			// </SafeAreaView>
-		);
-	}
-
-	if (loading) {
-		return <ActivityIndicator loadingMsg="" overlay={true} size="large" />;
-	}
-
 	return (
 		<SafeAreaView
 			style={{ flex: 1, backgroundColor: theme.colors.tertiary }}
 			edges={["left", "right", "bottom"]}
 		>
+			{saving && (
+				<ActivityIndicator
+					loadingMsg="Saving your profile details.." overlay={true} size="large"
+				/>
+			)}
+			{loading && (
+				<ActivityIndicator
+					loadingMsg="" overlay={true} size="large" 
+				/>
+			)}
 			<ScrollView
 				contentContainerStyle={{
 					padding: 20,

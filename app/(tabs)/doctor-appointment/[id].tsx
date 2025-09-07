@@ -2,7 +2,6 @@ import { ActivityIndicator } from "@/components/ActivityIndicator";
 import AppointmentDetailsCard from "@/components/AppointmentDetailsCard";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
-import { getDisplayStatus } from "@/utils/appointmentRules";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -120,8 +119,8 @@ export default function PatientAppointmentDetailScreen() {
 		return <ActivityIndicator loadingMsg="Fetching appointment record..." />;
 	}
 
-	const displayStatus = getDisplayStatus(appointment);
-	console.log("[id] displayStatus:", displayStatus);
+	// const displayStatus = getDisplayStatus(appointment);
+	// console.log("[id] displayStatus:", displayStatus);
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>

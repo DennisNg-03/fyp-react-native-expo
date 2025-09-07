@@ -191,7 +191,7 @@ export default function PatientAppointmentsScreen() {
 
 	const renderAppointmentSummary = (item: Appointment) => {
 		const displayStatus = getDisplayStatus(item);
-		console.log("displayStatus:", displayStatus);
+		// console.log("displayStatus:", displayStatus);
 		const startTime = formatKL(item.starts_at, "HH:mm");
 		const endTime = formatKL(item.ends_at, "HH:mm");
 		const date = formatKL(item.starts_at, "dd MMM yyyy");

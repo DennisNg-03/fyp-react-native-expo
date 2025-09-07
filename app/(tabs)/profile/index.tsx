@@ -534,6 +534,7 @@ export default function ProfileScreen() {
 				<List.Item
 					title="Privacy Settings"
 					left={(props) => <List.Icon {...props} icon="shield-lock" />}
+					onPress={() => router.push(`/profile/privacy`)}
 				/>
 				<List.Item
 					title="Log out"

@@ -405,21 +405,32 @@ export default function AppointmentBookingScreen() {
 						: slot
 				)
 			);
+			console.log("grantDoctorAccess:", grantDoctorAccess);
 
 			if (grantDoctorAccess && appointment_id) {
-				await fetch("https://zxyyegizcgbhctjjoido.functions.supabase.co/upsertPatientAccess", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${session?.access_token}`,
-					},
-					body: JSON.stringify({
-						patient_id: userId,
-						doctor_id: selectedDoctor.id,
-						grant: true,
-						appointment_id, // for reference/logging
-					}),
-				});
+				console.log("Calling insertPatientAccess...");
+				const res = await fetch(
+					"https://zxyyegizcgbhctjjoido.functions.supabase.co/insertPatientAccess",
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${session?.access_token}`,
+						},
+						body: JSON.stringify({
+							patient_id: userId,
+							doctor_id: selectedDoctor.id,
+							grant: true,
+							appointment_id, // for reference/logging
+						}),
+					}
+				);
+
+				if (!res.ok) {
+					const text = await res.text();
+					console.error("Error granting access:", res.status, text);
+					return;
+				}
 			}
 
 			setSelectedSlot(null);
