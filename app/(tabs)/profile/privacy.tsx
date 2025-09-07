@@ -1,3 +1,5 @@
+import ConfirmationDialog from "@/components/ConfirmationDialog";
+import { HealthcareProviderDropdown } from "@/components/HealthcareProviderDropdown";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
 import { useEffect, useState } from "react";
@@ -9,54 +11,136 @@ export default function PrivacySettingsScreen() {
 	const { session } = useAuth();
 	const userId = session?.user.id;
 	const theme = useTheme();
-	const [grantPastAccess, setGrantPastAccess] = useState(false);
 	const [loading, setLoading] = useState(true);
+	const [selectedProvider, setSelectedProvider] = useState<string | undefined>(
+		undefined
+	);
 	const [doctorAccessList, setDoctorAccessList] = useState<
 		{ doctor_id: string; doctor_name: string; granted: boolean }[]
 	>([]);
+	const [pendingToggle, setPendingToggle] = useState<{
+		doctor_id: string;
+		grant: boolean;
+	} | null>(null);
+	const [dialogVisible, setDialogVisible] = useState(false);
 
-	const loadSettings = async () => {
+	// const loadDoctorsAccess = async (providerId: string) => {
+	// 	if (!session) return;
+	// 	setLoading(true);
+	// 	try {
+	// 		const { data, error } = await supabase
+	// 			.from("patient_access")
+	// 			.select(
+	// 				"doctor_id, grant_status, created_at, doctor:doctor_id(provider_id, profiles(full_name))"
+	// 			)
+	// 			.eq("patient_id", userId)
+	// 			.order("created_at", { ascending: false });
+	// 		if (error) throw error;
+
+	// 		const latestAccessMap: Record<string, any> = {};
+	// 		(data ?? []).forEach((row: any) => {
+	// 			if (!latestAccessMap[row.doctor_id]) {
+	// 				latestAccessMap[row.doctor_id] = row;
+	// 			}
+	// 		});
+
+	// 		const filteredDoctors = Object.values(latestAccessMap)
+	// 			.filter((row: any) => row.doctor?.provider_id === providerId)
+	// 			.map((row: any) => ({
+	// 				doctor_id: row.doctor_id,
+	// 				doctor_name: row.doctor?.profiles?.full_name ?? "Unknown",
+	// 				granted: row.grant_status,
+	// 			}));
+
+	// 		setDoctorAccessList(filteredDoctors);
+	// 	} catch (err) {
+	// 		console.error(err);
+	// 		Alert.alert("Error", "Failed to load doctor access.");
+	// 	} finally {
+	// 		setLoading(false);
+	// 	}
+	// };
+
+	const loadDoctorsAccess = async (providerId: string) => {
 		if (!session) return;
 		setLoading(true);
+
 		try {
-			// Fetch user's privacy settings
-			const { data, error } = await supabase
+			// Fetch all doctors under selected provider
+			const { data: doctorsData, error: doctorsError } = await supabase
+				.from("doctors")
+				.select(`id, profiles(full_name), provider_id`)
+				.eq("provider_id", providerId);
+
+			if (doctorsError) throw doctorsError;
+
+			// Fetch patient_access for current user for these doctors
+			const doctorIds = doctorsData?.map((d) => d.id) ?? [];
+			const { data: accessData, error: accessError } = await supabase
 				.from("patient_access")
-				.select(
-					"doctor_id, granted_at, revoked_at, doctor:doctor_id(profiles(full_name))"
-				);
+				.select("doctor_id, grant_status, created_at")
+				.eq("patient_id", userId)
+				.in("doctor_id", doctorIds)
+				.order("created_at", { ascending: false });
 
-			if (error) throw error;
+			if (accessError) throw accessError;
 
-			setDoctorAccessList(
-				(data ?? []).map((row: any) => ({
-					doctor_id: row.doctor_id,
-					doctor_name: row.doctor?.profiles?.full_name ?? "Unknown",
-					granted: !row.revoked_at,
-				}))
+			// Map latest access per doctor
+			const latestAccessMap: Record<string, any> = {};
+			(accessData ?? []).forEach((row: any) => {
+				if (!latestAccessMap[row.doctor_id]) {
+					latestAccessMap[row.doctor_id] = row;
+				}
+			});
+
+			const combinedDoctors = (doctorsData ?? []).map((doc: any) => ({
+				doctor_id: doc.id,
+				doctor_name: doc.profiles?.full_name ?? "Unknown",
+				provider_id: doc.provider_id,
+				granted: latestAccessMap[doc.id]?.grant_status ?? false, // If no record found in "patient_access", it means false
+			}));
+
+			// Sort alphabetically by doctor_name
+			combinedDoctors.sort((a, b) =>
+				a.doctor_name.localeCompare(b.doctor_name)
 			);
 
-			// Fetch general past access (assuming you store a grant_doctor_access boolean somewhere)
-			const { data: appointmentsData, error: apptError } = await supabase
-				.from("appointments")
-				.select("grant_doctor_access")
-				.eq("patient_id", userId)
-				.limit(1)
-				.single();
+			// Combine doctor info with access status
+			// const combined = (doctorsData ?? []).map((doc: any) => ({
+			// 	doctor_id: doc.id,
+			// 	doctor_name: doc.profiles?.full_name ?? "Unknown",
+			// 	granted: latestAccessMap[doc.id]?.grant_status ?? false, // default to false if no record
+			// }));
 
-			if (!apptError)
-				setGrantPastAccess(appointmentsData?.grant_doctor_access ?? false);
+			setDoctorAccessList(combinedDoctors);
 		} catch (err) {
 			console.error(err);
-			Alert.alert("Error", "Failed to load privacy settings.");
+			Alert.alert("Error", "Failed to load doctor access.");
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	const toggleDoctorAccess = async (doctorId: string, grant: boolean) => {
-	
+	const handleToggleAccess = (doctorId: string, grant: boolean) => {
+		setPendingToggle({ doctor_id: doctorId, grant });
+		setDialogVisible(true);
+	};
+
+	const confirmToggleAccess = async () => {
+		if (!pendingToggle || !session) {
+			setDialogVisible(false);
+			return;
+		}
+		const { doctor_id, grant } = pendingToggle;
+		setDialogVisible(false);
 		try {
+			// Optimistic update
+			setDoctorAccessList((prev) =>
+				prev.map((d) =>
+					d.doctor_id === doctor_id ? { ...d, granted: grant } : d
+				)
+			);
+
 			const res = await fetch(
 				"https://zxyyegizcgbhctjjoido.functions.supabase.co/insertPatientAccess",
 				{
@@ -67,7 +151,7 @@ export default function PrivacySettingsScreen() {
 					},
 					body: JSON.stringify({
 						patient_id: userId,
-						doctor_id: doctorId,
+						doctor_id,
 						grant,
 					}),
 				}
@@ -76,27 +160,30 @@ export default function PrivacySettingsScreen() {
 			if (!res.ok) {
 				const text = await res.text();
 				console.error("Error saving patient access:", res.status, text);
+				// Rollback
+				setDoctorAccessList((prev) =>
+					prev.map((d) =>
+						d.doctor_id === doctor_id ? { ...d, granted: !grant } : d
+					)
+				);
 				return;
 			}
 
 			const data = await res.json();
 			console.log("Patient access insert data:", data);
-
-			// Update local state
-			setDoctorAccessList((prev) =>
-				prev.map((d) =>
-					d.doctor_id === doctorId ? { ...d, granted: grant } : d
-				)
-			);
 		} catch (err: any) {
 			console.error(err);
 			Alert.alert("Error saving access", err.message);
+		} finally {
+			setPendingToggle(null);
 		}
 	};
 
 	useEffect(() => {
-		loadSettings();
-	}, []);
+		if (selectedProvider) {
+			loadDoctorsAccess(selectedProvider);
+		}
+	}, [selectedProvider]);
 
 	return (
 		<SafeAreaView
@@ -105,10 +192,8 @@ export default function PrivacySettingsScreen() {
 		>
 			<ScrollView
 				contentContainerStyle={{
-					// padding: 20,
-					// paddingBottom: 65,
 					flexGrow: 1,
-					justifyContent: "center",
+					paddingBottom: 50,
 				}}
 			>
 				<View style={{ padding: 16 }}>
@@ -119,20 +204,15 @@ export default function PrivacySettingsScreen() {
 					<List.Section>
 						<List.Subheader>Medical Record Access</List.Subheader>
 
-						{/* Toggle for past records */}
-						<List.Item
-							title="Allow doctors to access past medical records"
-							right={() => (
-								<Switch
-									value={grantPastAccess}
-									onValueChange={(value) => setGrantPastAccess(value)}
-								/>
-							)}
+						{/* Provider Dropdown */}
+						<HealthcareProviderDropdown
+							selectedProvider={selectedProvider}
+							setSelectedProvider={setSelectedProvider}
 						/>
 
-						<Divider />
+						<Divider style={{ marginVertical: 12 }} />
 
-						{/* Doctor-specific toggles */}
+						{/* Doctor list for selected provider */}
 						{doctorAccessList.map((doc) => (
 							<List.Item
 								key={doc.doctor_id}
@@ -142,7 +222,7 @@ export default function PrivacySettingsScreen() {
 									<Switch
 										value={doc.granted}
 										onValueChange={(value) =>
-											toggleDoctorAccess(doc.doctor_id, value)
+											handleToggleAccess(doc.doctor_id, value)
 										}
 									/>
 								)}
@@ -151,6 +231,15 @@ export default function PrivacySettingsScreen() {
 					</List.Section>
 				</View>
 			</ScrollView>
+
+			<ConfirmationDialog
+				visible={dialogVisible}
+				onCancel={() => setDialogVisible(false)}
+				onConfirm={confirmToggleAccess}
+				title="Confirm Access Change"
+				messagePrimary="Are you sure you want to change this doctor's access?"
+				messageSecondary=""
+			/>
 		</SafeAreaView>
 	);
 }
