@@ -12,7 +12,7 @@ export default function ProfileLayout() {
 				headerStyle: {
 					backgroundColor: theme.colors.primaryContainer, // background colour of header
 				},
-				headerTintColor: theme.colors.onPrimaryContainer, // text/icon colour
+				headerTintColor: theme.colors.primary, // text/icon colour
 				headerTitleStyle: {
 					// fontWeight: "bold",
 					fontSize: 18,
@@ -25,7 +25,7 @@ export default function ProfileLayout() {
 			/>
 			<Stack.Screen
 				name="[id]"
-				options={{ title: "Edit Profile", headerShown: true }}
+				options={{ title: "", headerShown: true }}
 			/>
 			<Stack.Screen
 				name="privacy"

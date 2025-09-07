@@ -11,7 +11,14 @@ import {
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { Card, Divider, IconButton, List, Text, useTheme } from "react-native-paper";
+import {
+	Card,
+	Divider,
+	IconButton,
+	List,
+	Text,
+	useTheme,
+} from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function DoctorAppointmentScreen() {
@@ -26,7 +33,9 @@ export default function DoctorAppointmentScreen() {
 
 	const [showUpcoming, setShowUpcoming] = useState(true);
 	const [showPast, setShowPast] = useState(false);
-	const [upcomingSortOrder, setUpcomingSortOrder] = useState<"asc" | "desc">("asc");
+	const [upcomingSortOrder, setUpcomingSortOrder] = useState<"asc" | "desc">(
+		"asc"
+	);
 	const [pastSortOrder, setPastSortOrder] = useState<"asc" | "desc">("desc");
 
 	// Flatten DoctorAppointment after Supabase query
@@ -222,7 +231,7 @@ export default function DoctorAppointmentScreen() {
 			>
 				<List.Section style={{ marginTop: 10 }}>
 					<View style={styles.sectionRow}>
-						<List.Subheader style={styles.sectionHeader}>
+						<List.Subheader style={styles.pageHeader}>
 							Upcoming Appointments
 						</List.Subheader>
 						<View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -261,7 +270,7 @@ export default function DoctorAppointmentScreen() {
 
 				<List.Section>
 					<View style={styles.sectionRow}>
-						<List.Subheader style={styles.sectionHeader}>
+						<List.Subheader style={styles.pageHeader}>
 							Past Appointments
 						</List.Subheader>
 						<View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -324,10 +333,11 @@ const styles = StyleSheet.create({
 		marginBottom: 6,
 		color: "#111",
 	},
-	sectionHeader: {
+	pageHeader: {
 		fontWeight: "700",
 		fontSize: 16,
-		backgroundColor: "transparent",
+		textAlign: "center",
+		color: "rgba(0, 0, 0, 0.7)",
 	},
 	sectionRow: {
 		flexDirection: "row",

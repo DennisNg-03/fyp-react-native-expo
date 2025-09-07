@@ -184,6 +184,12 @@ const styles = StyleSheet.create({
     flex: 1,
     // padding: 15,
   },
+	pageHeader: {
+		fontWeight: "700",
+		fontSize: 16,
+		textAlign: "center",
+		color: "rgba(0, 0, 0, 0.7)",
+	},
   center: {
     flex: 1,
     justifyContent: "center",

@@ -12,7 +12,7 @@ export default function DoctorAppointmentRequestsLayout() {
 				headerStyle: {
 					backgroundColor: theme.colors.primaryContainer, // background colour of header
 				},
-				headerTintColor: theme.colors.onPrimaryContainer, // text/icon colour
+				headerTintColor: theme.colors.primary, // text/icon colour
 				headerTitleStyle: {
 					// fontWeight: "bold",
 					fontSize: 18,
@@ -25,7 +25,7 @@ export default function DoctorAppointmentRequestsLayout() {
 			/>
 			<Stack.Screen
 				name="[id]"
-				options={{ title: "Appointment Request Details", headerShown: true }}
+				options={{ title: "Appointment Details", headerShown: true }}
 			/>
 		</Stack>
 	);

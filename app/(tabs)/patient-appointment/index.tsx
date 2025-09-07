@@ -284,7 +284,7 @@ export default function PatientAppointmentsScreen() {
 					<List.Section style={{ marginTop: 10 }}>
 						<View style={styles.sectionRow}>
 							<List.Subheader
-								style={styles.sectionHeader}
+								style={styles.pageHeader}
 								onPress={() => setShowUpcoming(!showUpcoming)}
 							>
 								Upcoming Appointments
@@ -329,7 +329,7 @@ export default function PatientAppointmentsScreen() {
 					<List.Section>
 						<View style={styles.sectionRow}>
 							<List.Subheader
-								style={styles.sectionHeader}
+								style={styles.pageHeader}
 								onPress={() => setShowPast(!showPast)}
 							>
 								Past Appointments
@@ -418,11 +418,11 @@ const styles = StyleSheet.create({
 		justifyContent: "space-between",
 		paddingHorizontal: 16,
 	},
-	sectionHeader: {
+	pageHeader: {
 		fontWeight: "700",
 		fontSize: 16,
-		// backgroundColor: "transparent",
-		// marginBottom: 8,
+		textAlign: "center",
+		color: "rgba(0, 0, 0, 0.7)",
 	},
 	dateText: {
 		fontSize: 14, // bigger

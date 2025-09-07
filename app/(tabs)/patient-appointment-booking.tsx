@@ -480,12 +480,12 @@ export default function AppointmentBookingScreen() {
 					>
 						<Card.Content>
 							<Text
-								style={{
-									marginBottom: 8,
-									fontWeight: "700",
-									fontSize: 16,
-									textAlign: "center",
-								}}
+								style={[
+									styles.pageHeader,
+									{
+										marginBottom: 8,
+									},
+								]}
 							>
 								Book an appointment
 							</Text>
@@ -581,7 +581,7 @@ export default function AppointmentBookingScreen() {
 												}}
 											>
 												<Text style={{ textAlign: "center" }}>
-													No doctors found from this healthcare provider.
+													No doctors found for this healthcare provider.
 												</Text>
 											</View>
 										}
@@ -890,6 +890,12 @@ export default function AppointmentBookingScreen() {
 }
 
 const styles = StyleSheet.create({
+	pageHeader: {
+		fontWeight: "700",
+		fontSize: 16,
+		textAlign: "center",
+		color: "rgba(0, 0, 0, 0.7)",
+	},
 	modalContainer: {
 		backgroundColor: "white",
 		borderRadius: 8,

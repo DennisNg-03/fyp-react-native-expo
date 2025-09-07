@@ -815,11 +815,11 @@ const styles = StyleSheet.create({
 		marginBottom: 6,
 		color: "#111",
 	},
-	sectionHeader: {
+	pageHeader: {
 		fontWeight: "700",
 		fontSize: 16,
-		marginBottom: 8,
-		backgroundColor: "transparent",
+		textAlign: "center",
+		color: "rgba(0, 0, 0, 0.7)",
 	},
 	emptyContainer: { alignItems: "center", marginVertical: 16 },
 	statusText: {

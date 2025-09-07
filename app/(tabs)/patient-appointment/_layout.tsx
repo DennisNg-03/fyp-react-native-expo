@@ -12,7 +12,7 @@ export default function PatientAppointmentLayout() {
 				headerStyle: {
 					backgroundColor: theme.colors.primaryContainer, // background colour of header
 				},
-				headerTintColor: theme.colors.onPrimaryContainer, // text/icon colour
+				headerTintColor: theme.colors.primary, // text/icon colour
 				headerTitleStyle: {
 					// fontWeight: "bold",
 					fontSize: 18,

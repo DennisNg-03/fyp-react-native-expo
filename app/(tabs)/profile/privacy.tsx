@@ -3,7 +3,7 @@ import { HealthcareProviderDropdown } from "@/components/HealthcareProviderDropd
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
 import { useEffect, useState } from "react";
-import { Alert, ScrollView, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { Divider, List, Switch, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -66,7 +66,6 @@ export default function PrivacySettingsScreen() {
 		setLoading(true);
 
 		try {
-			// Fetch all doctors under selected provider
 			const { data: doctorsData, error: doctorsError } = await supabase
 				.from("doctors")
 				.select(`id, profiles(full_name), provider_id`)
@@ -183,6 +182,7 @@ export default function PrivacySettingsScreen() {
 		if (selectedProvider) {
 			loadDoctorsAccess(selectedProvider);
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedProvider]);
 
 	return (
@@ -196,13 +196,15 @@ export default function PrivacySettingsScreen() {
 					paddingBottom: 50,
 				}}
 			>
-				<View style={{ padding: 16 }}>
-					<Text variant="headlineSmall" style={{ marginBottom: 16 }}>
-						Privacy Settings
-					</Text>
-
+				<View style={{ paddingHorizontal: 16 }}>
 					<List.Section>
-						<List.Subheader>Medical Record Access</List.Subheader>
+						<Text
+							style={[styles.pageHeader, { marginTop: 20, marginBottom: 20 }]}
+						>
+							Select a healthcare provider from the list to grant/revoke access
+							towards your medical records.
+						</Text>
+						{/* <List.Subheader style={styles.pageHeader}>Select a healthcare provider to grant/revoke access towards your medical records</List.Subheader> */}
 
 						{/* Provider Dropdown */}
 						<HealthcareProviderDropdown
@@ -213,21 +215,37 @@ export default function PrivacySettingsScreen() {
 						<Divider style={{ marginVertical: 12 }} />
 
 						{/* Doctor list for selected provider */}
-						{doctorAccessList.map((doc) => (
-							<List.Item
-								key={doc.doctor_id}
-								title={`Dr ${doc.doctor_name}`}
-								description={doc.granted ? "Access granted" : "Access revoked"}
-								right={() => (
-									<Switch
-										value={doc.granted}
-										onValueChange={(value) =>
-											handleToggleAccess(doc.doctor_id, value)
+						{selectedProvider ? (
+							doctorAccessList.length > 0 ? (
+								doctorAccessList.map((doc) => (
+									<List.Item
+										key={doc.doctor_id}
+										title={`Dr ${doc.doctor_name}`}
+										description={
+											doc.granted ? "Access granted" : "Access revoked"
 										}
+										right={() => (
+											<Switch
+												value={doc.granted}
+												onValueChange={(value) =>
+													handleToggleAccess(doc.doctor_id, value)
+												}
+											/>
+										)}
 									/>
-								)}
-							/>
-						))}
+								))
+							) : (
+								<Text
+									style={{
+										textAlign: "center",
+										color: theme.colors.onSurfaceVariant,
+										marginVertical: 16,
+									}}
+								>
+									No doctors found for this healthcare provider.
+								</Text>
+							)
+						) : null}
 					</List.Section>
 				</View>
 			</ScrollView>
@@ -243,3 +261,12 @@ export default function PrivacySettingsScreen() {
 		</SafeAreaView>
 	);
 }
+
+const styles = StyleSheet.create({
+	pageHeader: {
+		fontWeight: "500",
+		fontSize: 16,
+		textAlign: "center",
+		color: "rgba(0, 0, 0, 0.7)",
+	},
+});
