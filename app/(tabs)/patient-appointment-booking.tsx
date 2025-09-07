@@ -406,6 +406,22 @@ export default function AppointmentBookingScreen() {
 				)
 			);
 
+			if (grantDoctorAccess && appointment_id) {
+				await fetch("https://zxyyegizcgbhctjjoido.functions.supabase.co/upsertPatientAccess", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${session?.access_token}`,
+					},
+					body: JSON.stringify({
+						patient_id: userId,
+						doctor_id: selectedDoctor.id,
+						grant: true,
+						appointment_id, // for reference/logging
+					}),
+				});
+			}
+
 			setSelectedSlot(null);
 			setSelectedDate(new Date());
 			refreshFormFields();
@@ -439,6 +455,9 @@ export default function AppointmentBookingScreen() {
 					marginBottom: 10,
 				}}
 			>
+				{booking && (
+					<ActivityIndicator loadingMsg="" overlay={true} size="large" />
+				)}
 				<ScrollView
 					style={{ flex: 1 }}
 					contentContainerStyle={{ paddingBottom: 40, flexGrow: 1 }}
@@ -759,7 +778,7 @@ export default function AppointmentBookingScreen() {
 										/>
 									</View>
 									<Text
-									variant="labelSmall"
+										variant="labelSmall"
 										style={{
 											color: theme.colors.onSurfaceVariant,
 											marginTop: 2,
@@ -847,7 +866,6 @@ export default function AppointmentBookingScreen() {
 											!otherPerson.gender ||
 											!otherPerson.relationship))
 								}
-								loading={booking}
 								style={{ marginTop: 12 }}
 							>
 								Request appointment
