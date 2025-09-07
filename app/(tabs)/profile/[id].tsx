@@ -1,4 +1,5 @@
 import { ActivityIndicator } from "@/components/ActivityIndicator";
+import CustomDatePicker from "@/components/CustomDatePicker";
 import { DoctorDropdown } from "@/components/DoctorDropdown";
 import { GenderDropdown } from "@/components/GenderDropdown";
 import { HealthcareProviderDropdown } from "@/components/HealthcareProviderDropdown";
@@ -6,6 +7,7 @@ import { SpecialityDropdown } from "@/components/SpecialityDropdown";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
 import { DoctorProfile, FlattenedUser, NurseProfile } from "@/types/user";
+import { formatKL } from "@/utils/dateHelpers";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet } from "react-native";
@@ -186,11 +188,20 @@ export default function EditProfileScreen() {
 		console.log("profile:", profile);
 	}, [profile]);
 
+	useEffect(() => {
+		console.log("dob:", dateOfBirth);
+	}, [dateOfBirth]);
+
 	const handleSave = async () => {
 		if (!profile || !session) return;
-		setSaving(true);
+
+		if (!fullName || !phoneNumber) {
+			Alert.alert("Alert", "You must fill in Full Name and Phone Number!");
+			return;
+		}
 
 		try {
+			setSaving(true);
 			const payload: any = {
 				user_id: userId,
 				full_name: fullName,
@@ -253,7 +264,11 @@ export default function EditProfileScreen() {
 			<SafeAreaView
 				style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
 			>
-				<ActivityIndicator loadingMsg="Saving your profile details.." overlay={true} size="large" />
+				<ActivityIndicator
+					loadingMsg="Saving your profile details.."
+					overlay={true}
+					size="large"
+				/>
 			</SafeAreaView>
 		);
 	}
@@ -276,6 +291,7 @@ export default function EditProfileScreen() {
 					label="Full Name"
 					value={fullName}
 					onChangeText={setFullName}
+					placeholder="E.g. John Doe"
 					mode="outlined"
 					autoComplete="off"
 					autoCorrect={false}
@@ -307,6 +323,7 @@ export default function EditProfileScreen() {
 					label="Phone Number"
 					value={phoneNumber}
 					onChangeText={setPhoneNumber}
+					placeholder="E.g. +60123456789"
 					mode="outlined"
 					keyboardType="phone-pad"
 					autoComplete="tel"
@@ -323,17 +340,18 @@ export default function EditProfileScreen() {
 				{/* Patient fields */}
 				{profile?.role === "patient" && (
 					<>
-						<TextInput
+						<CustomDatePicker
 							label="Date of Birth"
-							value={dateOfBirth}
-							onChangeText={setDateOfBirth}
-							mode="outlined"
-							style={styles.input}
+							value={dateOfBirth ? new Date(dateOfBirth) : undefined}
+							onChange={(date) => setDateOfBirth(formatKL(date, "yyyy-MM-dd"))} // If not store in KL timezone, error will occur
+							parent="form"
+							mode="dob"
 						/>
 						<TextInput
 							label="Blood Type"
 							value={bloodType}
 							onChangeText={setBloodType}
+							placeholder="E.g. A+"
 							mode="outlined"
 							style={styles.input}
 							autoComplete="off"
@@ -348,6 +366,7 @@ export default function EditProfileScreen() {
 							label="Allergies"
 							value={allergies}
 							onChangeText={setAllergies}
+							placeholder="E.g. Penicillin, Pollen"
 							mode="outlined"
 							style={styles.input}
 							autoComplete="off"
@@ -364,6 +383,7 @@ export default function EditProfileScreen() {
 							label="Current Medications"
 							value={currentMedications}
 							onChangeText={setCurrentMedications}
+							placeholder="E.g. Metformin 500mg daily"
 							mode="outlined"
 							style={styles.input}
 							autoComplete="off"
@@ -380,6 +400,7 @@ export default function EditProfileScreen() {
 							label="Chronic Conditions"
 							value={chronicConditions}
 							onChangeText={setChronicConditions}
+							placeholder="E.g. Hypertension, Diabetes"
 							mode="outlined"
 							style={styles.input}
 							autoComplete="off"
@@ -396,6 +417,7 @@ export default function EditProfileScreen() {
 							label="Past Surgeries"
 							value={pastSurgeries}
 							onChangeText={setPastSurgeries}
+							placeholder="E.g. Appendectomy 2015"
 							mode="outlined"
 							style={styles.input}
 							autoComplete="off"
@@ -412,6 +434,7 @@ export default function EditProfileScreen() {
 							label="Insurance Info"
 							value={insuranceInfo}
 							onChangeText={setInsuranceInfo}
+							placeholder="E.g. AIA Health Plan 2025"
 							mode="outlined"
 							style={styles.input}
 							autoComplete="off"
@@ -433,6 +456,7 @@ export default function EditProfileScreen() {
 							label="Emergency Contact"
 							value={emergencyContact}
 							onChangeText={setEmergencyContact}
+							placeholder="E.g. +60123456789"
 							mode="outlined"
 							style={styles.input}
 							keyboardType="phone-pad"
@@ -495,11 +519,7 @@ export default function EditProfileScreen() {
 					/>
 				)}
 
-				<Button
-					mode="contained"
-					onPress={handleSave}
-					style={{ marginTop: 16 }}
-				>
+				<Button mode="contained" onPress={handleSave} style={{ marginTop: 16 }}>
 					Save Changes
 				</Button>
 			</ScrollView>
