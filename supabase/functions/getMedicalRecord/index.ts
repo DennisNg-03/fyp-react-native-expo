@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 // eslint-disable-next-line import/no-unresolved
 import { createClient } from "npm:@supabase/supabase-js";
 
@@ -55,7 +56,6 @@ Deno.serve(async (req) => {
 									{ status: 500 }
 								);
 							}
-
 							return data.signedUrl;
 						})
 					);
@@ -109,21 +109,37 @@ Deno.serve(async (req) => {
 				effectiveDoctorId = nurseData.assigned_doctor_id;
 			}
 
-			// Fetch all patient IDs this doctor has access to
+			// Fetch all patient_access rows for this doctor, ordered by created_at desc
 			const { data: accessData, error: accessError } = await supabase
 				.from("patient_access")
-				.select("patient_id")
+				.select("patient_id, grant_status, created_at")
 				.eq("doctor_id", effectiveDoctorId)
-				.is("revoked_at", null);
+				.order("created_at", { ascending: false });
 
 			if (accessError)
 				return new Response("DB error: " + accessError.message, {
 					status: 500,
 				});
 
-			const allowedPatientIds = accessData?.map((r) => r.patient_id) ?? [];
+			// Keep only the latest access per patient
+			const latestAccessMap: Record<string, any> = {};
+			(accessData ?? []).forEach((row: any) => {
+				if (!latestAccessMap[row.patient_id]) {
+					latestAccessMap[row.patient_id] = row;
+				}
+			});
 
-			// Now fetch medical records for these patient IDs
+			// Only patients with grant_status = true
+			const allowedPatientIds = Object.values(latestAccessMap)
+				.filter((row: any) => row.grant_status)
+				.map((row: any) => row.patient_id);
+
+			if (allowedPatientIds.length === 0)
+				return new Response(JSON.stringify({ recordsWithUrls: [] }), {
+					status: 200,
+				});
+
+			// Fetch medical records for these patient IDs
 			const { data: records, error } = await supabase
 				.from("medical_records")
 				.select("*")
@@ -135,15 +151,9 @@ Deno.serve(async (req) => {
 			if (error)
 				return new Response("DB error: " + error.message, { status: 500 });
 
-			if (!records || records.length === 0)
-				return new Response(JSON.stringify({ signedUrls: [] }), {
-					status: 200,
-				});
-				
 			const recordsWithUrls = await Promise.all(
 				records.map(async (record) => {
 					const files: SelectedFile[] = record.file_paths ?? [];
-
 					const signedUrls = await Promise.all(
 						files.map(async (file) => {
 							const { data, error } = await supabase.storage
@@ -173,10 +183,10 @@ Deno.serve(async (req) => {
 			return new Response(JSON.stringify({ recordsWithUrls, hasMore }), {
 				headers: { "Content-Type": "application/json" },
 			});
+
 		} else {
 			return new Response("Invalid role", { status: 400 });
 		}
-	// deno-lint-ignore no-explicit-any
 	} catch (err: any) {
 		console.error("Error in getMedicalRecord Edge Function:", err);
 		return new Response("Error: " + err.message, { status: 500 });

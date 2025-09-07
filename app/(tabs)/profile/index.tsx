@@ -478,8 +478,8 @@ export default function ProfileScreen() {
 							? `Dr ${profile.full_name}`
 							: profile?.role === "nurse"
 							? `${profile.full_name}`
-							// ? `Nurse ${profile.full_name}`
-							: profile?.full_name ?? ""}
+							: // ? `Nurse ${profile.full_name}`
+							  profile?.full_name ?? ""}
 					</Text>
 					<Text variant="bodyMedium">
 						{typeof profile?.role === "string"
@@ -527,15 +527,19 @@ export default function ProfileScreen() {
 					title="Change Password"
 					left={(props) => <List.Icon {...props} icon="lock-reset" />}
 				/>
-				<List.Item
-					title="Notification Preferences"
-					left={(props) => <List.Icon {...props} icon="bell" />}
-				/>
-				<List.Item
-					title="Privacy Settings"
-					left={(props) => <List.Icon {...props} icon="shield-lock" />}
-					onPress={() => router.push(`/profile/privacy`)}
-				/>
+				{role === "patient" && (
+					<>
+						<List.Item
+							title="Notification Preferences"
+							left={(props) => <List.Icon {...props} icon="bell" />}
+						/>
+						<List.Item
+							title="Privacy Settings"
+							left={(props) => <List.Icon {...props} icon="shield-lock" />}
+							onPress={() => router.push(`/profile/privacy`)}
+						/>
+					</>
+				)}
 				<List.Item
 					title="Log out"
 					left={(props) => (

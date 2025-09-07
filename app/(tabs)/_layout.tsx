@@ -90,7 +90,8 @@ export default function TabLayout() {
 							color={color}
 						/>
 					),
-					href: role === "patient" ? "/patient-medical-record" : null,
+					href: "/patient-medical-record",
+					// href: role === "patient" ? "/patient-medical-record" : null,
 				}}
 			/>
 			<Tabs.Screen
