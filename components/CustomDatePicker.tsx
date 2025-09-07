@@ -75,7 +75,7 @@ export default function CustomDatePicker({
 								}
 								mode="date"
 								display="spinner"
-								maximumDate={mode === "past" ? new Date() : undefined}
+								maximumDate={(mode === "past" || mode === "dob") ? new Date() : undefined}
 								minimumDate={mode === "future" ? new Date() : undefined}
 								onChange={(_e, selected) => {
 									if (selected) onChange(selected);

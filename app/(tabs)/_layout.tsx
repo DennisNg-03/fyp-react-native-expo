@@ -145,23 +145,6 @@ export default function TabLayout() {
 				})}
 			/>
 			<Tabs.Screen
-				name="doctor-medical-record"
-				options={{
-					title: "Patient Records",
-					tabBarIcon: ({ color }) => (
-						<MaterialCommunityIcons
-							name="account-group-outline"
-							size={28}
-							color={color}
-						/>
-					),
-					href:
-						role === "doctor" || role === "nurse"
-							? "/doctor-medical-record"
-							: null,
-				}}
-			/>
-			<Tabs.Screen
 				name="profile"
 				options={{
 					title: "My Profile",

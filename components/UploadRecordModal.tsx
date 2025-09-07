@@ -9,6 +9,7 @@ import {
 	SelectedFile,
 	SelectedFileToUpload,
 } from "@/types/medicalRecord";
+import { Patient } from "@/types/user";
 import { parseDateToISO } from "@/utils/dateHelpers";
 import {
 	ALLOWED_IMAGE_TYPES,
@@ -34,12 +35,14 @@ import {
 import { ActivityIndicator } from "./ActivityIndicator";
 import CustomDatePicker from "./CustomDatePicker";
 import { FilePreview } from "./FilePreview";
+import { PatientDropdown } from "./PatientDropdown";
 import { RecordTypeDropdown } from "./RecordTypeDropdown";
 
 interface UploadRecordModalProps {
 	visible: boolean;
 	onClose: () => void;
 	session: Session | null;
+	role: string | null;
 	onRecordSaved: () => void;
 	record?: MedicalRecord | null; // optional
 	mode: "new" | "edit";
@@ -49,6 +52,7 @@ export default function UploadRecordModal({
 	visible,
 	onClose,
 	session,
+	role,
 	onRecordSaved,
 	record,
 	mode,
@@ -58,6 +62,7 @@ export default function UploadRecordModal({
 	const [step, setStep] = useState<"upload" | "confirm" | "prefill">("upload");
 	const [recordId, setRecordId] = useState<string>("");
 	const [recordTitle, setRecordTitle] = useState("");
+	const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 	// const [recordDate, setRecordDate] = useState<Date>(new Date());
 	const [recordType, setRecordType] = useState<string>();
 	const [signedUrls, setSignedUrls] = useState<string[]>([]);
@@ -80,18 +85,32 @@ export default function UploadRecordModal({
 		diagnosis: "E.g. Hypertension, Type 2 Diabetes",
 		procedures: "E.g. Appendectomy, MRI Scan",
 		medications: "E.g. Metformin 500mg, Lisinopril 10mg",
-		report_prepared_by: "E.g. Nurse Jane Doe",
+		record_prepared_by: "E.g. Nurse Jane Doe",
 		notes: "E.g. Patient advised to follow up in 2 weeks",
 		address: "E.g. 123 Jalan Bukit Bintang, Kuala Lumpur",
 		healthcare_provider_address:
 			"E.g. KPJ Damansara Specialist Hospital, Selangor",
 	};
+	console.log("Received role:", role);
 
 	const isDateField = (field: string) => field.toLowerCase().includes("date");
 
 	// useEffect(() => {
 	// 	console.log("ocrData updated:", ocrData);
 	// }, [ocrData]);
+
+	useEffect(() => {
+		console.log("selectedPatient:", selectedPatient);
+	}, [selectedPatient]);
+
+	useEffect(() => {
+		console.log("recordId:", recordId);
+		console.log("record.id:", record?.id);
+	}, [recordId]);
+
+	useEffect(() => {
+		console.log("record:", record);
+	}, [record]);
 
 	useEffect(() => {
 		if (visible) {
@@ -151,7 +170,7 @@ export default function UploadRecordModal({
 				const ext = file.uri.split(".").pop()?.toLowerCase();
 				const fileName =
 					file.fileName ?? file.uri.split("/").pop() ?? "unknown";
-					
+
 				console.log("Camera image file size:", fileName, file.fileSize);
 
 				if (!ext || !ALLOWED_IMAGE_TYPES.includes(ext)) {
@@ -309,10 +328,17 @@ export default function UploadRecordModal({
 	};
 
 	const handleOcr = async () => {
+		console.log("OCR selectedPatient:", selectedPatient);
+
 		if (!session) {
 			console.error("User not authenticated!");
 			return;
 		}
+		if ((role === "doctor" || role === "nurse") && !selectedPatient) {
+			Alert.alert("Alert", "Please select a valid patient!");
+			return;
+		}
+
 		if (!recordTitle || !recordType) {
 			Alert.alert("Alert", "Please fill up all the fields!");
 			return;
@@ -451,8 +477,10 @@ export default function UploadRecordModal({
 						body: JSON.stringify({
 							files: filesToUpload,
 							title: recordTitle,
-							uid: session?.user.id,
+							uid: role === "patient" ? session?.user.id : selectedPatient?.id,
 							record_type: recordType,
+							created_by: session?.user.id,
+							role: role,
 							...processedOcrData,
 						}),
 					}
@@ -478,7 +506,6 @@ export default function UploadRecordModal({
 				onRecordSaved();
 			} else if (mode === "edit") {
 				// Call Edge function to update record
-				// Call Edge Function to upload all images and get signed URLs
 				const res = await fetch(
 					"https://zxyyegizcgbhctjjoido.functions.supabase.co/updateMedicalRecord",
 					{
@@ -544,6 +571,7 @@ export default function UploadRecordModal({
 						(mode === "edit" ? "Confirm Upload" : "Confirm Changes")}
 				</Text>
 
+				{/* Step 1 of Upload */}
 				{step === "upload" && mode === "new" && (
 					<>
 						<ProgressBar
@@ -551,9 +579,17 @@ export default function UploadRecordModal({
 							color={theme.colors.primary}
 							style={styles.progressBar}
 						/>
+
+						{(role === "doctor" || role === "nurse") && (
+							<PatientDropdown
+								doctorId={session?.user.id ?? ""}
+								selectedPatient={selectedPatient}
+								setSelectedPatient={setSelectedPatient}
+							/>
+						)}
 						<TextInput
 							label="Title"
-							placeholder="E.g. Blood Test Results"
+							placeholder="E.g. Laboratory Test Results"
 							mode="outlined"
 							value={recordTitle}
 							onChangeText={setRecordTitle}
@@ -561,6 +597,7 @@ export default function UploadRecordModal({
 							maxLength={80}
 							style={[
 								styles.input,
+								{ marginTop: 10 },
 								// { backgroundColor: theme.colors.onPrimary },
 							]}
 							contentStyle={{
@@ -653,7 +690,7 @@ export default function UploadRecordModal({
 								onPress={handleOcr}
 								style={styles.actionButton}
 							>
-								Next
+								Scan
 							</Button>
 						</View>
 					</>
@@ -667,7 +704,7 @@ export default function UploadRecordModal({
 						/>
 						<TextInput
 							label="Title"
-							placeholder="E.g. Blood Test Results"
+							placeholder="E.g. Laboratory Test Results"
 							mode="outlined"
 							value={recordTitle}
 							onChangeText={setRecordTitle}
@@ -708,11 +745,12 @@ export default function UploadRecordModal({
 								<CustomDatePicker
 									key={field}
 									label={formatLabel(field)}
+									mode="dob"
 									value={ocrData[field] ? new Date(ocrData[field]) : undefined}
 									onChange={(date) =>
 										setOcrData((prev) => ({
 											...prev,
-											[field]: parseDateToISO(date),
+											[field]: date,
 										}))
 									}
 								/>
@@ -741,7 +779,7 @@ export default function UploadRecordModal({
 									}}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 5 : 1}
-									placeholder={placeholders[field] ?? "E.g. Enter details"}
+									placeholder={placeholders[field] ?? "Enter details"}
 								/>
 							)
 						)}
@@ -787,7 +825,7 @@ export default function UploadRecordModal({
 									}}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 5 : 1}
-									placeholder={placeholders[field] ?? "E.g. Enter details"}
+									placeholder={placeholders[field] ?? "Enter details"}
 								/>
 							)
 						)}
@@ -833,7 +871,7 @@ export default function UploadRecordModal({
 									}}
 									multiline={multilineFields.has(field)}
 									numberOfLines={multilineFields.has(field) ? 10 : 1}
-									placeholder={placeholders[field] ?? "E.g. Enter details"}
+									placeholder={placeholders[field] ?? "Enter details"}
 								/>
 							)
 						)}

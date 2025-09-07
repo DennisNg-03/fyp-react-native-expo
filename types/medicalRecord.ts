@@ -29,6 +29,7 @@ export interface BaseMedicalRecord {
   file_paths: SelectedFile[]; // This is only used on frontend display and must be generated on backend, so it will not be in the payload sent to backend
   signed_urls: string[];
   updated_at?: string;
+	created_by?: string;
 }
 
 export interface AdditionalMedicalRecord {
@@ -47,7 +48,7 @@ export interface AdditionalMedicalRecord {
   medications?: string[];
   date_of_admission?: string; // ISO date string
   date_of_discharge?: string; // ISO date string
-  report_prepared_by?: string;
+  record_prepared_by?: string;
 	notes?: string;
 }
 
@@ -78,7 +79,7 @@ export const RecordFields = [
   "medications",
   "date_of_admission",
   "date_of_discharge",
-  "report_prepared_by",
+  "record_prepared_by",
 	"notes",
 ] as const;
 

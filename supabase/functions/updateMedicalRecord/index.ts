@@ -25,9 +25,11 @@ Deno.serve(async (req) => {
 		const { record_id, title, record_type, record_date, ...ocrData } =
 			(await req.json()) as RequestBody;
 		console.log("Parsed request body:", {
+			record_id,
 			title,
 			record_date,
 		});
+		console.log("Received record id:", record_id);
 		console.log("OCR Data:", ocrData);
 
 		if (!record_id) {
@@ -58,11 +60,13 @@ Deno.serve(async (req) => {
 				status: 500,
 			});
 		}
+		console.log("No error upon updates:", updates);
+		console.log("Final data:", data);
 
 		return new Response(JSON.stringify({ data }), {
 			headers: { "Content-Type": "application/json" },
 		});
-	// deno-lint-ignore no-explicit-any
+		// deno-lint-ignore no-explicit-any
 	} catch (err: any) {
 		console.error("Error in Edge Function:", err);
 		return new Response("Error: " + err.message, { status: 500 });

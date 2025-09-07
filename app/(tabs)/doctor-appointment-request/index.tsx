@@ -50,7 +50,7 @@ export default function DoctorAppointmentRequestsScreen() {
 	const [confirmVisible, setConfirmVisible] = useState(false);
 	const [pendingAction, setPendingAction] = useState<string | null>(null);
 	const [pendingPayload, setPendingPayload] = useState<any>(null); // optional: store item/req
-	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
 	const flattenDoctorAppointments = (
 		appointments: any[]

@@ -67,3 +67,10 @@ export type Provider = {
 	address?: string;
 	phone?: string;
 };
+
+export type Patient = {
+	id: string;
+	full_name: string;
+	date_of_birth?: string;
+	last_appointment?: string;
+};

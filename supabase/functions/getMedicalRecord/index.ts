@@ -134,22 +134,58 @@ Deno.serve(async (req) => {
 				.filter((row: any) => row.grant_status)
 				.map((row: any) => row.patient_id);
 
-			if (allowedPatientIds.length === 0)
-				return new Response(JSON.stringify({ recordsWithUrls: [] }), {
-					status: 200,
-				});
+			// Fetch medical records for the patient IDs
+			// const { data: records, error } = await supabase
+			// 	.from("medical_records")
+			// 	.select("*")
+			// 	.in("patient_id", allowedPatientIds)
+			// 	.order("record_date", { ascending: false })
+			// 	.order("updated_at", { ascending: false })
+			// 	.range(offset, offset + limit - 1);
 
-			// Fetch medical records for these patient IDs
-			const { data: records, error } = await supabase
-				.from("medical_records")
-				.select("*")
-				.in("patient_id", allowedPatientIds)
-				.order("record_date", { ascending: false })
-				.order("updated_at", { ascending: false })
-				.range(offset, offset + limit - 1);
+			// if (error)
+			// 	return new Response("DB error: " + error.message, { status: 500 });
 
-			if (error)
-				return new Response("DB error: " + error.message, { status: 500 });
+			// Fetch medical records for this doctor/nurse taking both patient access and created_by into account.
+			// allowedPatientIds = patients who *granted* access (latest grant_status = true)
+			// effectiveDoctorId = the doctor id (or assigned doctor id for nurse)
+			let records: any[] = [];
+
+			// If there are any allowed patient IDs, fetch records where patient_id is in that set
+			// OR where created_by equals the effectiveDoctorId (so doctor can always see records they created).
+			if (allowedPatientIds.length > 0) {
+				// Build a PostgREST .or filter: patient_id.in(...) OR created_by.eq.<effectiveDoctorId>
+				// join IDs without spaces (e.g. uuid1,uuid2)
+				const idsList = allowedPatientIds.join(",");
+				const orFilter = `patient_id.in.(${idsList}),created_by.eq.${effectiveDoctorId}`;
+
+				const { data: dataRecords, error: fetchErr } = await supabase
+					.from("medical_records")
+					.select("*")
+					.or(orFilter)
+					.order("record_date", { ascending: false })
+					.order("updated_at", { ascending: false })
+					.range(offset, offset + limit - 1);
+
+				if (fetchErr)
+					return new Response("DB error: " + fetchErr.message, { status: 500 });
+
+				records = dataRecords ?? [];
+			} else {
+				// No patients have explicitly granted access — fall back to records this doctor created.
+				const { data: dataRecords, error: fetchErr } = await supabase
+					.from("medical_records")
+					.select("*")
+					.eq("created_by", effectiveDoctorId)
+					.order("record_date", { ascending: false })
+					.order("updated_at", { ascending: false })
+					.range(offset, offset + limit - 1);
+
+				if (fetchErr)
+					return new Response("DB error: " + fetchErr.message, { status: 500 });
+
+				records = dataRecords ?? [];
+			}
 
 			const recordsWithUrls = await Promise.all(
 				records.map(async (record) => {
@@ -183,7 +219,6 @@ Deno.serve(async (req) => {
 			return new Response(JSON.stringify({ recordsWithUrls, hasMore }), {
 				headers: { "Content-Type": "application/json" },
 			});
-
 		} else {
 			return new Response("Invalid role", { status: 400 });
 		}

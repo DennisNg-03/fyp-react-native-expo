@@ -378,6 +378,12 @@ export default function PatientMedicalRecordScreen() {
 							</Text>
 						</Text>
 
+						<Text variant="bodySmall" style={{ textAlign: "left" }}>
+							Created by:{" "}
+							<Text variant="bodySmall">
+								{item.created_by ?? "Undefined"}
+							</Text>
+						</Text>
 						<Text variant="bodySmall" style={{ textAlign: "right" }}>
 							Last updated:{" "}
 							<Text variant="bodySmall">
@@ -496,25 +502,11 @@ export default function PatientMedicalRecordScreen() {
 						visible={uploadModalVisible}
 						onClose={() => setUploadModalVisible(false)}
 						session={session}
-						// onRecordSaved={(record) => setRecords((prev) => [record, ...prev])}
+						role={role}
 						onRecordSaved={() => {
-							// if (modalMode === "edit") {
-							// 	setRecords((prev) =>
-							// 		prev.map((r) => (r.id === record.id ? record : r))
-							// 	);
-							// }
 							handleRefresh();
 							setUploadModalVisible(false);
 						}}
-						// onRecordSaved={(record) => {
-						// 	if (modalMode === "edit") {
-						// 		setRecords((prev) =>
-						// 			prev.map((r) => (r.id === record.id ? record : r))
-						// 		);
-						// 	}
-						// 	handleRefresh();
-						// 	setUploadModalVisible(false);
-						// }}
 						record={selectedRecord}
 						mode={modalMode}
 					/>

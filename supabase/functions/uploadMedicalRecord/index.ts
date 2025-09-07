@@ -14,6 +14,8 @@ type RequestBody = {
 	title: string;
 	uid: string;
 	record_type: string;
+	created_by: string;
+	role: string;
 	record_date: string; // Will be destructured from ocrData
 } & Partial<Record<AdditionalMedicalRecordField, string>>;
 
@@ -25,8 +27,24 @@ Deno.serve(async (req) => {
 
 	try {
 		// record_date is destructured from ...ocrData on frontend, the rest of the fields will be stored under ocrData
-		const { files, title, uid, record_type, record_date, ...ocrData } = (await req.json()) as RequestBody;
-		console.log("Parsed request body:", { files, title, record_date, uid });
+		const {
+			files,
+			title,
+			uid,
+			record_type,
+			created_by,
+			role,
+			record_date,
+			...ocrData
+		} = (await req.json()) as RequestBody;
+		console.log("Parsed request body:", {
+			files,
+			title,
+			uid,
+			created_by,
+			role,
+			record_date,
+		});
 		console.log("OCR Data:", ocrData);
 
 		if (!uid) {
@@ -81,27 +99,27 @@ Deno.serve(async (req) => {
 				name: name,
 				type: type,
 			});
+		}
 
-			// Create Signed URL for the Supabase Storage
-			// const { data: signedData, error: signedUrlError } = await supabase.storage
-			// 	.from("medical-records")
-			// 	.createSignedUrl(filePath, 60 * 60);
+		let effectiveCreatedBy = created_by;
 
-			// if (!signedData?.signedUrl) {
-			// 	console.error("Signed URL error:", signedUrlError);
-			// 	return new Response(
-			// 		JSON.stringify({
-			// 			message: "Failed to get signed URL",
-			// 			signedUrlError,
-			// 			filePath,
-			// 		}),
-			// 		{ status: 500, headers: { "Content-Type": "application/json" } }
-			// 	);
-			// }
+		// If nurse, map to their supervising doctor (This id will be used as the creator ID)
+		if (role === "nurse") {
+			const { data: nurseData, error: nurseError } = await supabase
+				.from("nurses")
+				.select("assigned_doctor_id")
+				.eq("id", created_by)
+				.single();
 
-			// console.log("Uploaded and signed URL generated:");
-			// // console.log("Uploaded and signed URL generated:", signedData.signedUrl);
-			// uploadedUrls.push(signedData.signedUrl);
+			if (nurseError) {
+				return new Response("DB error: " + nurseError.message, { status: 500 });
+			}
+
+			if (!nurseData?.assigned_doctor_id) {
+				return new Response("No assigned doctor", { status: 403 });
+			}
+
+			effectiveCreatedBy = nurseData.assigned_doctor_id;
 		}
 
 		const { data: insertedRecords, error: insertError } = await supabase
@@ -112,6 +130,7 @@ Deno.serve(async (req) => {
 					record_date,
 					record_type,
 					patient_id: uid,
+					created_by: effectiveCreatedBy,
 					file_paths: filePaths,
 					...ocrData,
 				},

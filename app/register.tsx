@@ -185,7 +185,7 @@ export default function RegisterScreen() {
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
 			<SafeAreaView
-				style={{ flex: 1, backgroundColor: theme.colors.tertiary }}
+				style={{ flex: 1, backgroundColor: theme.colors.primaryContainer  }}
 			>
 				<KeyboardAvoidingView
 					style={styles.container}
@@ -209,7 +209,7 @@ export default function RegisterScreen() {
 										activeOpacity={0.8}
 										style={{ width: 300 }}
 									>
-										<Card style={styles.roleCard} elevation={2}>
+										<Card style={[styles.roleCard, { backgroundColor: theme.colors.tertiary }]} elevation={2}>
 											<Card.Content style={styles.roleCardContent}>
 												<Avatar.Icon
 													size={48}
