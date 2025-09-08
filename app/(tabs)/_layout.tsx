@@ -29,6 +29,7 @@ export default function TabLayout() {
 					default: {},
 				}),
 				tabBarHideOnKeyboard: true,
+				animation: "fade",
 			}}
 		>
 			<Tabs.Screen
@@ -107,7 +108,7 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="doctor-appointment-request"
 				options={{
-					title: "Appointment Requests",
+					title: "Requests",
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons
 							name="inbox-arrow-down-outline"
@@ -134,7 +135,7 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="medical-record"
 				options={{
-					title: role === "patient" ? "My Records" : "Patient Records",
+					title: role === "patient" ? "My Records" : "Records",
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons
 							name="clipboard-text-outline"
