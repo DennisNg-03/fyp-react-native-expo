@@ -99,7 +99,7 @@ export default function EditProfileScreen() {
 					const { data, error } = await supabase
 						.from("patients")
 						.select(
-							"date_of_birth, insurance_info, medical_history, blood_type, allergies, current_medications, chronic_conditions, past_surgeries, emergency_contact"
+							"date_of_birth, blood_type, allergies, current_medications, chronic_conditions, past_surgeries, emergency_contact"
 						)
 						.eq("id", userId)
 						.maybeSingle();
@@ -159,8 +159,8 @@ export default function EditProfileScreen() {
 					setCurrentMedications(patientData.current_medications);
 					setChronicConditions(patientData.chronic_conditions);
 					setPastSurgeries(patientData.past_surgeries);
-					setInsuranceInfo(patientData.insurance_info);
-					setMedicalHistory(patientData.medical_history);
+					// setInsuranceInfo(patientData.insurance_info);
+					// setMedicalHistory(patientData.medical_history);
 					setEmergencyContact(patientData.emergency_contact);
 				}
 
@@ -220,8 +220,8 @@ export default function EditProfileScreen() {
 				payload.current_medications = currentMedications;
 				payload.chronic_conditions = chronicConditions;
 				payload.past_surgeries = pastSurgeries;
-				payload.insurance_info = insuranceInfo;
-				payload.medical_history = medicalHistory;
+				// payload.insurance_info = insuranceInfo;
+				// payload.medical_history = medicalHistory;
 				payload.emergency_contact = emergencyContact;
 			} else if (role === "doctor") {
 				payload.speciality = speciality;
@@ -427,7 +427,7 @@ export default function EditProfileScreen() {
 							multiline={true}
 							numberOfLines={3}
 						/>
-						<TextInput
+						{/* <TextInput
 							label="Insurance Info"
 							value={insuranceInfo}
 							onChangeText={setInsuranceInfo}
@@ -441,7 +441,7 @@ export default function EditProfileScreen() {
 							contentStyle={{
 								textAlign: undefined, // To prevent ellipsis from not working
 							}}
-						/>
+						/> */}
 						{/* <TextInput
 							label="Medical History"
 							value={medicalHistory}

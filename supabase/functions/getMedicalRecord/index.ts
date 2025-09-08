@@ -25,7 +25,12 @@ Deno.serve(async (req) => {
 		if (role === "patient") {
 			const { data: records, error } = await supabase
 				.from("medical_records")
-				.select("*")
+				.select(
+					`
+						*,
+						created_by_profile:profiles(full_name)
+					`
+				)
 				.eq("patient_id", uid)
 				.order("record_date", { ascending: false })
 				.order("updated_at", { ascending: false })
@@ -60,17 +65,13 @@ Deno.serve(async (req) => {
 						})
 					);
 
-					const { id, title, record_type, patient_id, file_paths, ...ocrData } =
-						record;
+					const { created_by_profile, ...rest } = record;
 
 					return {
-						id,
-						title,
-						record_type,
-						patient_id,
-						file_paths: file_paths as SelectedFile[],
+						...rest,
+						file_paths: rest.file_paths as SelectedFile[],
 						signed_urls: signedUrls,
-						...ocrData,
+						created_by_full_name: created_by_profile?.full_name ?? null,
 					};
 				})
 			);
@@ -134,21 +135,6 @@ Deno.serve(async (req) => {
 				.filter((row: any) => row.grant_status)
 				.map((row: any) => row.patient_id);
 
-			// Fetch medical records for the patient IDs
-			// const { data: records, error } = await supabase
-			// 	.from("medical_records")
-			// 	.select("*")
-			// 	.in("patient_id", allowedPatientIds)
-			// 	.order("record_date", { ascending: false })
-			// 	.order("updated_at", { ascending: false })
-			// 	.range(offset, offset + limit - 1);
-
-			// if (error)
-			// 	return new Response("DB error: " + error.message, { status: 500 });
-
-			// Fetch medical records for this doctor/nurse taking both patient access and created_by into account.
-			// allowedPatientIds = patients who *granted* access (latest grant_status = true)
-			// effectiveDoctorId = the doctor id (or assigned doctor id for nurse)
 			let records: any[] = [];
 
 			// If there are any allowed patient IDs, fetch records where patient_id is in that set
@@ -161,7 +147,12 @@ Deno.serve(async (req) => {
 
 				const { data: dataRecords, error: fetchErr } = await supabase
 					.from("medical_records")
-					.select("*")
+					.select(
+						`
+						*,
+						created_by_profile:profiles(full_name)
+					`
+					)
 					.or(orFilter)
 					.order("record_date", { ascending: false })
 					.order("updated_at", { ascending: false })
@@ -169,13 +160,19 @@ Deno.serve(async (req) => {
 
 				if (fetchErr)
 					return new Response("DB error: " + fetchErr.message, { status: 500 });
+				
 
 				records = dataRecords ?? [];
 			} else {
-				// No patients have explicitly granted access — fall back to records this doctor created.
+				// This block means no patients have explicitly granted access, fall back to fetch only records created by this doctor.
 				const { data: dataRecords, error: fetchErr } = await supabase
 					.from("medical_records")
-					.select("*")
+					.select(
+						`
+						*,
+						created_by_profile:profiles(full_name)
+					`
+					)
 					.eq("created_by", effectiveDoctorId)
 					.order("record_date", { ascending: false })
 					.order("updated_at", { ascending: false })
@@ -200,16 +197,13 @@ Deno.serve(async (req) => {
 						})
 					);
 
-					const { id, title, record_type, patient_id, file_paths, ...ocrData } =
-						record;
+					const { created_by_profile, ...rest } = record;
+
 					return {
-						id,
-						title,
-						record_type,
-						patient_id,
-						file_paths: file_paths as SelectedFile[],
+						...rest,
+						file_paths: rest.file_paths as SelectedFile[],
 						signed_urls: signedUrls,
-						...ocrData,
+						created_by_full_name: created_by_profile?.full_name ?? null,
 					};
 				})
 			);

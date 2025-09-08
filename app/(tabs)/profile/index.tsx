@@ -76,7 +76,7 @@ export default function ProfileScreen() {
 				const { data: patientData, error: patientError } = await supabase
 					.from("patients")
 					.select(
-						"date_of_birth, insurance_info, medical_history, blood_type, allergies, current_medications, chronic_conditions, past_surgeries, emergency_contact"
+						"date_of_birth, blood_type, allergies, current_medications, chronic_conditions, past_surgeries, emergency_contact"
 					)
 					.eq("id", userId)
 					.maybeSingle();
@@ -363,7 +363,7 @@ export default function ProfileScreen() {
 						<List.Item
 							title="Date of Birth"
 							description={
-								typeof profile.date_of_birth === "string"
+								typeof profile.date_of_birth === "string" && profile.date_of_birth !== ""
 									? profile.date_of_birth
 									: "Not provided"
 							}
@@ -372,7 +372,7 @@ export default function ProfileScreen() {
 						<List.Item
 							title="Blood Type"
 							description={
-								typeof profile.blood_type === "string"
+								typeof profile.blood_type === "string" && profile.blood_type !== ""
 									? profile.blood_type
 									: "Not provided"
 							}
@@ -381,7 +381,7 @@ export default function ProfileScreen() {
 						<List.Item
 							title="Allergies"
 							description={
-								typeof profile.allergies === "string"
+								typeof profile.allergies === "string" && profile.allergies !== ""
 									? profile.allergies
 									: "Not provided"
 							}
@@ -390,7 +390,7 @@ export default function ProfileScreen() {
 						<List.Item
 							title="Current Medications"
 							description={
-								typeof profile.current_medications === "string"
+								typeof profile.current_medications === "string" && profile.current_medications !== ""
 									? profile.current_medications
 									: "Not provided"
 							}
@@ -399,7 +399,7 @@ export default function ProfileScreen() {
 						<List.Item
 							title="Chronic Conditions"
 							description={
-								typeof profile.chronic_conditions === "string"
+								typeof profile.chronic_conditions === "string" && profile.chronic_conditions !== ""
 									? profile.chronic_conditions
 									: "Not provided"
 							}
@@ -408,24 +408,24 @@ export default function ProfileScreen() {
 						<List.Item
 							title="Past Surgeries"
 							description={
-								typeof profile.past_surgeries === "string"
+								typeof profile.past_surgeries === "string" && profile.past_surgeries !== ""
 									? profile.past_surgeries
 									: "Not provided"
 							}
 							left={(props) => <List.Icon {...props} icon="hospital" />}
 						/>
-						<List.Item
+						{/* <List.Item
 							title="Insurance Info"
 							description={
-								typeof profile.insurance_info === "string"
+								typeof profile.insurance_info === "string" && profile.insurance_info !== ""
 									? profile.insurance_info
 									: "Not provided"
 							}
 							left={(props) => (
 								<List.Icon {...props} icon="card-account-details" />
 							)}
-						/>
-						<List.Item
+						/> */}
+						{/* <List.Item
 							title="Medical History"
 							description={
 								typeof profile.medical_history === "string"
@@ -433,7 +433,7 @@ export default function ProfileScreen() {
 									: "Not provided"
 							}
 							left={(props) => <List.Icon {...props} icon="history" />}
-						/>
+						/> */}
 						{/* Emergency info */}
 						<List.Item
 							title="Emergency Contact"
@@ -442,7 +442,7 @@ export default function ProfileScreen() {
 									? profile.emergency_contact
 									: "Not provided"
 							}
-							left={(props) => <List.Icon {...props} icon="phone" />}
+							left={(props) => <List.Icon {...props} icon="phone-alert" />}
 						/>
 					</>
 				);

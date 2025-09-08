@@ -2,7 +2,7 @@ import CustomDatePicker from "@/components/CustomDatePicker";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import UploadRecordModal from "@/components/UploadRecordModal";
 import { useAuth } from "@/providers/AuthProvider";
-import { MedicalRecord } from "@/types/medicalRecord";
+import { MedicalRecord, SelectedFile } from "@/types/medicalRecord";
 import { formatLabel } from "@/utils/labelHelpers";
 import { useEffect, useState } from "react";
 import {
@@ -54,11 +54,6 @@ export default function PatientMedicalRecordScreen() {
 	const [dialogVisible, setDialogVisible] = useState(false);
 	const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
 
-	const [sortMenuVisible, setSortMenuVisible] = useState(false);
-	const [sortField, setSortField] = useState<"date" | "title" | "provider">("date");
-	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-	const [filterModalVisible, setFilterModalVisible] = useState(false);
-
 	const RECORDS_PER_PAGE = 4; // Currently only set this to 4 can prevent duplicated children issue
 
 	useEffect(() => {
@@ -67,16 +62,29 @@ export default function PatientMedicalRecordScreen() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [userId]);
 
+	// useEffect(() => {
+	// 	records.map((record) => {
+	// 		console.log("Use Effect Record ID:", record.id);
+	// 		console.log("Use Effect Record Title:", record.title);
+	// 		// console.log("Use Effect Record Type:", record.record_type);
+	// 		// console.log("Use Effect Record SignedUrl:", record.signed_urls);
+	// 	});
+	// }, [records]);
+
+	// useEffect(() => {
+	// 	filteredRecords.map((record) => {
+	// 		console.log("Use Effect Filtered Record ID:", record.id);
+	// 		console.log("Use Effect Filtered Type:", record.record_type);
+	// 		// console.log("Use Effect Filtered Date:", record.record_date);
+	// 		// console.log("Use Effect Filtered SignedUrl:", record.signed_urls);
+	// 	});
+	// }, [filteredRecords]);
+
 	// This useEffect is for triggering the search based on default fields for the first time when record is first fetched (Don't change)
 	useEffect(() => {
-		applyFiltersAndSorting();
+		handleSearch();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [records]);
-
-	useEffect(() => {
-		applyFiltersAndSorting();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [searchQuery, fromDate, toDate, sortField, sortOrder]);
 
 	const fetchRecords = async (pageNumber = 1, ignoreHasMore = false) => {
 		if (!userId || (!hasMore && !ignoreHasMore)) return;
@@ -127,13 +135,12 @@ export default function PatientMedicalRecordScreen() {
 		setLoading(true);
 		setHasMore(true);
 		await fetchRecords(1, true); // force refresh, replace data
-		applyFiltersAndSorting();
+		handleSearch();
 		setLoading(false);
 	};
 
-	const applyFiltersAndSorting = () => {
+	const handleSearch = () => {
 		let filtered = records;
-
 		if (fromDate && toDate && fromDate > toDate) {
 			Alert.alert(
 				"Invalid date range",
@@ -169,47 +176,33 @@ export default function PatientMedicalRecordScreen() {
 				return d;
 			};
 
+			// console.log("Filtering by date range...");
+			// console.log("From Date (raw):", fromDate);
+			// console.log("To Date (raw):", toDate);
+			// console.log(
+			// 	"From Date (stripped):",
+			// 	fromDate ? stripTime(fromDate) : undefined
+			// );
+			// console.log(
+			// 	"To Date (stripped):",
+			// 	toDate ? stripTime(toDate) : undefined
+			// );
+
 			filtered = filtered.filter((record) => {
 				if (!record.record_date) return false;
 
 				const recordDate = stripTime(new Date(record.record_date));
+				// console.log("----");
+				// console.log("Record raw:", record.record_date);
+				// console.log("Record stripped:", recordDate);
 
 				if (fromDate && recordDate < stripTime(fromDate)) return false;
 				if (toDate && recordDate > stripTime(toDate)) return false;
+				console.log("Search found Record ID:", record.id);
 
 				return true;
 			});
 		}
-
-		// Sorting
-		filtered = filtered.slice(); // create a copy before sorting
-		filtered.sort((a, b) => {
-			let aValue: any;
-			let bValue: any;
-
-			switch (sortField) {
-				case "date":
-					aValue = a.record_date ? new Date(a.record_date).getTime() : 0;
-					bValue = b.record_date ? new Date(b.record_date).getTime() : 0;
-					break;
-				case "title":
-					aValue = a.title.toLowerCase();
-					bValue = b.title.toLowerCase();
-					break;
-				case "provider":
-					aValue = (a.healthcare_provider_name || "").toLowerCase();
-					bValue = (b.healthcare_provider_name || "").toLowerCase();
-					break;
-				default:
-					aValue = 0;
-					bValue = 0;
-			}
-
-			if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-			if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-			return 0;
-		});
-
 		setFilteredRecords(filtered);
 	};
 
@@ -261,6 +254,15 @@ export default function PatientMedicalRecordScreen() {
 
 	const keyExtractor = (item: MedicalRecord) => item.id;
 	const renderRecord = ({ item }: { item: MedicalRecord }) => {
+		const imageIndex = item.file_paths?.findIndex(
+			(f): f is SelectedFile =>
+				typeof f !== "string" && f.type.includes("image")
+		);
+		const imageUrl =
+			imageIndex !== undefined && imageIndex >= 0
+				? item.signed_urls?.[imageIndex] ?? ""
+				: "";
+
 		return (
 			<Card
 				key={item.id}
@@ -270,7 +272,7 @@ export default function PatientMedicalRecordScreen() {
 			>
 				<Card.Title
 					title={item.title}
-					titleStyle={{ fontWeight: "600" }}
+					titleStyle={{ fontWeight: 600 }}
 					subtitle={
 						item.record_date
 							? `${item.record_date}${
@@ -298,50 +300,99 @@ export default function PatientMedicalRecordScreen() {
 							<Menu.Item
 								onPress={() => {
 									handleCardPress(item);
-									setOpenMenuId(null);
+									setOpenMenuId(null); // To dismiss the menu after clicking
 								}}
 								leadingIcon="pencil"
 								title="Edit"
+								containerStyle={{ paddingHorizontal: 5 }}
 							/>
 							<Menu.Item
 								onPress={() => {
 									setSelectedRecordId(item.id);
 									setDialogVisible(true);
-									setOpenMenuId(null);
+									setOpenMenuId(null); // To dismiss the menu after clicking
 								}}
 								leadingIcon="delete"
 								title="Delete"
+								containerStyle={{ paddingHorizontal: 5 }}
 							/>
 						</Menu>
 					)}
 				/>
+				<Card.Content>
+					<View style={{ width: "100%", height: 150, marginBottom: 10 }}>
+						{/* {imageLoading && (
+							<ActivityIndicator size="small" loadingMsg="" overlay={false} />
+						)}
+						<Image
+							source={{ uri: imageUrl }}
+							style={{
+								width: "100%",
+								height: "100%",
+								borderRadius: 8,
+								position: "absolute",
+							}}
+							onLoadStart={() => setImageLoading(true)}
+							onLoadEnd={() => setImageLoading(false)}
+							onError={() => setImageLoading(false)}
+							resizeMethod="resize" 
+						/> */}
 
-				<Card.Content style={{ gap: 6, marginTop: 4 }}>
-					<Text variant="bodyMedium">
-						Patient:{" "}
-						<Text style={{ fontWeight: "500" }}>
-							{item.patient_name || "—"}
+						{/* Expo-image */}
+						{/* {imageLoading && (
+							<ActivityIndicator size="small" loadingMsg="" overlay={false} />
+						)}
+						<Image
+							source={{ uri: imageUrl }}
+							style={{
+								width: "100%",
+								height: "100%",
+								borderRadius: 8,
+								position: "absolute",
+							}}
+							contentFit="cover"
+							// placeholder={require('../assets/placeholder.png')} // optional
+							cachePolicy="memory-disk"
+							onLoadStart={() => setImageLoading(true)}
+							onLoadEnd={() => setImageLoading(false)}
+							onError={() => setImageLoading(false)}
+						/> */}
+					</View>
+
+					{/* Always show all fields */}
+					<View style={{ gap: 6 }}>
+						<Text variant="bodyMedium">
+							Patient:{" "}
+							<Text variant="bodyMedium">{item.patient_name || "—"}</Text>
 						</Text>
-					</Text>
-					<Text variant="bodyMedium">
-						Doctor:{" "}
-						<Text style={{ fontWeight: "500" }}>{item.doctor_name || "—"}</Text>
-					</Text>
-					<Text variant="bodyMedium">
-						Provider:{" "}
-						<Text style={{ fontWeight: "500" }}>
-							{item.healthcare_provider_name || "—"}
+
+						<Text variant="bodyMedium">
+							Doctor:{" "}
+							<Text variant="bodyMedium">{item.doctor_name || "—"}</Text>
 						</Text>
-					</Text>
-					<Text variant="bodySmall">
-						Created by: <Text>{item.created_by_full_name || "—"}</Text>
-					</Text>
-					<Text variant="bodySmall">
-						Last updated:{" "}
-						{item.updated_at
-							? new Date(item.updated_at).toLocaleDateString()
-							: "—"}
-					</Text>
+
+						<Text variant="bodyMedium">
+							Provider:{" "}
+							<Text variant="bodyMedium">
+								{item.healthcare_provider_name || "—"}
+							</Text>
+						</Text>
+
+						<Text variant="bodySmall" style={{ textAlign: "left" }}>
+							Created by:{" "}
+							<Text variant="bodySmall">
+								{item.created_by ?? "Undefined"}
+							</Text>
+						</Text>
+						<Text variant="bodySmall" style={{ textAlign: "right" }}>
+							Last updated:{" "}
+							<Text variant="bodySmall">
+								{item.updated_at
+									? new Date(item.updated_at).toLocaleDateString()
+									: "—"}
+							</Text>
+						</Text>
+					</View>
 				</Card.Content>
 			</Card>
 		);
@@ -349,7 +400,9 @@ export default function PatientMedicalRecordScreen() {
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-			<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.tertiary }}>
+			<SafeAreaView
+				style={{ flex: 1, backgroundColor: theme.colors.tertiary }}
+			>
 				<FlatList
 					contentContainerStyle={{ paddingBottom: 50, paddingHorizontal: 16 }}
 					data={filteredRecords}
@@ -357,71 +410,56 @@ export default function PatientMedicalRecordScreen() {
 					refreshing={loading}
 					onRefresh={handleRefresh}
 					renderItem={renderRecord}
+					// initialNumToRender={5} // This seems not affecting
 					maxToRenderPerBatch={6}
 					ListHeaderComponent={
 						<>
-							<View style={styles.filterBar}>
-								<Searchbar
-									placeholder="Search records..."
-									value={searchQuery}
-									onChangeText={setSearchQuery}
-									style={styles.searchBar}
-									inputStyle={{ fontSize: 14, paddingVertical: 0 }}
-									autoComplete="off"
-									autoCorrect={false}
-									spellCheck={false}
-								/>
-								<Menu
-									visible={sortMenuVisible}
-									onDismiss={() => setSortMenuVisible(false)}
-									anchor={
-										<Button
-											mode="outlined"
-											onPress={() => setSortMenuVisible(true)}
-										>
-											Sort: {sortField.charAt(0).toUpperCase() + sortField.slice(1)} ({sortOrder})
-										</Button>
-									}
-								>
-									<Menu.Item
-										onPress={() => {
-											setSortField("date");
-											setSortMenuVisible(false);
+							<Card style={styles.searchForm} elevation={1}>
+								<Card.Content>
+									<Searchbar
+										placeholder="Search records..."
+										value={searchQuery}
+										onChangeText={setSearchQuery}
+										style={{
+											marginBottom: 15,
+											backgroundColor: theme.colors.onPrimary,
+											color: theme.colors.primary,
+											borderRadius: 8,
+											borderColor: theme.colors.primary,
 										}}
-										title="Date"
+										inputStyle={{ fontSize: 14, padding: 0, color: "black" }}
+										elevation={2}
+										autoComplete="off"
+										autoCorrect={false}
+										spellCheck={false}
 									/>
-									<Menu.Item
-										onPress={() => {
-											setSortField("title");
-											setSortMenuVisible(false);
-										}}
-										title="Title"
+									<CustomDatePicker
+										label="From"
+										value={fromDate}
+										onChange={setFromDate}
+										parent="searchForm"
 									/>
-									<Menu.Item
-										onPress={() => {
-											setSortField("provider");
-											setSortMenuVisible(false);
-										}}
-										title="Provider"
+
+									<CustomDatePicker
+										label="To"
+										value={toDate}
+										onChange={setToDate}
+										parent="searchForm"
 									/>
-									<Menu.Item
-										onPress={() => {
-											setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-											setSortMenuVisible(false);
-										}}
-										title={`Order: ${sortOrder === "asc" ? "Ascending" : "Descending"}`}
-									/>
-								</Menu>
-								<Button
-									mode="outlined"
-									onPress={() => setFilterModalVisible(true)}
-								>
-									Filters
-								</Button>
-							</View>
+
+									<Button
+										mode="contained"
+										onPress={handleSearch}
+										style={styles.searchButton}
+									>
+										Search
+									</Button>
+								</Card.Content>
+							</Card>
 							<Button
 								mode="elevated"
 								icon="plus"
+								// icon="upload"
 								onPress={handleAddRecord}
 								style={styles.uploadButton}
 							>
@@ -436,6 +474,7 @@ export default function PatientMedicalRecordScreen() {
 						}
 					}}
 					onEndReachedThreshold={0}
+					// ListFooterComponent={loading ? <ActivityIndicator /> : null}
 					ListEmptyComponent={
 						!loading ? (
 							<View style={styles.center}>
@@ -456,7 +495,7 @@ export default function PatientMedicalRecordScreen() {
 					onCancel={() => setDialogVisible(false)}
 					onConfirm={handleDelete}
 				/>
-
+				
 				{/* Popup Modal for Uploading Medical Records */}
 				<Portal>
 					<UploadRecordModal
@@ -471,49 +510,6 @@ export default function PatientMedicalRecordScreen() {
 						record={selectedRecord}
 						mode={modalMode}
 					/>
-				</Portal>
-
-				{/* Inline Filter Modal */}
-				<Portal>
-					{filterModalVisible && (
-						<View style={styles.modalBackdrop}>
-							<Card style={styles.filterModalCard}>
-								<Card.Title title="Filter by Date Range" />
-								<Card.Content>
-									<CustomDatePicker
-										label="From"
-										value={fromDate}
-										onChange={setFromDate}
-										parent="filterModal"
-									/>
-									<CustomDatePicker
-										label="To"
-										value={toDate}
-										onChange={setToDate}
-										parent="filterModal"
-									/>
-								</Card.Content>
-								<Card.Actions style={{ justifyContent: "flex-end" }}>
-									<Button
-										onPress={() => {
-											setFilterModalVisible(false);
-										}}
-									>
-										Cancel
-									</Button>
-									<Button
-										mode="contained"
-										onPress={() => {
-											applyFiltersAndSorting();
-											setFilterModalVisible(false);
-										}}
-									>
-										Apply
-									</Button>
-								</Card.Actions>
-							</Card>
-						</View>
-					)}
 				</Portal>
 			</SafeAreaView>
 		</TouchableWithoutFeedback>
@@ -530,33 +526,17 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		marginTop: 40,
 	},
-	filterBar: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 12,
+	searchForm: {
+		gap: 20,
 		marginBottom: 20,
+		borderRadius: 10,
 	},
-	searchBar: {
-		flex: 1,
-		backgroundColor: "white",
-		height: 40,
-		borderRadius: 8,
+	searchButton: {
+		marginVertical: 10,
 	},
 	uploadButton: {
 		alignSelf: "flex-end",
 		marginBottom: 20,
-	},
-	modalBackdrop: {
-		flex: 1,
-		backgroundColor: "rgba(0,0,0,0.3)",
-		justifyContent: "center",
-		alignItems: "center",
-		paddingHorizontal: 20,
-	},
-	filterModalCard: {
-		width: "100%",
-		maxWidth: 360,
-		borderRadius: 10,
 	},
 	loadingOverlay: {
 		...StyleSheet.absoluteFillObject,

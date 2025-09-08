@@ -13,8 +13,8 @@ export type PatientProfile = {
 	gender: string;
 	avatar_url?: string;
 	date_of_birth?: string;
-	insurance_info?: string;
-	medical_history?: string;
+	// insurance_info?: string;
+	// medical_history?: string;
 	blood_type?: string;
 	allergies?: string;
 	current_medications?: string;

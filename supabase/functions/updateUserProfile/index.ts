@@ -27,8 +27,8 @@ Deno.serve(async (req) => {
 			current_medications,
 			chronic_conditions,
 			past_surgeries,
-			insurance_info,
-			medical_history,
+			// insurance_info,
+			// medical_history,
 			emergency_contact,
 			// doctor/nurse fields
 			speciality,
@@ -57,8 +57,7 @@ Deno.serve(async (req) => {
 					current_medications,
 					chronic_conditions,
 					past_surgeries,
-					insurance_info,
-					medical_history,
+					// insurance_info,
 					emergency_contact,
 				})
 				.eq("id", user_id);

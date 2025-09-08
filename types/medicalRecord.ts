@@ -30,12 +30,13 @@ export interface BaseMedicalRecord {
   signed_urls: string[];
   updated_at?: string;
 	created_by?: string;
+	created_by_full_name?: string;
 }
 
 export interface AdditionalMedicalRecord {
 	record_date?: string; // ISO date string
   patient_name?: string;
-  date_of_birth?: string; // ISO date string (yyyy-mm-dd)
+  date_of_birth?: string; // ISO date string (yyyy-MM-dd)
   age?: string;
   gender?: string;
   blood_type?: string;
