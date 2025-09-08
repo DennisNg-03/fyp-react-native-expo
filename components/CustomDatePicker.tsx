@@ -16,6 +16,7 @@ export default function CustomDatePicker({
 	value,
 	onChange,
 	parent = "formModal", // If any parent other than "formModal" is passed, the background color would be white colour (theme.colors.onPrimary)
+	// Pass "formModal" for 16 font size instead of 14
 	mode = "past",
 }: CustomDatePickerProps) {
 	const theme = useTheme();

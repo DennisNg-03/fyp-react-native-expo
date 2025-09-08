@@ -55,7 +55,9 @@ export default function PatientMedicalRecordScreen() {
 	const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
 
 	const [sortMenuVisible, setSortMenuVisible] = useState(false);
-	const [sortField, setSortField] = useState<"date" | "title" | "provider">("date");
+	const [sortField, setSortField] = useState<"date" | "title" | "provider">(
+		"date"
+	);
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 	const [filterModalVisible, setFilterModalVisible] = useState(false);
 
@@ -316,31 +318,71 @@ export default function PatientMedicalRecordScreen() {
 					)}
 				/>
 
-				<Card.Content style={{ gap: 6, marginTop: 4 }}>
-					<Text variant="bodyMedium">
+				<Card.Content style={styles.cardContent}>
+					<Text variant="bodyMedium" style={styles.cardContentRow}>
 						Patient:{" "}
 						<Text style={{ fontWeight: "500" }}>
-							{item.patient_name || "—"}
+							{item.patient_name || "Not provided"}
 						</Text>
 					</Text>
-					<Text variant="bodyMedium">
+					<Text variant="bodyMedium" style={styles.cardContentRow}>
 						Doctor:{" "}
-						<Text style={{ fontWeight: "500" }}>{item.doctor_name || "—"}</Text>
+						<Text style={{ fontWeight: "500" }}>
+							{item.doctor_name || "Not provided"}
+						</Text>
 					</Text>
-					<Text variant="bodyMedium">
+					<Text variant="bodyMedium" style={styles.cardContentRow}>
 						Provider:{" "}
 						<Text style={{ fontWeight: "500" }}>
-							{item.healthcare_provider_name || "—"}
+							{item.healthcare_provider_name || "Not provided"}
 						</Text>
 					</Text>
-					<Text variant="bodySmall">
-						Created by: <Text>{item.created_by_full_name || "—"}</Text>
+					<Text variant="bodyMedium" style={styles.cardContentRow}>
+						Diagnosis:{" "}
+						<Text style={{ fontWeight: "500" }}>
+							{item.diagnosis || "Not provided"}
+						</Text>
 					</Text>
-					<Text variant="bodySmall">
+					<Text variant="bodyMedium" style={styles.cardContentRow}>
+						Procedures:{" "}
+						<Text style={{ fontWeight: "500" }}>
+							{item.procedures || "Not provided"}
+						</Text>
+					</Text>
+					<Text variant="bodyMedium" style={styles.cardContentRow}>
+						Medications:{" "}
+						<Text style={{ fontWeight: "500" }}>
+							{item.medications || "Not provided"}
+						</Text>
+					</Text>
+					<Text variant="bodySmall" style={styles.cardContentRowSecondary}>
+						Date of Admission:{" "}
+						<Text>
+							{item.date_of_admission
+								? new Date(item.date_of_admission).toLocaleDateString()
+								: "Not provided"}
+						</Text>
+					</Text>
+					<Text variant="bodySmall" style={styles.cardContentRowSecondary}>
+						Date of Discharge:{" "}
+						<Text>
+							{item.date_of_discharge
+								? new Date(item.date_of_discharge).toLocaleDateString()
+								: "Not provided"}
+						</Text>
+					</Text>
+					<Text variant="bodySmall" style={styles.cardContentRowSecondary}>
+						Notes: <Text>{item.notes || "Not provided"}</Text>
+					</Text>
+					<Text variant="bodySmall" style={styles.cardContentRowSecondary}>
+						Created by:{" "}
+						<Text>{item.created_by_full_name || "Not provided"}</Text>
+					</Text>
+					<Text variant="bodySmall" style={styles.cardContentRowSecondary}>
 						Last updated:{" "}
 						{item.updated_at
 							? new Date(item.updated_at).toLocaleDateString()
-							: "—"}
+							: "Not provided"}
 					</Text>
 				</Card.Content>
 			</Card>
@@ -360,73 +402,86 @@ export default function PatientMedicalRecordScreen() {
 					maxToRenderPerBatch={6}
 					ListHeaderComponent={
 						<>
-							<View style={styles.filterBar}>
-								<Searchbar
-									placeholder="Search records..."
-									value={searchQuery}
-									onChangeText={setSearchQuery}
-									style={styles.searchBar}
-									inputStyle={{ fontSize: 14, paddingVertical: 0 }}
-									autoComplete="off"
-									autoCorrect={false}
-									spellCheck={false}
-								/>
-								<Menu
-									visible={sortMenuVisible}
-									onDismiss={() => setSortMenuVisible(false)}
-									anchor={
-										<Button
-											mode="outlined"
-											onPress={() => setSortMenuVisible(true)}
-										>
-											Sort: {sortField.charAt(0).toUpperCase() + sortField.slice(1)} ({sortOrder})
-										</Button>
-									}
-								>
-									<Menu.Item
-										onPress={() => {
-											setSortField("date");
-											setSortMenuVisible(false);
-										}}
-										title="Date"
+							<View style={styles.searchActionsContainer}>
+								<View style={styles.searchBarWrapper}>
+									<Searchbar
+										placeholder="Search records..."
+										value={searchQuery}
+										mode="bar"
+										onChangeText={setSearchQuery}
+										style={[styles.searchBar, { backgroundColor: theme.colors.surfaceVariant }]}
+										inputStyle={styles.searchBarInputStyle}
+										autoComplete="off"
+										autoCorrect={false}
+										spellCheck={false}
 									/>
-									<Menu.Item
-										onPress={() => {
-											setSortField("title");
-											setSortMenuVisible(false);
-										}}
-										title="Title"
+								</View>
+								<View style={styles.actionButtons}>
+									<IconButton
+										icon="filter-variant"
+										mode="contained-tonal"
+										onPress={() => setFilterModalVisible(true)}
+										style={styles.iconButton}
+										size={24}
+										accessibilityLabel="Filter"
 									/>
-									<Menu.Item
-										onPress={() => {
-											setSortField("provider");
-											setSortMenuVisible(false);
-										}}
-										title="Provider"
+									<Menu
+										visible={sortMenuVisible}
+										onDismiss={() => setSortMenuVisible(false)}
+										anchor={
+											<IconButton
+												icon="sort"
+												mode="contained-tonal"
+												onPress={() => setSortMenuVisible(true)}
+												style={styles.iconButton}
+												size={24}
+												accessibilityLabel="Sort"
+											/>
+										}
+									>
+										<Menu.Item
+											onPress={() => {
+												setSortField("date");
+												setSortMenuVisible(false);
+											}}
+											title="Date"
+										/>
+										<Menu.Item
+											onPress={() => {
+												setSortField("title");
+												setSortMenuVisible(false);
+											}}
+											title="Title"
+										/>
+										<Menu.Item
+											onPress={() => {
+												setSortField("provider");
+												setSortMenuVisible(false);
+											}}
+											title="Provider"
+										/>
+										<Menu.Item
+											onPress={() => {
+												setSortOrder((prev) =>
+													prev === "asc" ? "desc" : "asc"
+												);
+												setSortMenuVisible(false);
+											}}
+											title={`Order: ${
+												sortOrder === "asc" ? "Ascending" : "Descending"
+											}`}
+										/>
+									</Menu>
+									<IconButton
+										icon="plus"
+										mode="contained"
+										onPress={handleAddRecord}
+										style={styles.iconButtonAdd}
+										size={24}
+										accessibilityLabel="Add Record"
 									/>
-									<Menu.Item
-										onPress={() => {
-											setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-											setSortMenuVisible(false);
-										}}
-										title={`Order: ${sortOrder === "asc" ? "Ascending" : "Descending"}`}
-									/>
-								</Menu>
-								<Button
-									mode="outlined"
-									onPress={() => setFilterModalVisible(true)}
-								>
-									Filters
-								</Button>
+								</View>
 							</View>
-							<Button
-								mode="elevated"
-								icon="plus"
-								onPress={handleAddRecord}
-								style={styles.uploadButton}
-							>
-								Add Record
-							</Button>
 						</>
 					}
 					onEndReached={() => {
@@ -526,25 +581,58 @@ const styles = StyleSheet.create({
 		padding: 5,
 		borderRadius: 10,
 	},
+	cardContent: {
+		gap: 6,
+		marginTop: 4,
+		paddingBottom: 2,
+	},
+	cardContentRow: {
+		marginBottom: 1,
+	},
+	cardContentRowSecondary: {
+		marginBottom: 0,
+		color: "#666",
+	},
 	center: {
 		alignItems: "center",
 		marginTop: 40,
 	},
-	filterBar: {
+	searchActionsContainer: {
 		flexDirection: "row",
 		alignItems: "center",
-		gap: 12,
-		marginBottom: 20,
+		gap: 8,
+		marginBottom: 16,
+		paddingTop: 8,
+	},
+	searchBarWrapper: {
+		flex: 1,
 	},
 	searchBar: {
-		flex: 1,
-		backgroundColor: "white",
+		// backgroundColor: "white",
 		height: 40,
 		borderRadius: 8,
 	},
-	uploadButton: {
-		alignSelf: "flex-end",
-		marginBottom: 20,
+	searchBarInputStyle: {
+		fontSize: 14,
+		paddingVertical: 0,
+		marginVertical: 0,
+		textAlignVertical: "center",
+		minHeight: 0,
+	},
+	actionButtons: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 2,
+		marginLeft: 6,
+	},
+	iconButton: {
+		marginHorizontal: 0,
+		marginVertical: 0,
+	},
+	iconButtonAdd: {
+		marginHorizontal: 0,
+		marginVertical: 0,
+		backgroundColor: "#2e7d32",
 	},
 	modalBackdrop: {
 		flex: 1,

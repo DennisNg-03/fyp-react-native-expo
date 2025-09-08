@@ -494,7 +494,8 @@ export default function AppointmentBookingScreen() {
 								placeholder="Search provider..."
 								value={providerQuery}
 								onChangeText={setProviderQuery}
-								style={{ marginVertical: 8 }}
+								style={[styles.searchBar, { marginVertical: 8 }]}
+								inputStyle={styles.searchBarInputStyle}
 							/>
 							{showProvidersLoading ? (
 								// <ActivityIndicator />
@@ -535,7 +536,8 @@ export default function AppointmentBookingScreen() {
 									placeholder="Search doctor..."
 									value={doctorQuery}
 									onChangeText={setDoctorQuery}
-									style={{ marginBottom: 8 }}
+									style={[styles.searchBar, { marginBottom: 8 }]}
+									inputStyle={styles.searchBarInputStyle}
 								/>
 								{showDoctorsLoading ? (
 									// <ActivityIndicator />
@@ -593,7 +595,7 @@ export default function AppointmentBookingScreen() {
 								label="Choose date"
 								value={selectedDate}
 								onChange={setSelectedDate}
-								parent="appointments"
+								parent="formModal"
 								mode="future"
 							/>
 
@@ -905,6 +907,20 @@ const styles = StyleSheet.create({
 	modalTitle: {
 		textAlign: "center",
 		marginBottom: 5,
+	},
+	searchBar: {
+		backgroundColor: "white",
+		height: 50,
+		borderRadius: 8,
+		borderWidth: 1,
+		borderColor: "grey",
+	},
+	searchBarInputStyle: {
+		fontSize: 16,
+		paddingVertical: 0,
+		marginVertical: 0,
+		textAlignVertical: "center",
+		minHeight: 0,
 	},
 	input: {
 		marginBottom: 10,
