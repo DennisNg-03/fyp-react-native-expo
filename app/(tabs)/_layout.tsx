@@ -53,7 +53,8 @@ export default function TabLayout() {
 					),
 					href: role === "patient" ? "/patient-appointment" : null,
 				}}
-				listeners={({ navigation }) => ({ // *** This code prevents the stack flickering issue when clicking tab button on Details page
+				listeners={({ navigation }) => ({
+					// *** This code prevents the stack flickering issue when clicking tab button on Details page
 					tabPress: (e) => {
 						if (navigation.isFocused()) {
 							e.preventDefault();
@@ -80,21 +81,6 @@ export default function TabLayout() {
 				}}
 			/>
 			<Tabs.Screen
-				name="patient-medical-record"
-				options={{
-					title: "My Records",
-					tabBarIcon: ({ color }) => (
-						<MaterialCommunityIcons
-							name="clipboard-text-outline"
-							size={28}
-							color={color}
-						/>
-					),
-					href: "/patient-medical-record",
-					// href: role === "patient" ? "/patient-medical-record" : null,
-				}}
-			/>
-			<Tabs.Screen
 				name="doctor-appointment"
 				options={{
 					title: "Appointments",
@@ -107,13 +93,12 @@ export default function TabLayout() {
 					),
 					href: role === "doctor" ? "/doctor-appointment" : null,
 				}}
-				listeners={({ navigation }) => ({ // *** This code prevents the stack flickering issue when clicking tab button on Details page
+				listeners={({ navigation }) => ({
+					// *** This code prevents the stack flickering issue when clicking tab button on Details page
 					tabPress: (e) => {
 						if (navigation.isFocused()) {
 							e.preventDefault();
-							console.log(
-								"Already on Schedules tab – ignoring re-press."
-							);
+							console.log("Already on Schedules tab – ignoring re-press.");
 							router.replace("/(tabs)/doctor-appointment"); // MUST use router.replace here, otherwise it will form a long list of nav routes, making Back function not working
 						}
 					},
@@ -130,16 +115,43 @@ export default function TabLayout() {
 							color={color}
 						/>
 					),
-					href: role === "doctor" || role === "nurse" ? "/doctor-appointment-request" : null,
+					href:
+						role === "doctor" || role === "nurse"
+							? "/doctor-appointment-request"
+							: null,
 				}}
-				listeners={({ navigation }) => ({ // *** This code prevents the stack flickering issue when clicking tab button on Details page
+				listeners={({ navigation }) => ({
+					// *** This code prevents the stack flickering issue when clicking tab button on Details page
 					tabPress: (e) => {
 						if (navigation.isFocused()) {
 							e.preventDefault();
-							console.log(
-								"Already on Schedules tab – ignoring re-press."
-							);
+							console.log("Already on Schedules tab – ignoring re-press.");
 							router.replace("/(tabs)/doctor-appointment-request"); // MUST use router.replace here, otherwise it will form a long list of nav routes, making Back function not working
+						}
+					},
+				})}
+			/>
+			<Tabs.Screen
+				name="medical-record"
+				options={{
+					title: "My Records",
+					tabBarIcon: ({ color }) => (
+						<MaterialCommunityIcons
+							name="clipboard-text-outline"
+							size={28}
+							color={color}
+						/>
+					),
+					href: "/medical-record",
+					// href: role === "patient" ? "/patient-medical-record" : null,
+				}}
+				listeners={({ navigation }) => ({
+					// *** This code prevents the stack flickering issue when clicking tab button on Details page
+					tabPress: (e) => {
+						if (navigation.isFocused()) {
+							e.preventDefault();
+							console.log("Already on Schedules tab – ignoring re-press.");
+							router.replace("/(tabs)/medical-record"); // MUST use router.replace here, otherwise it will form a long list of nav routes, making Back function not working
 						}
 					},
 				})}
@@ -155,15 +167,14 @@ export default function TabLayout() {
 							color={color}
 						/>
 					),
-					href: "/(tabs)/profile"
+					href: "/(tabs)/profile",
 				}}
-				listeners={({ navigation }) => ({ // *** This code prevents the stack flickering issue when clicking tab button on Details page
+				listeners={({ navigation }) => ({
+					// *** This code prevents the stack flickering issue when clicking tab button on Details page
 					tabPress: (e) => {
 						if (navigation.isFocused()) {
 							e.preventDefault();
-							console.log(
-								"Already on My Profiles tab – ignoring re-press."
-							);
+							console.log("Already on My Profiles tab – ignoring re-press.");
 							router.replace("/(tabs)/profile"); // MUST use router.replace here, otherwise it will form a long list of nav routes, making Back function not working
 						}
 					},
@@ -182,7 +193,9 @@ export default function TabLayout() {
 					),
 					// href: "/doctor-availability",
 					href:
-					  role === "doctor" || role === "nurse" ? "/doctor-availability" : null,
+						role === "doctor" || role === "nurse"
+							? "/doctor-availability"
+							: null,
 				}}
 			/>
 			{/* <Tabs.Screen

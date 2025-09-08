@@ -5,6 +5,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { MedicalRecord } from "@/types/medicalRecord";
 import { formatKL } from "@/utils/dateHelpers";
 import { formatLabel } from "@/utils/labelHelpers";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
 	Alert,
@@ -26,7 +27,7 @@ import {
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function PatientMedicalRecordScreen() {
+export default function MedicalRecordScreen() {
 	const theme = useTheme();
 	const { session, role } = useAuth();
 	const userId = session?.user.id;
@@ -238,9 +239,10 @@ export default function PatientMedicalRecordScreen() {
 	};
 
 	const handleCardPress = (record: MedicalRecord) => {
-		setSelectedRecord(record);
-		setModalMode("edit");
-		setUploadModalVisible(true);
+		router.push({
+			pathname: "/(tabs)/medical-record/record-details",
+			params: { record: JSON.stringify(record) },
+		});
 	};
 
 	const handleDelete = async (id: string) => {
@@ -320,97 +322,102 @@ export default function PatientMedicalRecordScreen() {
 							: formatLabel(item.record_type) ?? "No date"
 					}
 					subtitleStyle={styles.cardSubtitle}
-					right={() => (
-						<Menu
-							contentStyle={{ borderRadius: 8, width: 120, backgroundColor: "white" }}
-							mode="elevated"
-							visible={openMenuId === item.id}
-							onDismiss={() => setOpenMenuId(null)}
-							anchor={
-								<IconButton
-									icon="dots-vertical"
-									iconColor={theme.colors.primary}
-									onPress={() => setOpenMenuId(item.id)}
+					right={() =>
+						session?.user.id === item.created_by && (
+							<Menu
+								contentStyle={{
+									borderRadius: 8,
+									width: 120,
+									backgroundColor: "white",
+								}}
+								mode="elevated"
+								visible={openMenuId === item.id}
+								onDismiss={() => setOpenMenuId(null)}
+								anchor={
+									<IconButton
+										icon="dots-vertical"
+										iconColor={theme.colors.primary}
+										onPress={() => setOpenMenuId(item.id)}
+									/>
+								}
+								anchorPosition="top"
+							>
+								<Menu.Item
+									onPress={() => {
+										handleCardPress(item);
+										setOpenMenuId(null);
+									}}
+									leadingIcon="pencil"
+									title="Edit"
 								/>
-							}
-							anchorPosition="top"
-						>
-							<Menu.Item
-								onPress={() => {
-									handleCardPress(item);
-									setOpenMenuId(null);
-								}}
-								leadingIcon="pencil"
-								title="Edit"
-							/>
-							<Menu.Item
-								onPress={() => {
-									setSelectedRecordId(item.id);
-									setDialogVisible(true);
-									setOpenMenuId(null);
-								}}
-								leadingIcon="delete"
-								title="Delete"
-							/>
-						</Menu>
-					)}
+								<Menu.Item
+									onPress={() => {
+										setSelectedRecordId(item.id);
+										setDialogVisible(true);
+										setOpenMenuId(null);
+									}}
+									leadingIcon="delete"
+									title="Delete"
+								/>
+							</Menu>
+						)
+					}
 				/>
 
 				<Card.Content style={styles.cardContent}>
-					<Text variant="bodyMedium" style={styles.cardInfoRow}>
+					<Text variant="labelLarge" style={styles.cardInfoRow}>
 						Patient:{" "}
-						<Text style={styles.cardInfoValue}>
+						<Text variant="bodyMedium" style={styles.cardInfoValue}>
 							{item.patient_name || "Not provided"}
 						</Text>
 					</Text>
-					<Text variant="bodyMedium" style={styles.cardInfoRow}>
+					<Text variant="labelLarge" style={styles.cardInfoRow}>
 						Doctor:{" "}
-						<Text style={styles.cardInfoValue}>
+						<Text variant="bodyMedium" style={styles.cardInfoValue}>
 							{item.doctor_name || "Not provided"}
 						</Text>
 					</Text>
-					<Text variant="bodyMedium" style={styles.cardInfoRow}>
+					<Text variant="labelLarge" style={styles.cardInfoRow}>
 						Provider:{" "}
-						<Text style={styles.cardInfoValue}>
+						<Text variant="bodyMedium" style={styles.cardInfoValue}>
 							{item.healthcare_provider_name || "Not provided"}
 						</Text>
 					</Text>
-					{/** Diagnosis, Procedures, Medications as blocks, newline-separated, no label+data inline formatting */}
-					<Text variant="bodyMedium" style={styles.cardSectionLabel}>
+					<Text variant="labelLarge" style={styles.cardSectionLabel}>
 						Diagnosis
 					</Text>
 					<Text variant="bodyMedium" style={styles.cardSectionBlock}>
 						{diagnosisStr}
 					</Text>
-					<Text variant="bodyMedium" style={styles.cardSectionLabel}>
+					<Text variant="labelLarge" style={styles.cardSectionLabel}>
 						Procedures
 					</Text>
 					<Text variant="bodyMedium" style={styles.cardSectionBlock}>
 						{proceduresStr}
 					</Text>
-					<Text variant="bodyMedium" style={styles.cardSectionLabel}>
+					<Text variant="labelLarge" style={styles.cardSectionLabel}>
 						Medications
 					</Text>
 					<Text variant="bodyMedium" style={styles.cardSectionBlock}>
 						{medicationsStr}
 					</Text>
-					<Text variant="bodySmall" style={styles.cardContentRowSecondary}>
+					<Text variant="labelLarge" style={styles.cardContentRowSecondary}>
 						Date of Admission:{" "}
-						<Text>
+						<Text variant="bodyMedium">
 							{item.date_of_admission
 								? formatKL(item.date_of_admission, "yyyy-MM-dd")
 								: "Not provided"}
 						</Text>
 					</Text>
-					<Text variant="bodySmall" style={styles.cardContentRowSecondary}>
+					<Text variant="labelLarge" style={styles.cardContentRowSecondary}>
 						Date of Discharge:{" "}
-						<Text>
+						<Text variant="bodyMedium">
 							{item.date_of_discharge
 								? formatKL(item.date_of_discharge, "yyyy-MM-dd")
 								: "Not provided"}
 						</Text>
 					</Text>
-					<Text variant="bodyMedium" style={styles.cardSectionLabel}>
+					<Text variant="labelLarge" style={styles.cardSectionLabel}>
 						Clinical Notes
 					</Text>
 					<Text variant="bodyMedium" style={styles.cardSectionBlock}>
@@ -418,7 +425,10 @@ export default function PatientMedicalRecordScreen() {
 					</Text>
 					<View style={styles.cardFooterColumn}>
 						<Text variant="bodySmall" style={styles.cardFooterRight}>
-							Uploaded by: {item.created_by_full_name || "Not provided"}
+							Uploaded by:{" "}
+							{session?.user.id === item.created_by
+								? "You"
+								: item.created_by_full_name || "Not provided"}
 						</Text>
 						<Text variant="bodySmall" style={styles.cardFooterRight}>
 							Last updated:{" "}
@@ -439,7 +449,7 @@ export default function PatientMedicalRecordScreen() {
 					contentContainerStyle={{ paddingBottom: 50, paddingHorizontal: 16 }}
 					data={filteredRecords}
 					keyExtractor={keyExtractor}
-					refreshing={refreshing && fetching}
+					refreshing={refreshing}
 					onRefresh={handleRefresh}
 					renderItem={renderRecord}
 					maxToRenderPerBatch={6}
@@ -456,25 +466,32 @@ export default function PatientMedicalRecordScreen() {
 								Patient Records
 							</Text>
 							<View style={styles.searchActionsContainer}>
-								<View style={styles.searchBarWrapper}>
-									<Searchbar
-										placeholder="Search records..."
-										value={searchQuery}
-										mode="bar"
-										onChangeText={setSearchQuery}
-										style={[
-											styles.searchBar,
-											{ backgroundColor: theme.colors.surfaceVariant },
-										]}
-										inputStyle={styles.searchBarInputStyle}
-										autoComplete="off"
-										autoCorrect={false}
-										spellCheck={false}
-									/>
-								</View>
+								<Searchbar
+									placeholder="Search records..."
+									value={searchQuery}
+									mode="bar"
+									onChangeText={setSearchQuery}
+									style={[
+										styles.searchBar,
+										{
+											flex: 1,
+											height: 40,
+											borderRadius: 8,
+											backgroundColor: theme.colors.surfaceVariant,
+										},
+									]}
+									inputStyle={{
+										...styles.searchBarInputStyle,
+										textAlignVertical: "center",
+									}}
+									maxLength={50}
+									autoComplete="off"
+									autoCorrect={false}
+									spellCheck={false}
+								/>
 								<View style={styles.actionButtons}>
 									<IconButton
-										icon="filter-variant"
+										icon="filter-menu-outline"
 										mode="contained-tonal"
 										onPress={() => setFilterModalVisible(true)}
 										style={styles.iconButton}
@@ -483,11 +500,19 @@ export default function PatientMedicalRecordScreen() {
 									/>
 									<Menu
 										visible={sortMenuVisible}
-										contentStyle={{ borderRadius: 8, width: 190, backgroundColor: "white" }}
+										contentStyle={{
+											borderRadius: 8,
+											width: 200,
+											backgroundColor: "white",
+										}}
 										onDismiss={() => setSortMenuVisible(false)}
 										anchor={
 											<IconButton
-												icon="sort"
+												icon={
+													sortOrder === "asc"
+														? "sort-alphabetical-ascending"
+														: "sort-alphabetical-descending"
+												}
 												mode="contained-tonal"
 												onPress={() => setSortMenuVisible(true)}
 												style={styles.iconButton}
@@ -502,20 +527,44 @@ export default function PatientMedicalRecordScreen() {
 												setSortMenuVisible(false);
 											}}
 											title="Date"
+											titleStyle={{
+												color:
+													sortField === "record_date"
+														? theme.colors.primary
+														: undefined,
+												fontWeight: sortField === "record_date" ? "600" : "500",
+											}}
 										/>
 										<Menu.Item
 											onPress={() => {
 												setSortField("title");
 												setSortMenuVisible(false);
 											}}
-											title="Title"
+											title="Record Title"
+											titleStyle={{
+												color:
+													sortField === "title"
+														? theme.colors.primary
+														: undefined,
+												fontWeight: sortField === "title" ? "600" : "500",
+											}}
 										/>
 										<Menu.Item
 											onPress={() => {
 												setSortField("healthcare_provider_name");
 												setSortMenuVisible(false);
 											}}
-											title="Provider"
+											title="Healthcare Provider"
+											titleStyle={{
+												color:
+													sortField === "healthcare_provider_name"
+														? theme.colors.primary
+														: undefined,
+												fontWeight:
+													sortField === "healthcare_provider_name"
+														? "600"
+														: "500",
+											}}
 										/>
 										<Menu.Item
 											onPress={() => {
@@ -527,6 +576,7 @@ export default function PatientMedicalRecordScreen() {
 											title={`Order: ${
 												sortOrder === "asc" ? "Ascending" : "Descending"
 											}`}
+											titleStyle={{ fontWeight: "500" }}
 										/>
 									</Menu>
 									<IconButton
@@ -594,7 +644,10 @@ export default function PatientMedicalRecordScreen() {
 					{filterModalVisible && (
 						<View style={styles.modalBackdrop}>
 							<Card mode="elevated" style={styles.filterModalCard}>
-								<Card.Title title="Filter by Date Range" titleStyle={styles.modalHeader} />
+								<Card.Title
+									title="Filter by Date Range"
+									titleStyle={styles.modalHeader}
+								/>
 								<Card.Content>
 									<CustomDatePicker
 										label="From"
@@ -670,18 +723,18 @@ const styles = StyleSheet.create({
 	},
 	cardInfoRow: {
 		marginBottom: 0,
-		fontSize: 14,
-		color: "#222",
+		// fontSize: 14,
+		// color: "#222",
 	},
 	cardInfoValue: {
-		fontWeight: "600",
-		color: "#000",
-		fontSize: 14,
+		// fontWeight: "600",
+		// color: "#000",
+		// fontSize: 14,
 	},
 	cardSectionLabel: {
 		marginTop: 8,
 		fontWeight: "600",
-		fontSize: 15,
+		// fontSize: 15,
 		color: "#263238",
 		letterSpacing: 0.1,
 	},
