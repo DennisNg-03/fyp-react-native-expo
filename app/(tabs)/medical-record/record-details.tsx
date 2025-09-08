@@ -1,5 +1,13 @@
 import { FilePreview } from "@/components/FilePreview";
-import { CompulsoryFields, MedicalRecord, PatientFields, ProviderFields, RecordFields } from "@/types/medicalRecord";
+import {
+	CompulsoryFields,
+	MedicalRecord,
+	PatientFields,
+	ProviderFields,
+	RecordFields,
+} from "@/types/medicalRecord";
+import { formatKL } from "@/utils/dateHelpers";
+import { formatLabel } from "@/utils/labelHelpers";
 import { useLocalSearchParams } from "expo-router";
 import React from "react";
 import { SafeAreaView, ScrollView, StyleSheet, View } from "react-native";
@@ -34,7 +42,9 @@ export default function RecordDetailsScreen() {
 	};
 
 	const renderSection = (title: string, fields: string[]) => {
-		const filteredFields = fields.filter((field) => hasValue(record[field as keyof MedicalRecord]));
+		const filteredFields = fields.filter((field) =>
+			hasValue(record[field as keyof MedicalRecord])
+		);
 		if (filteredFields.length === 0) return null;
 
 		return (
@@ -48,18 +58,15 @@ export default function RecordDetailsScreen() {
 					if (Array.isArray(value)) {
 						value = value.join("\n");
 					} else if (field === "updated_at" && value) {
-						value = new Date(value as string).toLocaleDateString();
+						value = formatKL(value, "yyyy-MM-dd");
 					}
 					return (
 						<View key={field} style={styles.detailRow}>
 							<Text variant="labelLarge" style={styles.detailLabel}>
-								{field
-									.replace(/_/g, " ")
-									.replace(/\b\w/g, (c) => c.toUpperCase())}
-								:
+								{formatLabel(field)}:
 							</Text>
 							<Text variant="bodyMedium" style={styles.detailValue}>
-								{value}
+								{field === "record_type" ? formatLabel(value) : value}
 							</Text>
 						</View>
 					);
@@ -72,7 +79,11 @@ export default function RecordDetailsScreen() {
 		<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.tertiary }}>
 			<ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
 				{/* Compulsory Fields Section */}
-				{renderSection("Record Info", [...CompulsoryFields])}
+				{renderSection("Record Info", [
+					"title",
+					"record_type",
+					...CompulsoryFields,
+				])}
 
 				{/* Patient Details */}
 				{renderSection("Patient Details", [...PatientFields])}

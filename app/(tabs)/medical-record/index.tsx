@@ -463,7 +463,7 @@ export default function MedicalRecordScreen() {
 									},
 								]}
 							>
-								Patient Records
+								{role === "patient" ? "My Medical Records" : "Patient Records"}
 							</Text>
 							<View style={styles.searchActionsContainer}>
 								<Searchbar

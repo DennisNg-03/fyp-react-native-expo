@@ -43,7 +43,7 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="patient-appointment"
 				options={{
-					title: "My Appointments",
+					title: "Appointments",
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons
 							name="calendar-month-outline"
@@ -69,7 +69,7 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="patient-appointment-booking"
 				options={{
-					title: "Book Appointment",
+					title: "Booking",
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons
 							name="calendar-check"
@@ -134,7 +134,7 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="medical-record"
 				options={{
-					title: "My Records",
+					title: role === "patient" ? "My Records" : "Patient Records",
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons
 							name="clipboard-text-outline"
@@ -180,7 +180,7 @@ export default function TabLayout() {
 					},
 				})}
 			/>
-			<Tabs.Screen
+			{/* <Tabs.Screen
 				name="doctor-availability"
 				options={{
 					title: "Availability",
@@ -191,22 +191,12 @@ export default function TabLayout() {
 							color={color}
 						/>
 					),
-					// href: "/doctor-availability",
 					href:
 						role === "doctor" || role === "nurse"
 							? "/doctor-availability"
 							: null,
 				}}
-			/>
-			{/* <Tabs.Screen
-        name="test"
-        options={{
-          title: "Test",
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="flask-outline" size={28} color={color} />
-          ),
-        }}
-      /> */}
+			/> */}
 		</Tabs>
 	);
 }

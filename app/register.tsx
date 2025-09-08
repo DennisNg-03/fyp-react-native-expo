@@ -214,7 +214,7 @@ export default function RegisterScreen() {
 												<Avatar.Icon
 													size={48}
 													icon={r.icon}
-													style={{ backgroundColor: theme.colors.tertiary }}
+													style={{ backgroundColor: theme.colors.tertiaryContainer }}
 												/>
 												<Text variant="titleMedium" style={{ marginTop: 8 }}>
 													{r.label}
