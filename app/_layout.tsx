@@ -1,3 +1,7 @@
+import { ActivityIndicator } from "@/components/ActivityIndicator";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import AuthProvider from "@/providers/AuthProvider";
+import { useMaterial3Theme } from "@pchmn/expo-material3-theme";
 import {
 	DarkTheme,
 	DefaultTheme,
@@ -5,16 +9,10 @@ import {
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
-import "react-native-reanimated";
-
-import { useColorScheme } from "@/hooks/useColorScheme";
-
-import { ActivityIndicator } from "@/components/ActivityIndicator";
-import AuthProvider from "@/providers/AuthProvider";
-import { useMaterial3Theme } from "@pchmn/expo-material3-theme";
 import { KeyboardAvoidingView, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
+import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function RootLayout() {
@@ -83,7 +81,6 @@ export default function RootLayout() {
 										name="register"
 										options={{ headerShown: false }}
 									/>
-									<Stack.Screen name="appointment" options={{ headerShown: false }} />
 									<Stack.Screen name="+not-found" />
 								</Stack>
 							</AuthProvider>

@@ -2,15 +2,74 @@ import { HapticTab } from "@/components/HapticTab";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import * as Notifications from "expo-notifications";
 import { Redirect, router, Tabs } from "expo-router";
+import { useEffect } from "react";
 import { Platform } from "react-native";
 
 export default function TabLayout() {
 	const colorScheme = useColorScheme();
 	const { session, role } = useAuth();
+
+	useEffect(() => {
+		const registerPushToken = async () => {
+			if (!session?.user.id) return;
+
+			// Ask for permissions
+			const { status } = await Notifications.requestPermissionsAsync();
+			if (status !== "granted") {
+				console.log("Push notification permissions not granted");
+				return;
+			}
+
+			// Get Expo token
+			const { data: tokenData } = await Notifications.getExpoPushTokenAsync();
+			const pushToken = tokenData;
+
+			if (!pushToken) return;
+			console.log("Expo push token:", pushToken);
+
+			// Save / update token in Supabase
+			await supabase.from("user_device_tokens").upsert({
+				user_id: session.user.id,
+				token: pushToken,
+			});
+		};
+
+		registerPushToken();
+	}, [session?.user.id]);
 	console.log("Logged in role:", role);
+
+	useEffect(() => {
+		Notifications.setNotificationHandler({
+			handleNotification: async () => ({
+				shouldShowAlert: true,
+				shouldShowBanner: true,
+				shouldShowList: true,
+				shouldPlaySound: true,
+				shouldSetBadge: true,
+			}),
+		});
+	}, []);
+
+	Notifications.addNotificationReceivedListener((notification) => {
+		console.log("Foreground notification:", notification);
+	});
+
+	Notifications.addNotificationResponseReceivedListener((response) => {
+		console.log(
+			"Tapped notification:",
+			response.notification.request.content.data
+		);
+		const { appointment_id, type } = response.notification.request.content.data;
+
+		if (type === "appointment_accepted" || type === "appointment_rejected") {
+			router.replace(`/(tabs)/patient-appointment/${appointment_id}`);
+		}
+	});
 
 	// Redirect user to login page whenever session is null
 	if (!session) {

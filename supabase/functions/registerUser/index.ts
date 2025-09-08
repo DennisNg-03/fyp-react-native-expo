@@ -13,7 +13,15 @@ Deno.serve(async (req) => {
 	);
 
 	try {
-		const { user_id, email, phone_number, gender, role, provider_id, speciality } = await req.json();
+		const {
+			user_id,
+			email,
+			phone_number,
+			gender,
+			role,
+			provider_id,
+			speciality,
+		} = await req.json();
 		// Update base profile
 		const { error: userError } = await supabase
 			.from("profiles")
@@ -42,6 +50,21 @@ Deno.serve(async (req) => {
 
 			if (doctorError) {
 				return new Response(doctorError.message, { status: 400 });
+			}
+
+			const availabilityRows = Array.from({ length: 7 }).map((_, day) => ({
+				doctor_id: user_id,
+				day_of_week: day,
+				start_time: "09:00:00",
+				end_time: "17:00:00",
+			}));
+
+			const { error: availabilityError } = await supabase
+				.from("doctor_availability")
+				.insert(availabilityRows);
+
+			if (availabilityError) {
+				return new Response(availabilityError.message, { status: 400 });
 			}
 		}
 

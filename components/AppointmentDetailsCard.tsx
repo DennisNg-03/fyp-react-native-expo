@@ -192,7 +192,7 @@ export default function AppointmentDetailCard({
 							onPress={() => setRescheduleModalVisible(true)}
 							disabled={
 								!canReschedule(appointment.starts_at) ||
-								(displayStatus !== "pending" && displayStatus !== "scheduled")
+								(displayStatus !== "pending" && displayStatus !== "scheduled") // Allow to reschedule only for pending or scheduled status
 							}
 						>
 							Reschedule

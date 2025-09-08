@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
 			.from("appointments")
 			.update(updateData)
 			.eq("id", appointment_id)
-			.select();
+			.select("starts_at, patient_id");
 
 		if (apptError) {
 			return new Response(JSON.stringify({ error: apptError.message }), {
@@ -64,6 +64,42 @@ Deno.serve(async (req) => {
 			});
 		}
 
+		// 3. Insert Notifications record
+		const patientId = data && data[0]?.patient_id;
+		let messageTitle = "";
+		let messageBody = "";
+		let messageType = "";
+
+		if (status === "rejected") {
+			messageTitle = "Appointment Rejected";
+			messageBody = "Your appointment rescheduling request has been rejected.";
+			messageType = "appointment_rejected";
+		} else if (status === "accepted") {
+			messageTitle = "Appointment Confirmed";
+			const startsAt =
+				data && data[0]?.starts_at ? new Date(data[0].starts_at) : null;
+			const formattedDate = startsAt
+				? startsAt.toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" })
+				: "";
+			messageBody = `Your appointment has been successfully rescheduled for ${formattedDate}.`;
+			messageType = "appointment_accepted";
+		}
+		const { error: notificationError } = await supabase
+			.from("notifications")
+			.insert({
+				user_id: patientId,
+				appointment_id: appointment_id,
+				title: messageTitle,
+				body: messageBody,
+				type: messageType,
+			});
+
+		if (notificationError) {
+			return new Response(JSON.stringify({ error: notificationError.message }), {
+				status: 500,
+			});
+		}
+		
 		return new Response(JSON.stringify({ data }), {
 			headers: { "Content-Type": "application/json" },
 		});

@@ -28,6 +28,10 @@ export default function ProfileLayout() {
 				options={{ title: "", headerShown: true }}
 			/>
 			<Stack.Screen
+				name="notification"
+				options={{ title: "Notification Settings", headerShown: true }}
+			/>
+			<Stack.Screen
 				name="privacy"
 				options={{ title: "Privacy Settings", headerShown: true }}
 			/>

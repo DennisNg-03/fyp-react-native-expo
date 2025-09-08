@@ -434,15 +434,16 @@ export default function AppointmentBookingScreen() {
 			}
 
 			setSelectedSlot(null);
+			setSlots([]);
 			setSelectedDate(new Date());
 			refreshFormFields();
-			loadSlots();
 			// isFirstRender.current = true;
 			setSelectedDoctor(null);
+			loadSlots();
 
 			Alert.alert(
 				"Appointment Request Sent",
-				"Your appointment request has been submitted successfully. You can submit a rescheduling request at least 48 hours before the appointment start time.",
+				"Your appointment request has been submitted successfully. You can submit a rescheduling request at least 24 hours before the appointment start time.",
 				[
 					{
 						text: "OK",

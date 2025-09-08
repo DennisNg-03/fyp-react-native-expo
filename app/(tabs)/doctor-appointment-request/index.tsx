@@ -321,7 +321,7 @@ export default function DoctorAppointmentRequestsScreen() {
 
 		if (!statusUpdate.ok) {
 			const errorBody = await statusUpdate.text();
-			console.error("Failed to update appointment status:", errorBody);
+			console.error("Failed to update reschedule request status:", errorBody);
 			Alert.alert("Error", "Failed to accept reschedule request.");
 			return;
 		}
@@ -348,7 +348,7 @@ export default function DoctorAppointmentRequestsScreen() {
 
 		if (!statusUpdate.ok) {
 			const errorBody = await statusUpdate.text();
-			console.error("Failed to update appointment status:", errorBody);
+			console.error("Failed to update reschedule request:", errorBody);
 			Alert.alert("Error", "Failed to reject reschedule request.");
 			return;
 		}

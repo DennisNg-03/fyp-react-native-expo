@@ -3,7 +3,10 @@ import { differenceInHours } from "date-fns";
 
 export function canReschedule(startsAtISO: string, now: Date = new Date()) {
   const hoursUntilStart = differenceInHours(new Date(startsAtISO), now);
-  return hoursUntilStart >= 48;
+	console.log("startAsISO:", startsAtISO);
+	console.log("now:", now);
+	console.log("hoursUntilStart:", hoursUntilStart);
+  return hoursUntilStart >= 24;
 }
 
 export const isPast = (startTime: string | Date): boolean => {

@@ -278,6 +278,12 @@ export default function ProfileScreen() {
 
 	const handleLogout = async () => {
 		try {
+			if (session?.user.id) {
+				await supabase
+					.from("user_device_tokens")
+					.delete()
+					.eq("user_id", session.user.id);
+			}
 			await supabase.auth.signOut();
 			console.log("Logged out successfully!");
 		} catch (err) {
@@ -363,7 +369,8 @@ export default function ProfileScreen() {
 						<List.Item
 							title="Date of Birth"
 							description={
-								typeof profile.date_of_birth === "string" && profile.date_of_birth !== ""
+								typeof profile.date_of_birth === "string" &&
+								profile.date_of_birth !== ""
 									? profile.date_of_birth
 									: "Not provided"
 							}
@@ -372,7 +379,8 @@ export default function ProfileScreen() {
 						<List.Item
 							title="Blood Type"
 							description={
-								typeof profile.blood_type === "string" && profile.blood_type !== ""
+								typeof profile.blood_type === "string" &&
+								profile.blood_type !== ""
 									? profile.blood_type
 									: "Not provided"
 							}
@@ -381,7 +389,8 @@ export default function ProfileScreen() {
 						<List.Item
 							title="Allergies"
 							description={
-								typeof profile.allergies === "string" && profile.allergies !== ""
+								typeof profile.allergies === "string" &&
+								profile.allergies !== ""
 									? profile.allergies
 									: "Not provided"
 							}
@@ -390,7 +399,8 @@ export default function ProfileScreen() {
 						<List.Item
 							title="Current Medications"
 							description={
-								typeof profile.current_medications === "string" && profile.current_medications !== ""
+								typeof profile.current_medications === "string" &&
+								profile.current_medications !== ""
 									? profile.current_medications
 									: "Not provided"
 							}
@@ -399,7 +409,8 @@ export default function ProfileScreen() {
 						<List.Item
 							title="Chronic Conditions"
 							description={
-								typeof profile.chronic_conditions === "string" && profile.chronic_conditions !== ""
+								typeof profile.chronic_conditions === "string" &&
+								profile.chronic_conditions !== ""
 									? profile.chronic_conditions
 									: "Not provided"
 							}
@@ -408,7 +419,8 @@ export default function ProfileScreen() {
 						<List.Item
 							title="Past Surgeries"
 							description={
-								typeof profile.past_surgeries === "string" && profile.past_surgeries !== ""
+								typeof profile.past_surgeries === "string" &&
+								profile.past_surgeries !== ""
 									? profile.past_surgeries
 									: "Not provided"
 							}
