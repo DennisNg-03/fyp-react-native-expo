@@ -3,6 +3,7 @@ import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import UploadRecordModal from "@/components/UploadRecordModal";
 import { useAuth } from "@/providers/AuthProvider";
 import { MedicalRecord } from "@/types/medicalRecord";
+import { formatKL } from "@/utils/dateHelpers";
 import { formatLabel } from "@/utils/labelHelpers";
 import { useEffect, useState } from "react";
 import {
@@ -36,7 +37,9 @@ export default function PatientMedicalRecordScreen() {
 	);
 
 	const [modalMode, setModalMode] = useState<"new" | "edit">("new");
-	const [loading, setLoading] = useState(false);
+	const [initialLoading, setInitialLoading] = useState(false);
+	const [refreshing, setRefreshing] = useState(false);
+	const [fetching, setFetching] = useState(false);
 	const [page, setPage] = useState(0);
 	const [hasMore, setHasMore] = useState(true);
 	const [uploadModalVisible, setUploadModalVisible] = useState(false);
@@ -55,9 +58,9 @@ export default function PatientMedicalRecordScreen() {
 	const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
 
 	const [sortMenuVisible, setSortMenuVisible] = useState(false);
-	const [sortField, setSortField] = useState<"date" | "title" | "provider">(
-		"date"
-	);
+	const [sortField, setSortField] = useState<
+		"record_date" | "title" | "healthcare_provider_name"
+	>("record_date");
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 	const [filterModalVisible, setFilterModalVisible] = useState(false);
 
@@ -77,15 +80,21 @@ export default function PatientMedicalRecordScreen() {
 
 	useEffect(() => {
 		applyFiltersAndSorting();
+		console.log("fromDate:", fromDate);
+		console.log("toDate:", toDate);
+		console.log("searchQuery:", searchQuery);
+		console.log("sortField:", sortField);
+		console.log("sortOrder:", sortOrder);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [searchQuery, fromDate, toDate, sortField, sortOrder]);
 
 	const fetchRecords = async (pageNumber = 1, ignoreHasMore = false) => {
 		if (!userId || (!hasMore && !ignoreHasMore)) return;
 		try {
-			// setLoading(true);
+			setFetching(true);
+			// setRefreshing(true);
 			const res = await fetch(
-				`https://zxyyegizcgbhctjjoido.functions.supabase.co/getMedicalRecord?uid=${session.user.id}&role=${role}&page=${pageNumber}&limit=${RECORDS_PER_PAGE}`,
+				`https://zxyyegizcgbhctjjoido.functions.supabase.co/getMedicalRecord?uid=${session.user.id}&role=${role}&page=${pageNumber}&limit=${RECORDS_PER_PAGE}&sortField=${sortField}&sortOrder=${sortOrder}`,
 				{
 					headers: { Authorization: `Bearer ${session.access_token}` },
 				}
@@ -121,98 +130,105 @@ export default function PatientMedicalRecordScreen() {
 		} catch (err) {
 			console.error(err);
 		} finally {
-			// setLoading(false);
+			// setRefreshing(false);
+			if (ignoreHasMore) {
+				setFetching(false);
+			}
+		}
+	};
+
+	const applyFiltersAndSorting = () => {
+		try {
+			// setFetching(true);
+			let filtered = records;
+
+			if (fromDate && toDate && fromDate > toDate) {
+				Alert.alert(
+					"Invalid date range",
+					"The start date cannot be later than the end date."
+				);
+				return;
+			}
+
+			if (searchQuery) {
+				filtered = filtered.filter(
+					(record) =>
+						record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+						record.record_type
+							?.toLowerCase()
+							.includes(searchQuery.toLowerCase()) ||
+						record.patient_name
+							?.toLowerCase()
+							.includes(searchQuery.toLowerCase()) ||
+						record.doctor_name
+							?.toLowerCase()
+							.includes(searchQuery.toLowerCase()) ||
+						record.healthcare_provider_name
+							?.toLowerCase()
+							.includes(searchQuery.toLowerCase())
+				);
+			}
+
+			// Date range filter
+			if (fromDate || toDate) {
+				const stripTime = (date: Date) => {
+					const d = new Date(date);
+					d.setHours(0, 0, 0, 0);
+					return d;
+				};
+
+				filtered = filtered.filter((record) => {
+					if (!record.record_date) return false;
+
+					const recordDate = stripTime(new Date(record.record_date));
+
+					if (fromDate && recordDate < stripTime(fromDate)) return false;
+					if (toDate && recordDate > stripTime(toDate)) return false;
+
+					return true;
+				});
+			}
+
+			// Sorting
+			const filteredCopy = [...filtered];
+
+			filteredCopy.sort((a, b) => {
+				let aValue: any;
+				let bValue: any;
+
+				switch (sortField) {
+					case "record_date":
+						aValue = a.record_date ? new Date(a.record_date).getTime() : 0;
+						bValue = b.record_date ? new Date(b.record_date).getTime() : 0;
+						break;
+					case "title":
+						aValue = a.title.toLowerCase();
+						bValue = b.title.toLowerCase();
+						break;
+					case "healthcare_provider_name":
+						aValue = (a.healthcare_provider_name || "").toLowerCase();
+						bValue = (b.healthcare_provider_name || "").toLowerCase();
+						break;
+				}
+
+				if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+				if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+				return 0;
+			});
+
+			setFilteredRecords(filteredCopy);
+		} finally {
+			// setFetching(false);
 		}
 	};
 
 	const handleRefresh = async () => {
-		setLoading(true);
+		setRefreshing(true);
 		setHasMore(true);
 		await fetchRecords(1, true); // force refresh, replace data
 		applyFiltersAndSorting();
-		setLoading(false);
-	};
-
-	const applyFiltersAndSorting = () => {
-		let filtered = records;
-
-		if (fromDate && toDate && fromDate > toDate) {
-			Alert.alert(
-				"Invalid date range",
-				"The start date cannot be later than the end date."
-			);
-			return; // stop filtering
-		}
-
-		if (searchQuery) {
-			filtered = filtered.filter(
-				(record) =>
-					record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-					record.record_type
-						?.toLowerCase()
-						.includes(searchQuery.toLowerCase()) ||
-					record.patient_name
-						?.toLowerCase()
-						.includes(searchQuery.toLowerCase()) ||
-					record.doctor_name
-						?.toLowerCase()
-						.includes(searchQuery.toLowerCase()) ||
-					record.healthcare_provider_name
-						?.toLowerCase()
-						.includes(searchQuery.toLowerCase())
-			);
-		}
-
-		// Date range filter
-		if (fromDate || toDate) {
-			const stripTime = (date: Date) => {
-				const d = new Date(date);
-				d.setHours(0, 0, 0, 0);
-				return d;
-			};
-
-			filtered = filtered.filter((record) => {
-				if (!record.record_date) return false;
-
-				const recordDate = stripTime(new Date(record.record_date));
-
-				if (fromDate && recordDate < stripTime(fromDate)) return false;
-				if (toDate && recordDate > stripTime(toDate)) return false;
-
-				return true;
-			});
-		}
-
-		// Sorting
-		filtered = filtered.slice(); // create a copy before sorting
-		filtered.sort((a, b) => {
-			let aValue: any;
-			let bValue: any;
-
-			switch (sortField) {
-				case "date":
-					aValue = a.record_date ? new Date(a.record_date).getTime() : 0;
-					bValue = b.record_date ? new Date(b.record_date).getTime() : 0;
-					break;
-				case "title":
-					aValue = a.title.toLowerCase();
-					bValue = b.title.toLowerCase();
-					break;
-				case "provider":
-					aValue = (a.healthcare_provider_name || "").toLowerCase();
-					bValue = (b.healthcare_provider_name || "").toLowerCase();
-					break;
-				default:
-					aValue = 0;
-					bValue = 0;
-			}
-
-			if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-			if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-			return 0;
-		});
-
-		setFilteredRecords(filtered);
+		setFetching(false);
+		setRefreshing(false);
 	};
 
 	const handleAddRecord = async () => {
@@ -263,6 +279,27 @@ export default function PatientMedicalRecordScreen() {
 
 	const keyExtractor = (item: MedicalRecord) => item.id;
 	const renderRecord = ({ item }: { item: MedicalRecord }) => {
+		const diagnosisStr = Array.isArray(item.diagnosis)
+			? item.diagnosis.length
+				? item.diagnosis.join("\n")
+				: "Not provided"
+			: item.diagnosis || "Not provided";
+		const proceduresStr = Array.isArray(item.procedures)
+			? item.procedures.length
+				? item.procedures.join("\n")
+				: "Not provided"
+			: item.procedures || "Not provided";
+		const medicationsStr = Array.isArray(item.medications)
+			? item.medications.length
+				? item.medications.join("\n")
+				: "Not provided"
+			: item.medications || "Not provided";
+		const notesStr = Array.isArray(item.notes)
+			? item.notes.length
+				? item.notes.join("\n")
+				: "Not provided"
+			: item.notes || "Not provided";
+
 		return (
 			<Card
 				key={item.id}
@@ -272,7 +309,7 @@ export default function PatientMedicalRecordScreen() {
 			>
 				<Card.Title
 					title={item.title}
-					titleStyle={{ fontWeight: "600" }}
+					titleStyle={styles.cardTitle}
 					subtitle={
 						item.record_date
 							? `${item.record_date}${
@@ -282,9 +319,10 @@ export default function PatientMedicalRecordScreen() {
 							  }`
 							: formatLabel(item.record_type) ?? "No date"
 					}
+					subtitleStyle={styles.cardSubtitle}
 					right={() => (
 						<Menu
-							contentStyle={{ borderRadius: 8, width: 140 }}
+							contentStyle={{ borderRadius: 8, width: 120, backgroundColor: "white" }}
 							mode="elevated"
 							visible={openMenuId === item.id}
 							onDismiss={() => setOpenMenuId(null)}
@@ -319,47 +357,48 @@ export default function PatientMedicalRecordScreen() {
 				/>
 
 				<Card.Content style={styles.cardContent}>
-					<Text variant="bodyMedium" style={styles.cardContentRow}>
+					<Text variant="bodyMedium" style={styles.cardInfoRow}>
 						Patient:{" "}
-						<Text style={{ fontWeight: "500" }}>
+						<Text style={styles.cardInfoValue}>
 							{item.patient_name || "Not provided"}
 						</Text>
 					</Text>
-					<Text variant="bodyMedium" style={styles.cardContentRow}>
+					<Text variant="bodyMedium" style={styles.cardInfoRow}>
 						Doctor:{" "}
-						<Text style={{ fontWeight: "500" }}>
+						<Text style={styles.cardInfoValue}>
 							{item.doctor_name || "Not provided"}
 						</Text>
 					</Text>
-					<Text variant="bodyMedium" style={styles.cardContentRow}>
+					<Text variant="bodyMedium" style={styles.cardInfoRow}>
 						Provider:{" "}
-						<Text style={{ fontWeight: "500" }}>
+						<Text style={styles.cardInfoValue}>
 							{item.healthcare_provider_name || "Not provided"}
 						</Text>
 					</Text>
-					<Text variant="bodyMedium" style={styles.cardContentRow}>
-						Diagnosis:{" "}
-						<Text style={{ fontWeight: "500" }}>
-							{item.diagnosis || "Not provided"}
-						</Text>
+					{/** Diagnosis, Procedures, Medications as blocks, newline-separated, no label+data inline formatting */}
+					<Text variant="bodyMedium" style={styles.cardSectionLabel}>
+						Diagnosis
 					</Text>
-					<Text variant="bodyMedium" style={styles.cardContentRow}>
-						Procedures:{" "}
-						<Text style={{ fontWeight: "500" }}>
-							{item.procedures || "Not provided"}
-						</Text>
+					<Text variant="bodyMedium" style={styles.cardSectionBlock}>
+						{diagnosisStr}
 					</Text>
-					<Text variant="bodyMedium" style={styles.cardContentRow}>
-						Medications:{" "}
-						<Text style={{ fontWeight: "500" }}>
-							{item.medications || "Not provided"}
-						</Text>
+					<Text variant="bodyMedium" style={styles.cardSectionLabel}>
+						Procedures
+					</Text>
+					<Text variant="bodyMedium" style={styles.cardSectionBlock}>
+						{proceduresStr}
+					</Text>
+					<Text variant="bodyMedium" style={styles.cardSectionLabel}>
+						Medications
+					</Text>
+					<Text variant="bodyMedium" style={styles.cardSectionBlock}>
+						{medicationsStr}
 					</Text>
 					<Text variant="bodySmall" style={styles.cardContentRowSecondary}>
 						Date of Admission:{" "}
 						<Text>
 							{item.date_of_admission
-								? new Date(item.date_of_admission).toLocaleDateString()
+								? formatKL(item.date_of_admission, "yyyy-MM-dd")
 								: "Not provided"}
 						</Text>
 					</Text>
@@ -367,23 +406,27 @@ export default function PatientMedicalRecordScreen() {
 						Date of Discharge:{" "}
 						<Text>
 							{item.date_of_discharge
-								? new Date(item.date_of_discharge).toLocaleDateString()
+								? formatKL(item.date_of_discharge, "yyyy-MM-dd")
 								: "Not provided"}
 						</Text>
 					</Text>
-					<Text variant="bodySmall" style={styles.cardContentRowSecondary}>
-						Notes: <Text>{item.notes || "Not provided"}</Text>
+					<Text variant="bodyMedium" style={styles.cardSectionLabel}>
+						Clinical Notes
 					</Text>
-					<Text variant="bodySmall" style={styles.cardContentRowSecondary}>
-						Created by:{" "}
-						<Text>{item.created_by_full_name || "Not provided"}</Text>
+					<Text variant="bodyMedium" style={styles.cardSectionBlock}>
+						{notesStr}
 					</Text>
-					<Text variant="bodySmall" style={styles.cardContentRowSecondary}>
-						Last updated:{" "}
-						{item.updated_at
-							? new Date(item.updated_at).toLocaleDateString()
-							: "Not provided"}
-					</Text>
+					<View style={styles.cardFooterColumn}>
+						<Text variant="bodySmall" style={styles.cardFooterRight}>
+							Uploaded by: {item.created_by_full_name || "Not provided"}
+						</Text>
+						<Text variant="bodySmall" style={styles.cardFooterRight}>
+							Last updated:{" "}
+							{item.updated_at
+								? new Date(item.updated_at).toLocaleDateString()
+								: "Not provided"}
+						</Text>
+					</View>
 				</Card.Content>
 			</Card>
 		);
@@ -396,12 +439,22 @@ export default function PatientMedicalRecordScreen() {
 					contentContainerStyle={{ paddingBottom: 50, paddingHorizontal: 16 }}
 					data={filteredRecords}
 					keyExtractor={keyExtractor}
-					refreshing={loading}
+					refreshing={refreshing && fetching}
 					onRefresh={handleRefresh}
 					renderItem={renderRecord}
 					maxToRenderPerBatch={6}
 					ListHeaderComponent={
 						<>
+							<Text
+								style={[
+									styles.pageHeader,
+									{
+										marginTop: 8,
+									},
+								]}
+							>
+								Patient Records
+							</Text>
 							<View style={styles.searchActionsContainer}>
 								<View style={styles.searchBarWrapper}>
 									<Searchbar
@@ -409,7 +462,10 @@ export default function PatientMedicalRecordScreen() {
 										value={searchQuery}
 										mode="bar"
 										onChangeText={setSearchQuery}
-										style={[styles.searchBar, { backgroundColor: theme.colors.surfaceVariant }]}
+										style={[
+											styles.searchBar,
+											{ backgroundColor: theme.colors.surfaceVariant },
+										]}
 										inputStyle={styles.searchBarInputStyle}
 										autoComplete="off"
 										autoCorrect={false}
@@ -427,6 +483,7 @@ export default function PatientMedicalRecordScreen() {
 									/>
 									<Menu
 										visible={sortMenuVisible}
+										contentStyle={{ borderRadius: 8, width: 190, backgroundColor: "white" }}
 										onDismiss={() => setSortMenuVisible(false)}
 										anchor={
 											<IconButton
@@ -441,7 +498,7 @@ export default function PatientMedicalRecordScreen() {
 									>
 										<Menu.Item
 											onPress={() => {
-												setSortField("date");
+												setSortField("record_date");
 												setSortMenuVisible(false);
 											}}
 											title="Date"
@@ -455,7 +512,7 @@ export default function PatientMedicalRecordScreen() {
 										/>
 										<Menu.Item
 											onPress={() => {
-												setSortField("provider");
+												setSortField("healthcare_provider_name");
 												setSortMenuVisible(false);
 											}}
 											title="Provider"
@@ -476,7 +533,11 @@ export default function PatientMedicalRecordScreen() {
 										icon="plus"
 										mode="contained"
 										onPress={handleAddRecord}
-										style={styles.iconButtonAdd}
+										style={[
+											styles.iconButtonAdd,
+											{ backgroundColor: theme.colors.primary },
+										]}
+										iconColor={theme.colors.surfaceVariant}
 										size={24}
 										accessibilityLabel="Add Record"
 									/>
@@ -485,14 +546,14 @@ export default function PatientMedicalRecordScreen() {
 						</>
 					}
 					onEndReached={() => {
-						if (!loading && hasMore) {
+						if (!refreshing && hasMore) {
 							fetchRecords(page + 1);
 							setPage((prev) => prev + 1);
 						}
 					}}
 					onEndReachedThreshold={0}
 					ListEmptyComponent={
-						!loading ? (
+						!refreshing && !fetching ? (
 							<View style={styles.center}>
 								<Text
 									variant="bodyLarge"
@@ -512,7 +573,7 @@ export default function PatientMedicalRecordScreen() {
 					onConfirm={handleDelete}
 				/>
 
-				{/* Popup Modal for Uploading Medical Records */}
+				{/* Popup Modal for Uprefreshing Medical Records */}
 				<Portal>
 					<UploadRecordModal
 						visible={uploadModalVisible}
@@ -528,12 +589,12 @@ export default function PatientMedicalRecordScreen() {
 					/>
 				</Portal>
 
-				{/* Inline Filter Modal */}
+				{/* Date Filter Modal */}
 				<Portal>
 					{filterModalVisible && (
 						<View style={styles.modalBackdrop}>
-							<Card style={styles.filterModalCard}>
-								<Card.Title title="Filter by Date Range" />
+							<Card mode="elevated" style={styles.filterModalCard}>
+								<Card.Title title="Filter by Date Range" titleStyle={styles.modalHeader} />
 								<Card.Content>
 									<CustomDatePicker
 										label="From"
@@ -576,22 +637,81 @@ export default function PatientMedicalRecordScreen() {
 }
 
 const styles = StyleSheet.create({
+	pageHeader: {
+		fontWeight: "700",
+		fontSize: 16,
+		textAlign: "center",
+		color: "rgba(0, 0, 0, 0.7)",
+	},
 	card: {
 		marginBottom: 15,
 		padding: 5,
 		borderRadius: 10,
+		backgroundColor: "#fff",
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.08,
+		shadowRadius: 2,
+	},
+	cardTitle: {
+		fontWeight: "700",
+		fontSize: 17,
+		color: "#1a1a1a",
+	},
+	cardSubtitle: {
+		fontSize: 14,
+		color: "#444",
+		fontWeight: "500",
 	},
 	cardContent: {
-		gap: 6,
-		marginTop: 4,
-		paddingBottom: 2,
+		gap: 8,
+		marginVertical: 10,
+		paddingBottom: 6,
 	},
-	cardContentRow: {
-		marginBottom: 1,
+	cardInfoRow: {
+		marginBottom: 0,
+		fontSize: 14,
+		color: "#222",
+	},
+	cardInfoValue: {
+		fontWeight: "600",
+		color: "#000",
+		fontSize: 14,
+	},
+	cardSectionLabel: {
+		marginTop: 8,
+		fontWeight: "600",
+		fontSize: 15,
+		color: "#263238",
+		letterSpacing: 0.1,
+	},
+	cardSectionBlock: {
+		fontSize: 14,
+		color: "#111",
+		fontWeight: "400",
+		marginBottom: 2,
+		lineHeight: 20,
+		backgroundColor: "#f7f7f7",
+		borderRadius: 6,
+		paddingVertical: 6,
+		paddingHorizontal: 10,
 	},
 	cardContentRowSecondary: {
 		marginBottom: 0,
-		color: "#666",
+		color: "#888",
+		fontSize: 13,
+	},
+	cardFooterColumn: {
+		flexDirection: "column",
+		alignItems: "flex-end", // right-align all text
+		marginTop: 10,
+	},
+	cardFooterRight: {
+		color: "#999",
+		fontSize: 12,
+		fontWeight: "400",
+		textAlign: "right",
+		marginBottom: 2, // optional spacing between lines
 	},
 	center: {
 		alignItems: "center",
@@ -608,7 +728,6 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	searchBar: {
-		// backgroundColor: "white",
 		height: 40,
 		borderRadius: 8,
 	},
@@ -629,11 +748,7 @@ const styles = StyleSheet.create({
 		marginHorizontal: 0,
 		marginVertical: 0,
 	},
-	iconButtonAdd: {
-		marginHorizontal: 0,
-		marginVertical: 0,
-		backgroundColor: "#2e7d32",
-	},
+	iconButtonAdd: {},
 	modalBackdrop: {
 		flex: 1,
 		backgroundColor: "rgba(0,0,0,0.3)",
@@ -641,12 +756,19 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		paddingHorizontal: 20,
 	},
+	modalHeader: {
+		fontWeight: "500",
+		fontSize: 16,
+		textAlign: "center",
+		color: "rgba(0, 0, 0)",
+		marginTop: 10,
+	},
 	filterModalCard: {
 		width: "100%",
-		maxWidth: 360,
 		borderRadius: 10,
+		backgroundColor: "white",
 	},
-	loadingOverlay: {
+	refreshingOverlay: {
 		...StyleSheet.absoluteFillObject,
 		backgroundColor: "rgba(255,255,255,0.8)",
 		alignItems: "center",

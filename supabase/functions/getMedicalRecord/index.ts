@@ -20,6 +20,8 @@ Deno.serve(async (req) => {
 		const page = Number(url.searchParams.get("page") ?? "1");
 		const limit = Number(url.searchParams.get("limit") ?? "10"); // default 10 per page
 		const offset = (page - 1) * limit;
+		const sortField = url.searchParams.get("sortField") ?? "record_date";
+		const sortOrder = url.searchParams.get("sortOrder") === "asc" ? true : false;
 
 		// Get data from medical_records table in db
 		if (role === "patient") {
@@ -32,8 +34,7 @@ Deno.serve(async (req) => {
 					`
 				)
 				.eq("patient_id", uid)
-				.order("record_date", { ascending: false })
-				.order("updated_at", { ascending: false })
+				.order(sortField, { ascending: sortOrder })
 				.range(offset, offset + limit - 1); // For handling pagination of infinite scroll
 
 			if (error)
@@ -154,8 +155,7 @@ Deno.serve(async (req) => {
 					`
 					)
 					.or(orFilter)
-					.order("record_date", { ascending: false })
-					.order("updated_at", { ascending: false })
+					.order(sortField, { ascending: sortOrder })
 					.range(offset, offset + limit - 1);
 
 				if (fetchErr)
@@ -174,8 +174,7 @@ Deno.serve(async (req) => {
 					`
 					)
 					.eq("created_by", effectiveDoctorId)
-					.order("record_date", { ascending: false })
-					.order("updated_at", { ascending: false })
+					.order(sortField, { ascending: sortOrder })
 					.range(offset, offset + limit - 1);
 
 				if (fetchErr)
