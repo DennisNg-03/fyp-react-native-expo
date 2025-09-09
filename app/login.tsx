@@ -9,7 +9,13 @@ import {
 	TouchableWithoutFeedback,
 	View,
 } from "react-native";
-import { Button, Text, TextInput, useTheme } from "react-native-paper";
+import {
+	Button,
+	Checkbox,
+	Text,
+	TextInput,
+	useTheme,
+} from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ActivityIndicator } from "@/components/ActivityIndicator";
@@ -20,6 +26,7 @@ export default function LoginScreen() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
+	const [consentGiven, setConsentGiven] = useState(false);
 
 	const handleLogin = async () => {
 		try {
@@ -27,6 +34,15 @@ export default function LoginScreen() {
 				Alert.alert("Alert", "Please enter email and password to login!");
 				return;
 			}
+
+			if (!consentGiven) {
+				Alert.alert(
+					"Consent Required",
+					"You must consent to the collection and secure storage of your personal data for app services before logging in."
+				);
+				return;
+			}
+
 			setLoading(true);
 			const { data, error } = await supabase.auth.signInWithPassword({
 				email,
@@ -96,6 +112,25 @@ export default function LoginScreen() {
 								textAlign: undefined, // To prevent ellipsis from not working
 							}}
 						/>
+
+						{/* Consent Checkbox */}
+						<View
+							style={{
+								flexDirection: "row",
+								alignItems: "center",
+								marginBottom: 16,
+							}}
+						>
+							<Checkbox.Android
+								status={consentGiven ? "checked" : "unchecked"}
+								onPress={() => setConsentGiven(!consentGiven)}
+							/>
+							<View style={{ flex: 1 }}>
+								<Text variant="bodySmall">
+									I consent to my personal data being collected and stored securely in the cloud, and it will be used only to provide app services with strong security protections in place.
+								</Text>
+							</View>
+						</View>
 
 						<Button
 							mode="contained"

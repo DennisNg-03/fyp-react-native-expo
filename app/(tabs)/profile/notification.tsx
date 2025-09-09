@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
 	noNotifications: {
 		textAlign: "center",
 		color: "gray",
-		marginTop: 32,
+		marginTop: 50,
 	},
 	card: {
 		marginBottom: 12,
