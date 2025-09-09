@@ -29,7 +29,7 @@ export default function ProfileLayout() {
 			/>
 			<Stack.Screen
 				name="notification"
-				options={{ title: "Notification Settings", headerShown: true }}
+				options={{ title: "Notifications", headerShown: true }}
 			/>
 			<Stack.Screen
 				name="privacy"

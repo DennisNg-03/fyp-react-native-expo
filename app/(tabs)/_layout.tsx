@@ -106,7 +106,7 @@ export default function TabLayout() {
 					title: "Appointments",
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons
-							name="calendar-month-outline"
+							name="calendar-month"
 							size={28}
 							color={color}
 						/>
@@ -132,7 +132,7 @@ export default function TabLayout() {
 					title: "Booking",
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons
-							name="calendar-check"
+							name="calendar-clock"
 							size={28}
 							color={color}
 						/>
@@ -146,7 +146,7 @@ export default function TabLayout() {
 					title: "Appointments",
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons
-							name="calendar-clock"
+							name="calendar-month"
 							size={28}
 							color={color}
 						/>
@@ -170,7 +170,7 @@ export default function TabLayout() {
 					title: "Requests",
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons
-							name="inbox-arrow-down-outline"
+							name="calendar-edit"
 							size={28}
 							color={color}
 						/>
@@ -194,10 +194,10 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="medical-record"
 				options={{
-					title: role === "patient" ? "My Records" : "Records",
+					title: role === "patient" ? "My Records" : "Past Records",
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons
-							name="clipboard-text-outline"
+							name={role === "patient" ? "clipboard-text-outline" : "clipboard-text-search-outline"}
 							size={28}
 							color={color}
 						/>
@@ -222,7 +222,7 @@ export default function TabLayout() {
 					title: "My Profile",
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons
-							name="account-circle-outline"
+							name="account-circle"
 							size={28}
 							color={color}
 						/>

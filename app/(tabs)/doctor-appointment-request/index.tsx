@@ -706,7 +706,7 @@ export default function DoctorAppointmentRequestsScreen() {
 			>
 				{filterRequests().length === 0 ? (
 					<View style={styles.emptyContainer}>
-						<Text>No requests found.</Text>
+						<Text>No {statusFilter} requests.</Text>
 					</View>
 				) : (
 					filterRequests().map((item) =>

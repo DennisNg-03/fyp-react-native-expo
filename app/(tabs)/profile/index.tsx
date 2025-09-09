@@ -543,20 +543,21 @@ export default function ProfileScreen() {
 				<Divider style={{ marginVertical: 10 }} />
 
 				{/* Settings */}
-				<List.Item
+				{/* <List.Item
 					title="Change Password"
 					left={(props) => <List.Icon {...props} icon="lock-reset" />}
-				/>
+				/> */}
 				{role === "patient" && (
 					<>
 						<List.Item
-							title="Notification Preferences"
+							title="Notifications"
 							left={(props) => <List.Icon {...props} icon="bell" />}
+							onPress={() => router.push("/profile/notification")}
 						/>
 						<List.Item
 							title="Privacy Settings"
 							left={(props) => <List.Icon {...props} icon="shield-lock" />}
-							onPress={() => router.push(`/profile/privacy`)}
+							onPress={() => router.push("/profile/privacy")}
 						/>
 					</>
 				)}
