@@ -66,7 +66,7 @@ export default function TabLayout() {
 		);
 		const { appointment_id, type } = response.notification.request.content.data;
 
-		if (type === "appointment_accepted" || type === "appointment_rejected") {
+		if (type === "appointment_accepted" || type === "appointment_rejected" || "appointment_reminder_today" || type === "appointment_reminder_2days") {
 			router.replace(`/(tabs)/patient-appointment/${appointment_id}`);
 		}
 	});
