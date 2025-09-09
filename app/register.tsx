@@ -133,7 +133,7 @@ export default function RegisterScreen() {
 			} = await supabase.auth.getSession();
 
 			if (!error) {
-				await supabase.auth.signOut(); // Immediately log out so they are not auto-logged in upon app refresh
+				await supabase.auth.signOut({ scope: 'local' })// Immediately log out so they are not auto-logged in upon app refresh
 			}
 
 			const bodyData: Record<string, any> = {

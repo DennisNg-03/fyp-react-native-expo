@@ -7,7 +7,7 @@ import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { Divider, List, Switch, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function NotificationSettingsScreen() {
+export default function NotificationScreen() {
 	const { session } = useAuth();
 	const userId = session?.user.id;
 	const theme = useTheme();

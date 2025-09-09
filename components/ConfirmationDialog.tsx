@@ -1,4 +1,4 @@
-import { Button, Dialog, MD3Colors, Portal, Text } from "react-native-paper";
+import { Button, Dialog, MD3Colors, Portal, Text, useTheme } from "react-native-paper";
 
 type Props = {
 	visible: boolean;
@@ -17,13 +17,14 @@ export default function ConfirmationDialog({
 	messagePrimary = "Are you sure?",
 	messageSecondary = "",
 }: Props) {
+	const theme = useTheme();
 	return (
 		<Portal>
 			<Dialog
 				visible={visible}
 				onDismiss={onCancel}
 				dismissable={false}
-				style={{ borderRadius: 8 }}
+				style={{ borderRadius: 8, backgroundColor: theme.colors.onPrimary }}
 			>
 				<Dialog.Icon icon="alert" color={MD3Colors.error50} />
 				<Dialog.Title

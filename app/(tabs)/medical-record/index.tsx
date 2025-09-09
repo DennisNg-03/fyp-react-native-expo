@@ -62,7 +62,7 @@ export default function MedicalRecordScreen() {
 	const [sortField, setSortField] = useState<
 		"record_date" | "title" | "healthcare_provider_name"
 	>("record_date");
-	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 	const [filterModalVisible, setFilterModalVisible] = useState(false);
 
 	const RECORDS_PER_PAGE = 4; // Currently only set this to 4 can prevent duplicated children issue

@@ -29,6 +29,7 @@ export default function ProfileScreen() {
 	const [profile, setProfile] = useState<FlattenedUser | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [dialogVisible, setDialogVisible] = useState(false);
+	const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
 	const [pendingAvatarFile, setPendingAvatarFile] = useState<
 		ImagePicker.ImagePickerAsset | undefined
 	>(undefined);
@@ -284,10 +285,17 @@ export default function ProfileScreen() {
 					.delete()
 					.eq("user_id", session.user.id);
 			}
-			await supabase.auth.signOut();
+			const { error } = await supabase.auth.signOut({ scope: "local" });
+			if (error) {
+				console.error("Error signing out!");
+			}
+
+			// router.replace("/login");
 			console.log("Logged out successfully!");
 		} catch (err) {
 			console.error("Error logging out", err);
+		} finally {
+			setDeleteDialogVisible(false);
 		}
 	};
 
@@ -558,7 +566,7 @@ export default function ProfileScreen() {
 						<List.Icon {...props} icon="logout" color={theme.colors.error} />
 					)}
 					titleStyle={{ color: theme.colors.error }}
-					onPress={handleLogout}
+					onPress={() => setDeleteDialogVisible(true)}
 				/>
 
 				<Divider style={{ marginBottom: 50 }} />
@@ -575,6 +583,17 @@ export default function ProfileScreen() {
 				}}
 				title="Update Profile Picture"
 				messagePrimary="Are you sure you want to change your profile picture?"
+				messageSecondary=""
+			/>
+
+			<ConfirmationDialog
+				visible={deleteDialogVisible}
+				onCancel={() => setDeleteDialogVisible(false)}
+				onConfirm={() => {
+					handleLogout();
+				}}
+				title="Logout Confirmation"
+				messagePrimary="Are you sure you want to log out from your account?"
 				messageSecondary=""
 			/>
 

@@ -1,4 +1,4 @@
-import { Button, Dialog, MD3Colors, Portal, Text } from "react-native-paper";
+import { Button, Dialog, MD3Colors, Portal, Text, useTheme } from "react-native-paper";
 
 type Props = {
 	visible: boolean;
@@ -13,9 +13,10 @@ export default function DeleteConfirmationDialog({
 	onCancel,
 	onConfirm,
 }: Props) {
+	const theme = useTheme();
 	return (
 		<Portal>
-			<Dialog visible={visible} onDismiss={onCancel} dismissable={false} style={{ borderRadius: 8 }}>
+			<Dialog visible={visible} onDismiss={onCancel} dismissable={false} style={{ borderRadius: 8, backgroundColor: theme.colors.onPrimary }}>
 				<Dialog.Icon icon="alert" color={MD3Colors.error50} />
 				<Dialog.Title style={{ fontSize: 20, textAlign: "center", fontWeight: "500" }}>Delete Record Confirmation</Dialog.Title>
 				<Dialog.Content>
