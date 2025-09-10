@@ -33,9 +33,9 @@ export default function NotificationsScreen() {
 			edges={["left", "right", "bottom"]}
 		>
 			<ScrollView contentContainerStyle={styles.content}>
-				<Text variant="titleLarge" style={styles.header}>
+				{/* <Text variant="titleLarge" style={styles.header}>
 					Notifications
-				</Text>
+				</Text> */}
 				{notifications.length === 0 && (
 					<Text variant="bodyMedium" style={styles.noNotifications}>
 						No notifications found.

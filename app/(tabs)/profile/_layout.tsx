@@ -25,7 +25,7 @@ export default function ProfileLayout() {
 			/>
 			<Stack.Screen
 				name="[id]"
-				options={{ title: "", headerShown: true }}
+				options={{ title: "Edit Profile", headerShown: true }}
 			/>
 			<Stack.Screen
 				name="notification"
