@@ -79,7 +79,15 @@ Deno.serve(async (req) => {
 			const startsAt =
 				data && data[0]?.starts_at ? new Date(data[0].starts_at) : null;
 			const formattedDate = startsAt
-				? startsAt.toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" })
+				? startsAt.toLocaleString("en-MY", {
+						timeZone: "Asia/Kuala_Lumpur",
+						day: "2-digit",
+						month: "2-digit",
+						year: "numeric",
+						hour: "numeric",
+						minute: "2-digit",
+						hour12: true,
+				  })
 				: "";
 			messageBody = `Your appointment has been successfully rescheduled for ${formattedDate}.`;
 			messageType = "appointment_accepted";
@@ -95,11 +103,14 @@ Deno.serve(async (req) => {
 			});
 
 		if (notificationError) {
-			return new Response(JSON.stringify({ error: notificationError.message }), {
-				status: 500,
-			});
+			return new Response(
+				JSON.stringify({ error: notificationError.message }),
+				{
+					status: 500,
+				}
+			);
 		}
-		
+
 		return new Response(JSON.stringify({ data }), {
 			headers: { "Content-Type": "application/json" },
 		});

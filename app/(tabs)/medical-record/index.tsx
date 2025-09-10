@@ -314,7 +314,7 @@ export default function MedicalRecordScreen() {
 					titleStyle={styles.cardTitle}
 					subtitle={
 						item.record_date
-							? `${item.record_date}${
+							? `${formatKL(item.record_date, "dd MMM yyyy")}${
 									formatLabel(item.record_type)
 										? " • " + formatLabel(item.record_type)
 										: ""
@@ -405,7 +405,7 @@ export default function MedicalRecordScreen() {
 						Date of Admission:{" "}
 						<Text variant="bodyMedium">
 							{item.date_of_admission
-								? formatKL(item.date_of_admission, "yyyy-MM-dd")
+								? formatKL(item.date_of_admission, "dd MMM yyyy")
 								: "Not provided"}
 						</Text>
 					</Text>
@@ -413,7 +413,7 @@ export default function MedicalRecordScreen() {
 						Date of Discharge:{" "}
 						<Text variant="bodyMedium">
 							{item.date_of_discharge
-								? formatKL(item.date_of_discharge, "yyyy-MM-dd")
+								? formatKL(item.date_of_discharge, "dd MMM yyyy")
 								: "Not provided"}
 						</Text>
 					</Text>
@@ -433,7 +433,7 @@ export default function MedicalRecordScreen() {
 						<Text variant="bodySmall" style={styles.cardFooterRight}>
 							Last updated:{" "}
 							{item.updated_at
-								? new Date(item.updated_at).toLocaleDateString()
+								? formatKL(item.updated_at, "dd/MM/yyyy HH:mm")
 								: "Not provided"}
 						</Text>
 					</View>

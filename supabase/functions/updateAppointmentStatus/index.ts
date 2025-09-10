@@ -41,28 +41,41 @@ Deno.serve(async (req) => {
 			messageTitle = "Appointment Rejected";
 			messageBody = "Your appointment has been rejected.";
 			messageType = "appointment_rejected";
-
 		} else if (status === "scheduled") {
 			messageTitle = "Appointment Confirmed";
-			const startsAt = data && data[0]?.starts_at ? new Date(data[0].starts_at) : null;
+			const startsAt =
+				data && data[0]?.starts_at ? new Date(data[0].starts_at) : null;
 			const formattedDate = startsAt
-				? startsAt.toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" })
+				? startsAt.toLocaleString("en-MY", {
+						timeZone: "Asia/Kuala_Lumpur",
+						day: "2-digit",
+						month: "2-digit",
+						year: "numeric",
+						hour: "numeric",
+						minute: "2-digit",
+						hour12: true,
+				  })
 				: "";
 			messageBody = `Your appointment has been successfully scheduled for ${formattedDate}.`;
 			messageType = "appointment_accepted";
 		}
-		const { error: notificationError } = await supabase.from("notifications").insert({
-			user_id: patientId,
-			appointment_id: id,
-			title: messageTitle,
-			body: messageBody,
-			type: messageType,
-		});
+		const { error: notificationError } = await supabase
+			.from("notifications")
+			.insert({
+				user_id: patientId,
+				appointment_id: id,
+				title: messageTitle,
+				body: messageBody,
+				type: messageType,
+			});
 
 		if (notificationError) {
-			return new Response(JSON.stringify({ error: notificationError.message }), {
-				status: 500,
-			});
+			return new Response(
+				JSON.stringify({ error: notificationError.message }),
+				{
+					status: 500,
+				}
+			);
 		}
 
 		return new Response(JSON.stringify({ data }), {

@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
 import { Notification } from "@/types/notification";
+import { formatKL } from "@/utils/dateHelpers";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { Card, Text, useTheme } from "react-native-paper";
@@ -56,7 +57,7 @@ export default function NotificationsScreen() {
 								{n.body}
 							</Text>
 							<Text variant="bodySmall" style={{ color: "gray" }}>
-								{new Date(n.created_at).toLocaleString()}
+								{formatKL(n.created_at, "dd/MM/yyyy HH:mm")}
 							</Text>
 						</Card.Content>
 					</Card>

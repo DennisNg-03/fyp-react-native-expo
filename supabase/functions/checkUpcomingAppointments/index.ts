@@ -36,7 +36,15 @@ Deno.serve(async () => {
 
 		for (const appt of appointments || []) {
 			const startsAt = new Date(appt.starts_at);
-			const formattedDate = startsAt.toLocaleString("en-US", { timeZone: tz });
+			const formattedDate = startsAt.toLocaleString("en-MY", {
+				timeZone: "Asia/Kuala_Lumpur",
+				day: "2-digit",
+				month: "2-digit",
+				year: "numeric",
+				hour: "numeric",
+				minute: "2-digit",
+				hour12: true,
+			});
 
 			let title = "";
 			let body = "";
