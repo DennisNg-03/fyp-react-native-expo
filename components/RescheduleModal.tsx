@@ -6,7 +6,7 @@ import type {
 import { formatKL } from "@/utils/dateHelpers";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
-import { Button, Modal, Text, useTheme } from "react-native-paper";
+import { Button, Modal, Text } from "react-native-paper";
 import { ActivityIndicator } from "./ActivityIndicator";
 import ConfirmationDialog from "./ConfirmationDialog";
 import CustomDatePicker from "./CustomDatePicker";
@@ -27,7 +27,6 @@ export default function RescheduleModal({
 	onRecordSaved,
 	appointment,
 }: RescheduleModalProps) {
-	const theme = useTheme();
 	const [saving, setSaving] = useState(false);
 	const [dialogVisible, setDialogVisible] = useState(false);
 	const [slots, setSlots] = useState<Slot[]>([]);

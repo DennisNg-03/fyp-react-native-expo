@@ -44,12 +44,6 @@ export default function EditProfileScreen() {
 	const [pastSurgeries, setPastSurgeries] = useState<string | undefined>(
 		undefined
 	);
-	const [insuranceInfo, setInsuranceInfo] = useState<string | undefined>(
-		undefined
-	);
-	const [medicalHistory, setMedicalHistory] = useState<string | undefined>(
-		undefined
-	);
 	const [emergencyContact, setEmergencyContact] = useState<string | undefined>(
 		undefined
 	);

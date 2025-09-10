@@ -81,6 +81,7 @@ Deno.serve(async (req) => {
 		}
 
 		return new Response(JSON.stringify({ success: true }), { status: 200 });
+	// deno-lint-ignore no-explicit-any
 	} catch (err: any) {
 		return new Response(`Server error: ${err.message}`, { status: 500 });
 	}

@@ -15,7 +15,7 @@ export default function DoctorAvailabilityScreen({ userId }: { userId: string })
   const add = async () => {
     setSaving(true);
     try {
-      const { data, error } = await supabase.from("doctor_availability").insert({
+      const { error } = await supabase.from("doctor_availability").insert({
         doctor_id: userId,
         day_of_week: day,
         start_time: start,

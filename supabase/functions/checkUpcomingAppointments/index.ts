@@ -22,8 +22,6 @@ Deno.serve(async () => {
 		console.log("todayEnd (UTC, ISO):", todayEnd.toISOString());
 		console.log("twoDaysLater (UTC, ISO):", twoDaysLater.toISOString());
 
-		const tz = "Asia/Kuala_Lumpur";
-
 		// Query appointments that are scheduled/rescheduled for today OR 2 days later
 		const { data: appointments, error } = await supabase
 			.from("appointments")

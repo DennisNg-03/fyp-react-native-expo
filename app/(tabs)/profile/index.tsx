@@ -227,7 +227,7 @@ export default function ProfileScreen() {
 
 		try {
 			setLoading(true);
-			const ext = file.uri.split(".").pop()?.toLowerCase();
+			// const ext = file.uri.split(".").pop()?.toLowerCase();
 			const fileName = file.fileName ?? file.uri.split("/").pop() ?? "unknown";
 
 			const response = await fetch(file.uri);

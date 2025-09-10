@@ -42,7 +42,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AppointmentBookingScreen() {
 	const theme = useTheme();
-	const { session, role } = useAuth();
+	const { session } = useAuth();
 	const userId = session?.user.id;
 
 	// Providers -> Doctors -> Date -> Slots

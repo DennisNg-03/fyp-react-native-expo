@@ -38,7 +38,7 @@ export default function MedicalRecordScreen() {
 	);
 
 	const [modalMode, setModalMode] = useState<"new" | "edit">("new");
-	const [initialLoading, setInitialLoading] = useState(false);
+	// const [initialLoading, setInitialLoading] = useState(false);
 	const [refreshing, setRefreshing] = useState(false);
 	const [fetching, setFetching] = useState(false);
 	const [page, setPage] = useState(0);
@@ -46,7 +46,7 @@ export default function MedicalRecordScreen() {
 	const [uploadModalVisible, setUploadModalVisible] = useState(false);
 
 	const [searchQuery, setSearchQuery] = useState("");
-	const [imageLoading, setImageLoading] = useState(true);
+	// const [imageLoading, setImageLoading] = useState(true);
 	const [fromDate, setFromDate] = useState<Date | undefined>(() => {
 		const d = new Date();
 		d.setFullYear(d.getFullYear() - 1); // set 1 year earlier

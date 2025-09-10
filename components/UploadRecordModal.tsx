@@ -103,10 +103,10 @@ export default function UploadRecordModal({
 		console.log("selectedPatient:", selectedPatient);
 	}, [selectedPatient]);
 
-	useEffect(() => {
-		console.log("recordId:", recordId);
-		console.log("record.id:", record?.id);
-	}, [recordId]);
+	// useEffect(() => {
+	// 	console.log("recordId:", recordId);
+	// 	console.log("record.id:", record?.id);
+	// }, [recordId]);
 
 	useEffect(() => {
 		console.log("record:", record);

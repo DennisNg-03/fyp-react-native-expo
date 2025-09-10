@@ -78,7 +78,7 @@ export default function DoctorAppointmentRequestsScreen() {
 	): DoctorRescheduleRequest[] =>
 		(requests ?? []).map((req) => {
 			const appointment = req.appointment ?? {};
-			const patient = appointment.patient ?? {};
+			// const patient = appointment.patient ?? {};
 			const doctorProfile = appointment.doctors?.profiles ?? {};
 
 			return {
@@ -208,12 +208,12 @@ export default function DoctorAppointmentRequestsScreen() {
 		setConfirmVisible(true);
 	};
 
-	const resetState = () => {
-		setLoading(false);
-		setConfirmVisible(false);
-		setPendingAction(null);
-		setPendingPayload(null);
-	};
+	// const resetState = () => {
+	// 	setLoading(false);
+	// 	setConfirmVisible(false);
+	// 	setPendingAction(null);
+	// 	setPendingPayload(null);
+	// };
 
 	const onConfirm = async () => {
 		if (!pendingAction) return;
