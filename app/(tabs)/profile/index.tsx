@@ -9,6 +9,7 @@ import {
 } from "@/utils/fileHelpers";
 import { formatLabel } from "@/utils/labelHelpers";
 import * as ImagePicker from "expo-image-picker";
+import * as Notifications from "expo-notifications";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Platform, ScrollView, StyleSheet, View } from "react-native";
@@ -280,10 +281,16 @@ export default function ProfileScreen() {
 	const handleLogout = async () => {
 		try {
 			if (session?.user.id) {
-				await supabase
-					.from("user_device_tokens")
-					.delete()
-					.eq("user_id", session.user.id);
+				const { data: tokenData } = await Notifications.getExpoPushTokenAsync();
+				const pushToken = tokenData;
+
+				if (pushToken) {
+					await supabase
+						.from("user_device_tokens")
+						.delete()
+						.eq("user_id", session.user.id)
+						.eq("token", pushToken); // only delete this device's token
+				}
 			}
 			const { error } = await supabase.auth.signOut({ scope: "local" });
 			if (error) {
