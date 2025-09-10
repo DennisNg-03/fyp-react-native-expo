@@ -18,6 +18,7 @@ import {
 import {
 	Button,
 	Card,
+	Divider,
 	IconButton,
 	Menu,
 	Portal,
@@ -566,6 +567,7 @@ export default function MedicalRecordScreen() {
 														: "500",
 											}}
 										/>
+										<Divider bold />
 										<Menu.Item
 											onPress={() => {
 												setSortOrder((prev) =>
@@ -576,7 +578,10 @@ export default function MedicalRecordScreen() {
 											title={`Order: ${
 												sortOrder === "asc" ? "Ascending" : "Descending"
 											}`}
-											titleStyle={{ fontWeight: "500" }}
+											titleStyle={{
+												fontWeight: "500",
+												color: theme.colors.secondary,
+											}}
 										/>
 									</Menu>
 									<IconButton
@@ -661,8 +666,33 @@ export default function MedicalRecordScreen() {
 										onChange={setToDate}
 										parent="filterModal"
 									/>
+									<View
+										style={{
+											justifyContent: "space-between",
+											// paddingHorizontal: 10,
+										}}
+									>
+										<Button
+											mode="contained"
+											style={{ width: "100%", marginTop: 16 }}
+											onPress={() => {
+												applyFiltersAndSorting();
+												setFilterModalVisible(false);
+											}}
+										>
+											Apply
+										</Button>
+										<Button
+										style={{ width: "100%", marginTop: 4 }}
+											onPress={() => {
+												setFilterModalVisible(false);
+											}}
+										>
+											Cancel
+										</Button>
+									</View>
 								</Card.Content>
-								<Card.Actions style={{ justifyContent: "flex-end" }}>
+								{/* <Card.Actions style={{ justifyContent: "space-between", paddingHorizontal: 10 }}>
 									<Button
 										onPress={() => {
 											setFilterModalVisible(false);
@@ -679,7 +709,7 @@ export default function MedicalRecordScreen() {
 									>
 										Apply
 									</Button>
-								</Card.Actions>
+								</Card.Actions> */}
 							</Card>
 						</View>
 					)}
@@ -829,16 +859,18 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 20,
 	},
 	modalHeader: {
-		fontWeight: "500",
+		fontWeight: "600",
 		fontSize: 16,
 		textAlign: "center",
 		color: "rgba(0, 0, 0)",
-		marginTop: 10,
+		marginTop: 12,
 	},
 	filterModalCard: {
 		width: "100%",
 		borderRadius: 10,
 		backgroundColor: "white",
+		paddingHorizontal: 10,
+		paddingVertical: 6,
 	},
 	refreshingOverlay: {
 		...StyleSheet.absoluteFillObject,
