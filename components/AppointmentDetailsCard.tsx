@@ -11,6 +11,7 @@ import {
 import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Button, Card, Divider, Portal, Text } from "react-native-paper";
+import { ActivityIndicator } from "./ActivityIndicator";
 
 export default function AppointmentDetailCard({
 	appointment,
@@ -29,6 +30,48 @@ export default function AppointmentDetailCard({
 	const displayStatus = getDisplayStatus(appointment);
 	const [updateModalVisible, setUpdateModalVisible] = useState(false);
 	const [rescheduleModalVisible, setRescheduleModalVisible] = useState(false);
+	const [saving, setSaving] = useState(false);
+
+	const handleUpdateAppointmentStatus = async (
+		newStatus: "no_show" | "completed"
+	) => {
+		if (!session) {
+			console.error("User not authenticated!");
+			return;
+		}
+
+		try {
+			setSaving(true);
+
+			// Update appointment status in "appointments" table
+			const statusUpdate = await fetch(
+				"https://zxyyegizcgbhctjjoido.functions.supabase.co/updateAppointmentStatus",
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${session?.access_token}`,
+					},
+					body: JSON.stringify({
+						id: appointment.id,
+						status: newStatus,
+					}),
+				}
+			);
+
+			if (!statusUpdate.ok) {
+				const errorBody = await statusUpdate.text();
+				console.error("Failed to update appointment status:", errorBody);
+				return;
+			}
+
+			reload();
+		} catch (err) {
+			console.error("Error saving record:", err);
+		} finally {
+			setSaving(false);
+		}
+	};
 
 	return (
 		<Card
@@ -199,6 +242,58 @@ export default function AppointmentDetailCard({
 						</Button>
 					</View>
 				)}
+
+				{/* Show no show and completed buttons only for accepted filter and scheduled/rescheduled status */}
+
+				{role === "nurse" && (appointment.status === "scheduled" || appointment.status === "rescheduled" || appointment.status === "completed" || appointment.status === "no_show") && (
+					<View style={styles.actionButtonRow}>
+						<Button
+							mode="contained"
+							onPress={() => handleUpdateAppointmentStatus("no_show")}
+							style={styles.uploadButton}
+							// style={{ marginBottom: 8 }}
+							// textColor={getStatusColor("no_show")}
+							textColor="white"
+							buttonColor={getStatusColor("no_show")}
+							disabled={appointment.status === "no_show"}
+						>
+							Mark as No Show
+						</Button>
+						<Button
+							mode="contained"
+							onPress={() => handleUpdateAppointmentStatus("completed")}
+							style={styles.uploadButton}
+							// textColor={getStatusColor("completed")}
+							textColor="white"
+							buttonColor={getStatusColor("completed")}
+							disabled={appointment.status === "completed"}
+						>
+							Mark as Completed
+						</Button>
+					</View>
+				)}
+				{/* {role === "nurse" &&
+					statusFilter === "accepted" &&
+					item.status === "pending" && (
+						<View style={{ flexDirection: "row", marginTop: 8, gap: 12 }}>
+							<TouchableOpacity
+								style={[styles.actionButton, { backgroundColor: "green" }]}
+								onPress={() => {
+									handleConfirmation("accept_booking", item);
+								}}
+							>
+								<Text style={styles.actionButtonText}>Accept</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								style={[styles.actionButton, { backgroundColor: "red" }]}
+								onPress={() => {
+									handleConfirmation("reject_booking", item);
+								}}
+							>
+								<Text style={styles.actionButtonText}>Reject</Text>
+							</TouchableOpacity>
+						</View>
+					)} */}
 			</Card.Content>
 
 			{showActions && (
@@ -225,6 +320,10 @@ export default function AppointmentDetailCard({
 					/>
 				</Portal>
 			)}
+
+			{saving && (
+				<ActivityIndicator loadingMsg="" overlay={true} size="large" />
+			)}
 		</Card>
 	);
 }
@@ -240,6 +339,7 @@ const styles = StyleSheet.create({
 		width: "100%",
 		justifyContent: "center",
 		alignItems: "center",
+		paddingVertical: 4,
 	},
 	statusText: {
 		color: "white",

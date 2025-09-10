@@ -44,11 +44,11 @@ export default function HomeScreen() {
 					borderRadius: 12,
 					marginBottom: 16,
 					backgroundColor: theme.colors.primary,
-					position: "absolute",
-					top: 0,
-					left: 0,
-					right: 0,
-					margin: 16,
+					// position: "absolute",
+					// top: 0,
+					// left: 0,
+					// right: 0,
+					// margin: 16,
 				}}
 			>
 				<Text
@@ -86,9 +86,11 @@ export default function HomeScreen() {
 				contentContainerStyle={styles.containerContent}
 			>
 				<AppHeader role={role} />
-				{role === "patient" && <PatientHome notifications={notifications} />}
-				{role === "doctor" && <DoctorHome />}
-				{role === "nurse" && <NurseHome />}
+				<View style={styles.homePageContainer}>
+					{role === "patient" && <PatientHome notifications={notifications} />}
+					{role === "doctor" && <DoctorHome />}
+					{role === "nurse" && <NurseHome />}
+				</View>
 			</ScrollView>
 		</SafeAreaView>
 	);
@@ -299,10 +301,14 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	containerContent: {
-		flexGrow: 1,
+		// flexGrow: 1,
 		padding: 16,
 		paddingBottom: 32,
-		justifyContent: "center",
+		// paddingTop: 150,
+		// justifyContent: "flex-start",
+	},
+	homePageContainer: {
+		marginTop: 50,
 	},
 	// containerBody: {
 	// 	flex: 1,

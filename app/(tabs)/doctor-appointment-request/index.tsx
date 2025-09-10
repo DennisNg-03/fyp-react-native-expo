@@ -406,7 +406,7 @@ export default function DoctorAppointmentRequestsScreen() {
 						{item.notes && (
 							<Text style={styles.notesText}>Notes: {item.notes}</Text>
 						)}
-						{/* Show buttons only if pending filter */}
+						{/* Show accept and reject buttons only if pending filter */}
 						{statusFilter === "pending" && item.status === "pending" && (
 							<View style={{ flexDirection: "row", marginTop: 8, gap: 12 }}>
 								<TouchableOpacity

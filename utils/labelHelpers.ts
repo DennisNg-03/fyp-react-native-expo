@@ -25,8 +25,8 @@ const STATUS_COLORS: Record<string, string> = {
 	rescheduling: "orange",
 	rescheduled: "green",
 	cancelled: "red",
-	completed: "blue",
-	no_show: "purple",
+	completed: "mediumseagreen",
+	no_show: "dodgerblue",
 	overdue: "darkred",
 
 	// reschedule specific
