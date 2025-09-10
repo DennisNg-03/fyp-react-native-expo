@@ -443,7 +443,7 @@ export default function AppointmentBookingScreen() {
 
 			Alert.alert(
 				"Appointment Request Sent",
-				"Your appointment request has been submitted successfully. You can submit a rescheduling request at least 24 hours before the appointment start time.",
+				"You will be notified once your request has been accepted or rejected. If your availability changes, you may submit a rescheduling request at least 24 hours before the appointment start time.",
 				[
 					{
 						text: "OK",

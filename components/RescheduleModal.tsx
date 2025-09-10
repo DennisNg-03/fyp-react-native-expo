@@ -231,7 +231,7 @@ export default function RescheduleModal({
 				onConfirm={handleReschedule}
 				title="Reschedule Appointment Confirmation"
 				messagePrimary="Are you sure you want to reschedule this appointment?"
-				messageSecondary="You will not be able to submit another request before this request is responded."
+				messageSecondary="Kindly double-check your selected slot before confirming, as you will not be able to submit another reschedule request for this appointment. You will be notified once your request has been reviewed."
 			/>
 
 			{saving && (
