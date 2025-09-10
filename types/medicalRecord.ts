@@ -31,6 +31,7 @@ export interface BaseMedicalRecord {
   updated_at?: string;
 	created_by?: string;
 	created_by_full_name?: string;
+	created_by_role?: string;
 }
 
 export interface AdditionalMedicalRecord {

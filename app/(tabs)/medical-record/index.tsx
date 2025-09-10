@@ -427,6 +427,8 @@ export default function MedicalRecordScreen() {
 							Uploaded by:{" "}
 							{session?.user.id === item.created_by
 								? "You"
+								: item.created_by_role === "doctor"
+								? "Dr. " + item.created_by_full_name
 								: item.created_by_full_name || "Not provided"}
 						</Text>
 						<Text variant="bodySmall" style={styles.cardFooterRight}>

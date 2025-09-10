@@ -13,20 +13,6 @@ import React from "react";
 import { SafeAreaView, ScrollView, StyleSheet, View } from "react-native";
 import { Card, Divider, Text, useTheme } from "react-native-paper";
 
-// const CompulsoryFields = ["title", "record_type"];
-// const PatientFields = ["patient_name", "date_of_birth"];
-// const ProviderFields = ["healthcare_provider_name", "healthcare_provider_address"];
-// const RecordFields = [
-// 	"diagnosis",
-// 	"procedures",
-// 	"medications",
-// 	"notes",
-// 	"date_of_admission",
-// 	"date_of_discharge",
-// 	"created_by_full_name",
-// 	"updated_at",
-// ];
-
 export default function RecordDetailsScreen() {
 	const { record: recordParam } = useLocalSearchParams<{ record: string }>();
 	const record: MedicalRecord = recordParam ? JSON.parse(recordParam) : null;

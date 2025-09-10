@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
 				.select(
 					`
 						*,
-						created_by_profile:profiles(full_name)
+						created_by_profile:profiles(full_name, role)
 					`
 				)
 				.eq("patient_id", uid)
@@ -73,6 +73,7 @@ Deno.serve(async (req) => {
 						file_paths: rest.file_paths as SelectedFile[],
 						signed_urls: signedUrls,
 						created_by_full_name: created_by_profile?.full_name ?? null,
+						created_by_role: created_by_profile?.role ?? null,
 					};
 				})
 			);
@@ -151,7 +152,7 @@ Deno.serve(async (req) => {
 					.select(
 						`
 						*,
-						created_by_profile:profiles(full_name)
+						created_by_profile:profiles(full_name, role)
 					`
 					)
 					.or(orFilter)
@@ -170,7 +171,7 @@ Deno.serve(async (req) => {
 					.select(
 						`
 						*,
-						created_by_profile:profiles(full_name)
+						created_by_profile:profiles(full_name, role)
 					`
 					)
 					.eq("created_by", effectiveDoctorId)
@@ -203,6 +204,7 @@ Deno.serve(async (req) => {
 						file_paths: rest.file_paths as SelectedFile[],
 						signed_urls: signedUrls,
 						created_by_full_name: created_by_profile?.full_name ?? null,
+						created_by_role: created_by_profile?.role ?? null,
 					};
 				})
 			);
