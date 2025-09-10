@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-unresolved
 import { createClient } from "npm:@supabase/supabase-js";
 
+// This function will only be triggered by doctors or nurses
 Deno.serve(async (req) => {
 	try {
 		const supabase = createClient(

@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
 			}
 		);
 
-		const { id, status } = await req.json();
+		const { id, status } = await req.json(); // status can be "rescheduling", "scheduled", or "cancelled"
 		console.log("Parsed request body:", { id, status });
 
 		if (!id || !status) {
@@ -59,23 +59,24 @@ Deno.serve(async (req) => {
 			messageBody = `Your appointment has been successfully scheduled for ${formattedDate}.`;
 			messageType = "appointment_accepted";
 		}
-		const { error: notificationError } = await supabase
-			.from("notifications")
-			.insert({
-				user_id: patientId,
-				appointment_id: id,
-				title: messageTitle,
-				body: messageBody,
-				type: messageType,
-			});
+		
+		if (status === "cancelled" || status === "scheduled") {
+			const { error: notificationError } = await supabase
+				.from("notifications")
+				.insert({
+					user_id: patientId,
+					appointment_id: id,
+					title: messageTitle,
+					body: messageBody,
+					type: messageType,
+				});
 
-		if (notificationError) {
-			return new Response(
-				JSON.stringify({ error: notificationError.message }),
-				{
-					status: 500,
-				}
-			);
+			if (notificationError) {
+				return new Response(
+					JSON.stringify({ error: notificationError.message }),
+					{ status: 500 }
+				);
+			}
 		}
 
 		return new Response(JSON.stringify({ data }), {
