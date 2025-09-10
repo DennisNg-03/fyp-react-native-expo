@@ -476,7 +476,7 @@ export default function AppointmentBookingScreen() {
 					keyboardShouldPersistTaps="handled"
 				>
 					<Card
-						style={{ margin: 12, borderRadius: 12 }}
+						style={styles.card}
 						onStartShouldSetResponder={() => true} // Enable this child respond to scroll, otherwise the Touchable component will affect scrolling
 					>
 						<Card.Content>
@@ -899,15 +899,16 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 		color: "rgba(0, 0, 0, 0.7)",
 	},
-	modalContainer: {
+	card: {
+		marginVertical: 12,
+		marginHorizontal: 16,
+		borderRadius: 12,
 		backgroundColor: "white",
-		borderRadius: 8,
-		padding: 20,
-		marginHorizontal: 15,
-	},
-	modalTitle: {
-		textAlign: "center",
-		marginBottom: 5,
+		elevation: 4,
+		shadowColor: "#000",
+		shadowOpacity: 0.1,
+		shadowRadius: 6,
+		shadowOffset: { width: 0, height: 3 },
 	},
 	searchBar: {
 		backgroundColor: "white",

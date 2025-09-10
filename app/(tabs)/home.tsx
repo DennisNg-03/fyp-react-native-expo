@@ -108,7 +108,7 @@ const PatientHome = ({ notifications }: { notifications: Notification[] }) => {
 			</Text>
 			<View style={styles.quickActionsRow}>
 				<Card
-					style={styles.quickCard}
+					style={[styles.quickCard, styles.card]}
 					onPress={() => router.push("/medical-record")}
 				>
 					<Card.Content style={styles.quickCardContent}>
@@ -119,7 +119,7 @@ const PatientHome = ({ notifications }: { notifications: Notification[] }) => {
 					</Card.Content>
 				</Card>
 				<Card
-					style={styles.quickCard}
+					style={[styles.quickCard, styles.card]}
 					onPress={() => router.push("/patient-appointment-booking")}
 				>
 					<Card.Content style={styles.quickCardContent}>
@@ -132,7 +132,7 @@ const PatientHome = ({ notifications }: { notifications: Notification[] }) => {
 			</View>
 
 			<Card
-				style={styles.fullCard}
+				style={[styles.fullCard, styles.card]}
 				onPress={() => router.push("/patient-appointment")}
 			>
 				<Card.Content style={styles.quickCardContent}>
@@ -143,7 +143,7 @@ const PatientHome = ({ notifications }: { notifications: Notification[] }) => {
 				</Card.Content>
 			</Card>
 
-			<Card style={styles.fullCard}>
+			<Card style={[styles.fullCard, styles.card]}>
 				<Card.Content>
 					<Text variant="titleMedium" style={styles.notificationHeader}>
 						Notifications Summary
@@ -189,7 +189,7 @@ const DoctorHome = () => {
 			</Text>
 			<View style={styles.quickActionsRow}>
 				<Card
-					style={styles.quickCard}
+					style={[styles.quickCard, styles.card]}
 					onPress={() => router.push("/medical-record")}
 				>
 					<Card.Content style={styles.quickCardContent}>
@@ -200,7 +200,7 @@ const DoctorHome = () => {
 					</Card.Content>
 				</Card>
 				<Card
-					style={styles.quickCard}
+					style={[styles.quickCard, styles.card]}
 					onPress={() => router.push("/doctor-appointment")}
 				>
 					<Card.Content style={styles.quickCardContent}>
@@ -212,7 +212,7 @@ const DoctorHome = () => {
 				</Card>
 			</View>
 			<Card
-				style={styles.fullCard}
+				style={[styles.fullCard, styles.card]}
 				onPress={() => router.push("/doctor-appointment-request")}
 			>
 				<Card.Content style={styles.quickCardContent}>
@@ -261,7 +261,7 @@ const NurseHome = () => {
 				</Card>
 			</View> */}
 			<Card
-				style={styles.fullCard}
+				style={[styles.fullCard, styles.card]}
 				onPress={() => router.push("/medical-record")}
 			>
 				<Card.Content style={styles.quickCardContent}>
@@ -272,7 +272,7 @@ const NurseHome = () => {
 				</Card.Content>
 			</Card>
 			<Card
-				style={styles.fullCard}
+				style={[styles.fullCard, styles.card]}
 				onPress={() => router.push("/doctor-appointment-request")}
 			>
 				<Card.Content style={styles.quickCardContent}>
@@ -335,12 +335,22 @@ const styles = StyleSheet.create({
 		marginBottom: 16,
 		alignItems: "stretch",
 	},
+	card: {
+		// marginBottom: 12,
+		borderRadius: 12,
+		backgroundColor: "white",
+		elevation: 4,
+		shadowColor: "#000",
+		shadowOpacity: 0.1,
+		shadowRadius: 6,
+		shadowOffset: { width: 0, height: 3 },
+	},
 	quickCard: {
 		flex: 1,
-		borderRadius: 12,
 		alignItems: "center",
 		justifyContent: "center",
 		height: "100%",
+		paddingVertical: 10,
 	},
 	quickCardContent: {
 		alignItems: "center",
@@ -354,7 +364,7 @@ const styles = StyleSheet.create({
 	},
 	fullCard: {
 		marginBottom: 16,
-		borderRadius: 12,
+		paddingVertical: 10,
 		// paddingVertical: 8,
 		// paddingHorizontal: 8,
 	},

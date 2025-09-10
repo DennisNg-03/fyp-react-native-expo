@@ -307,7 +307,6 @@ export default function MedicalRecordScreen() {
 				key={item.id}
 				style={styles.card}
 				onPress={() => handleCardPress(item)}
-				elevation={1}
 			>
 				<Card.Title
 					title={item.title}
@@ -474,9 +473,8 @@ export default function MedicalRecordScreen() {
 									style={[
 										styles.searchBar,
 										{
-											flex: 1,
-											height: 40,
-											borderRadius: 8,
+											borderWidth: 0.5,
+											borderColor: "lightgrey",
 											backgroundColor: theme.colors.surfaceVariant,
 										},
 									]}
@@ -696,15 +694,25 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 		color: "rgba(0, 0, 0, 0.7)",
 	},
+	// card: {
+	// 	marginBottom: 15,
+	// 	padding: 5,
+	// 	borderRadius: 10,
+	// 	backgroundColor: "#fff",
+	// 	shadowColor: "#000",
+	// 	shadowOffset: { width: 0, height: 1 },
+	// 	shadowOpacity: 0.08,
+	// 	shadowRadius: 2,
+	// },
 	card: {
-		marginBottom: 15,
-		padding: 5,
-		borderRadius: 10,
-		backgroundColor: "#fff",
+		marginBottom: 12,
+		borderRadius: 12,
+		backgroundColor: "white",
+		elevation: 4,
 		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 1 },
-		shadowOpacity: 0.08,
-		shadowRadius: 2,
+		shadowOpacity: 0.1,
+		shadowRadius: 6,
+		shadowOffset: { width: 0, height: 3 },
 	},
 	cardTitle: {
 		fontWeight: "700",
@@ -781,9 +789,18 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	searchBar: {
+		flex: 1,
 		height: 40,
 		borderRadius: 8,
+		backgroundColor: "white",
 	},
+	// searchBar: {
+	// 	backgroundColor: "white",
+	// 	height: 50,
+	// 	borderRadius: 8,
+	// 	borderWidth: 1,
+	// 	borderColor: "grey",
+	// },
 	searchBarInputStyle: {
 		fontSize: 14,
 		paddingVertical: 0,
