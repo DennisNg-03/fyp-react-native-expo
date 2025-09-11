@@ -10,7 +10,6 @@ Deno.serve(async () => {
 	try {
 		const tz = "Asia/Kuala_Lumpur";
 
-		// Use plain Date objects and set hours/dates directly, relying on .toISOString() for UTC conversion
 		const nowKL = new Date(
 			new Date().toLocaleString("en-US", { timeZone: tz }) // Use en-US to parse date correctly (month and days will be inverted when using en-MY)
 		);

@@ -224,8 +224,9 @@ export default function AppointmentDetailCard({
 							disabled={
 								displayStatus !== "pending" &&
 								displayStatus !== "scheduled" &&
-								displayStatus !== "rescheduling"
-							}
+								displayStatus !== "rescheduling" && 
+								displayStatus !== "rescheduled"
+							} // Only allow update details when the appointment is in these four status
 						>
 							Update Appointment Details
 						</Button>
@@ -300,7 +301,10 @@ export default function AppointmentDetailCard({
 				<Portal>
 					<UpdateAppointmentDetailsModal
 						visible={updateModalVisible}
-						onClose={() => setUpdateModalVisible(false)}
+						onClose={() => {
+							reload();
+							setUpdateModalVisible(false);
+						}}
 						session={session}
 						onRecordSaved={() => {
 							reload();

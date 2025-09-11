@@ -224,7 +224,7 @@ export default function UpdateAppointmentDetailsModal({
 				</Text>
 
 				<TextInput
-					label="Reason for appointment"
+					label="Reason for Appointment"
 					mode="outlined"
 					placeholder="E.g. Consultation, Follow-up appointment"
 					value={reason}

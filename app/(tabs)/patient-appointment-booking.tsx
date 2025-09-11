@@ -1,4 +1,5 @@
 import { ActivityIndicator } from "@/components/ActivityIndicator";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
 import CustomDatePicker from "@/components/CustomDatePicker";
 import { GenderDropdown } from "@/components/GenderDropdown";
 import { SlotPicker } from "@/components/SlotPicker";
@@ -79,6 +80,7 @@ export default function AppointmentBookingScreen() {
 	>([]);
 	const [booking, setBooking] = useState(false);
 	const [grantDoctorAccess, setGrantDoctorAccess] = useState(false);
+	const [confirmVisible, setConfirmVisible] = useState(false);
 
 	const loadProviders = useCallback(async () => {
 		setShowProvidersLoading(true);
@@ -488,7 +490,7 @@ export default function AppointmentBookingScreen() {
 									},
 								]}
 							>
-								Book an appointment
+								Appointment Booking 
 							</Text>
 
 							<Searchbar
@@ -624,7 +626,7 @@ export default function AppointmentBookingScreen() {
 							{selectedSlot && (
 								<>
 									<TextInput
-										label="Reason for appointment"
+										label="Reason for Appointment"
 										mode="outlined"
 										placeholder="E.g. Consultation, Follow-up appointment"
 										value={reason}
@@ -869,7 +871,7 @@ export default function AppointmentBookingScreen() {
 
 							<Button
 								mode="contained"
-								onPress={handleBooking}
+								onPress={() => setConfirmVisible(true)}
 								disabled={
 									!selectedSlot ||
 									booking ||
@@ -882,11 +884,18 @@ export default function AppointmentBookingScreen() {
 								}
 								style={{ marginTop: 12 }}
 							>
-								Request appointment
+								Book Appointment
 							</Button>
 						</Card.Content>
 					</Card>
 				</ScrollView>
+				<ConfirmationDialog
+					visible={confirmVisible}
+					title="Confirm Action"
+					messagePrimary={"Are you sure you want to make this appointment booking request?"}
+					onConfirm={handleBooking}
+					onCancel={() => setConfirmVisible(false)}
+				/>
 			</SafeAreaView>
 		</TouchableWithoutFeedback>
 	);

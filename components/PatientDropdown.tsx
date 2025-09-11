@@ -32,6 +32,7 @@ export const PatientDropdown = ({
 	useEffect(() => {
 		if (!doctorId) return;
 		loadPatients();
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [doctorId]);
 
 	useEffect(() => {
