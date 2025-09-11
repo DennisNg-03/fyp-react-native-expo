@@ -78,7 +78,7 @@ export const PatientDropdown = ({
 
 	const handleSelect = (patient: Patient) => {
 		setSelectedPatient(patient);
-		setSearch(`${patient.full_name} - ${patient.date_of_birth ?? ""}`);
+		setSearch(`${patient.full_name} - ${patient.date_of_birth ?? "N/A"}`);
 		setShowDropdown(false);
 	};
 

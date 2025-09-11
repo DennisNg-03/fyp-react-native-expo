@@ -8,34 +8,73 @@ const supabase = createClient(
 
 Deno.serve(async () => {
 	try {
-		const now = new Date();
+		const tz = "Asia/Kuala_Lumpur";
 
 		// Use plain Date objects and set hours/dates directly, relying on .toISOString() for UTC conversion
-		const todayStart = new Date(now);
-		todayStart.setUTCHours(0, 0, 0, 0);
-		const todayEnd = new Date(now);
-		todayEnd.setUTCHours(23, 59, 59, 999);
-		const twoDaysLater = new Date(todayStart);
-		twoDaysLater.setUTCDate(todayStart.getUTCDate() + 2);
+		const nowKL = new Date(
+			new Date().toLocaleString("en-US", { timeZone: tz }) // Use en-US to parse date correctly (month and days will be inverted when using en-MY)
+		);
 
-		console.log("todayStart (UTC, ISO):", todayStart.toISOString());
-		console.log("todayEnd (UTC, ISO):", todayEnd.toISOString());
-		console.log("twoDaysLater (UTC, ISO):", twoDaysLater.toISOString());
+		const todayStartUTC = new Date(
+			Date.UTC(
+				nowKL.getFullYear(),
+				nowKL.getMonth(),
+				nowKL.getDate(),
+				0,
+				0,
+				0,
+				0
+			)
+		);
+
+		const twoDaysLaterUTC = new Date(
+			Date.UTC(
+				nowKL.getFullYear(),
+				nowKL.getMonth(),
+				nowKL.getDate() + 2,
+				23,
+				59,
+				59,
+				999
+			)
+		);
+
+		console.log("nowKL (KL local):", nowKL.toString());
+		// console.log("todayStartUTC (ISO):", todayStartUTC.toISOString());
+		// console.log("twoDaysLaterEndUTC (ISO):", twoDaysLaterUTC.toISOString());
+
+		const todayLocalString = nowKL.toLocaleDateString("en-MY", {
+			timeZone: tz,
+		}); // dd/mm/yyyy
+		const twoDaysLocal = new Date(
+			nowKL.getFullYear(),
+			nowKL.getMonth(),
+			nowKL.getDate() + 2
+		);
+		const twoDaysLocalString = twoDaysLocal.toLocaleDateString("en-MY", {
+			timeZone: tz,
+		});
+
+		console.log("twoDaysLater dateString:", twoDaysLocalString);
 
 		// Query appointments that are scheduled/rescheduled for today OR 2 days later
 		const { data: appointments, error } = await supabase
 			.from("appointments")
 			.select("id, patient_id, starts_at")
 			.in("status", ["scheduled", "rescheduled"])
-			.gte("starts_at", todayStart.toISOString())
-			.lte("starts_at", twoDaysLater.toISOString());
+			.gte("starts_at", todayStartUTC.toISOString())
+			.lte("starts_at", twoDaysLaterUTC.toISOString());
 
 		if (error) throw error;
 
 		for (const appt of appointments || []) {
 			const startsAt = new Date(appt.starts_at);
+
+			const startsAtLocalString = startsAt.toLocaleDateString("en-MY", {
+				timeZone: tz,
+			}); // dd/mm/yyyy
 			const formattedDate = startsAt.toLocaleString("en-MY", {
-				timeZone: "Asia/Kuala_Lumpur",
+				timeZone: tz,
 				day: "2-digit",
 				month: "2-digit",
 				year: "numeric",
@@ -48,13 +87,18 @@ Deno.serve(async () => {
 			let body = "";
 			let type = "";
 
-			if (startsAt >= todayStart && startsAt <= todayEnd) {
+			console.log("Appt ID:", appt.id);
+			console.log("Appt startsAt:", appt.starts_at);
+			console.log("startsAtLocalString:", startsAtLocalString);
+			console.log("todayLocalString:", todayLocalString);
+
+			if (startsAtLocalString === todayLocalString) {
 				// Send today's appointment reminder
-				// console.log("Matches today’s reminder criteria");
+				console.log("Matches today’s reminder criteria");
 				title = "Today’s Appointment";
 				body = `Your appointment is today at ${formattedDate}.`;
 				type = "appointment_reminder_today";
-			} else if (startsAt.toDateString() === twoDaysLater.toDateString()) {
+			} else if (startsAtLocalString === twoDaysLocalString) {
 				// Send appointment reminder two days before the scheduled date
 				console.log("Matches two days before reminder criteria");
 				title = "Upcoming Appointment";

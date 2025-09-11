@@ -94,7 +94,6 @@ export default function PrivacySettingsScreen() {
 			return;
 		}
 		const { doctor_id, grant } = pendingToggle;
-		setDialogVisible(false);
 		try {
 			// Optimistic update
 			setDoctorAccessList((prev) =>
@@ -138,6 +137,7 @@ export default function PrivacySettingsScreen() {
 			Alert.alert("Error saving access", err.message);
 		} finally {
 			setPendingToggle(null);
+			setDialogVisible(false);
 		}
 	};
 
