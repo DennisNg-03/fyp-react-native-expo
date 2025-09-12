@@ -246,6 +246,12 @@ export default function MedicalRecordScreen() {
 		});
 	};
 
+	const handleEditRecord = (record: MedicalRecord) => {
+		setSelectedRecord(record);
+		setModalMode("edit");
+		setUploadModalVisible(true);
+	};
+
 	const handleDelete = async (id: string) => {
 		console.log("Deleting Record ID:", id);
 		try {
@@ -344,7 +350,7 @@ export default function MedicalRecordScreen() {
 							>
 								<Menu.Item
 									onPress={() => {
-										handleCardPress(item);
+										handleEditRecord(item);
 										setOpenMenuId(null);
 									}}
 									leadingIcon="pencil"
@@ -533,7 +539,7 @@ export default function MedicalRecordScreen() {
 													sortField === "record_date"
 														? theme.colors.primary
 														: undefined,
-												fontWeight: sortField === "record_date" ? "600" : "500",
+												// fontWeight: sortField === "record_date" ? "600" : "500",
 											}}
 										/>
 										<Menu.Item
@@ -547,7 +553,7 @@ export default function MedicalRecordScreen() {
 													sortField === "title"
 														? theme.colors.primary
 														: undefined,
-												fontWeight: sortField === "title" ? "600" : "500",
+												// fontWeight: sortField === "title" ? "600" : "500",
 											}}
 										/>
 										<Menu.Item
@@ -561,10 +567,10 @@ export default function MedicalRecordScreen() {
 													sortField === "healthcare_provider_name"
 														? theme.colors.primary
 														: undefined,
-												fontWeight:
-													sortField === "healthcare_provider_name"
-														? "600"
-														: "500",
+												// fontWeight:
+												// 	sortField === "healthcare_provider_name"
+												// 		? "600"
+												// 		: "500",
 											}}
 										/>
 										<Divider bold />

@@ -43,8 +43,8 @@ export const SupportingDocumentPreview: FC<SupportingDocumentPreviewProps> = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedDocumentType]);
 
-	console.log("FilePreview received:", file);
-	console.log("displayUri:", displayUri);
+	// console.log("FilePreview received:", file);
+	// console.log("displayUri:", displayUri);
 
 	const handlePreview = () => {
 		console.log("handlePreview with URL:", displayUri);

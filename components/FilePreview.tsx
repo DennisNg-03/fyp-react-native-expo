@@ -26,7 +26,7 @@ export const FilePreview: FC<FilePreviewProps> = ({
 	const displayUri = signedUrl ?? file.uri;
 
 	// console.log("FilePreview received:", file);
-	console.log("displayUri:", displayUri);
+	// console.log("displayUri:", displayUri);
 
 	const handlePreview = () => {
 		if (isImage) {

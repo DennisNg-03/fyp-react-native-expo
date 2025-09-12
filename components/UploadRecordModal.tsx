@@ -91,7 +91,7 @@ export default function UploadRecordModal({
 		healthcare_provider_address:
 			"E.g. KPJ Damansara Specialist Hospital, Selangor",
 	};
-	console.log("Received role:", role);
+	// console.log("Received role:", role);
 
 	const isDateField = (field: string) => field.toLowerCase().includes("date");
 
@@ -389,6 +389,20 @@ export default function UploadRecordModal({
 					ocrRes.statusText,
 					errorBody
 				);
+
+				let message = "Failed to process your files. Please try again.";
+				if (ocrRes.status === 503) {
+					message =
+						"Our OCR service is currently busy. Please try again in a few moments.";
+				} else if (ocrRes.status >= 500) {
+					message =
+						"Something went wrong on the server. Please try again later.";
+				} else if (ocrRes.status === 400) {
+					message =
+						"There seems to be an issue with the file format or data provided. Please check and try again.";
+				}
+
+				Alert.alert("OCR Error", message);
 				return;
 			}
 

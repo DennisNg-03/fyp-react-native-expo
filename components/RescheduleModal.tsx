@@ -221,7 +221,7 @@ export default function RescheduleModal({
 					disabled={!selectedSlot}
 					style={{ marginVertical: 12 }}
 				>
-					Confirm
+					Save
 				</Button>
 			</ScrollView>
 
