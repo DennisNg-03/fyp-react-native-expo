@@ -20,8 +20,8 @@ export default function DeleteConfirmationDialog({
 				<Dialog.Icon icon="alert" color={MD3Colors.error50} />
 				<Dialog.Title style={{ fontSize: 20, textAlign: "center", fontWeight: "500" }}>Delete Record Confirmation</Dialog.Title>
 				<Dialog.Content>
-					<Text variant="bodyMedium" style={{ marginBottom: 6 }}>Are you sure you want to delete this record?</Text>
-					<Text variant="bodyMedium">This action cannot be undone.</Text>
+					<Text variant="bodyMedium" style={{ marginBottom: 2, textAlign: "center" }}>Are you sure you want to delete this record?</Text>
+					<Text variant="bodyMedium" style={{textAlign: "center" }}>This action cannot be undone.</Text>
 				</Dialog.Content>
 				<Dialog.Actions style={{ justifyContent: "space-between" }}>
 					<Button onPress={onCancel} labelStyle={{ fontSize: 16 }}>Cancel</Button>

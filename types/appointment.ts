@@ -31,6 +31,13 @@ export type Appointment = {
 		address?: string;
 		phone_number?: string;
 	};
+	// patient?: {
+	// 	full_name?: string;
+	// 	email?: string;
+	// 	phone_number?: string;
+	// 	gender?: string;
+	// 	date_of_birth?: string;
+	// }
 };
 
 export type AppointmentStatus =

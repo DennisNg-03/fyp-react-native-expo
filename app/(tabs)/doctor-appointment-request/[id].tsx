@@ -53,7 +53,11 @@ export default function PatientAppointmentDetailScreen() {
 							address,
 							phone_number
 							)
-						)
+						),
+					patient:patient_id (
+						date_of_birth,
+						profiles(full_name, email, phone_number, gender)
+					)
 					`
 				)
 				.eq("id", id)

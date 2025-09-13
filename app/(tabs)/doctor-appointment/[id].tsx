@@ -4,14 +4,8 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-	Keyboard,
-	ScrollView,
-	TouchableWithoutFeedback
-} from "react-native";
-import {
-	useTheme
-} from "react-native-paper";
+import { Keyboard, ScrollView, TouchableWithoutFeedback } from "react-native";
+import { useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PatientAppointmentDetailScreen() {
@@ -52,7 +46,11 @@ export default function PatientAppointmentDetailScreen() {
 							address,
 							phone_number
 							)
-						)
+						),
+					patient:patient_id (
+						date_of_birth,
+						profiles(full_name, email, phone_number, gender)
+					)
 					`
 				)
 				.eq("id", id)
@@ -137,12 +135,12 @@ export default function PatientAppointmentDetailScreen() {
 					contentContainerStyle={{ paddingTop: 20, paddingBottom: 55 }}
 				>
 					<AppointmentDetailsCard
-            appointment={appointment}
-            session={session}
+						appointment={appointment}
+						session={session}
 						role={role}
-            reload={loadData}
-            showActions={false}
-          />
+						reload={loadData}
+						showActions={false}
+					/>
 				</ScrollView>
 			</SafeAreaView>
 		</TouchableWithoutFeedback>

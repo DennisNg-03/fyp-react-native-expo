@@ -146,6 +146,34 @@ export default function AppointmentDetailCard({
 					<Text style={styles.contentText}>{appointment.notes || "—"}</Text>
 				</View>
 
+				{(role === "doctor" || role === "nurse") && (
+					<>
+						<Divider bold={true} style={styles.divider} />
+
+						<View style={styles.section}>
+							<Text style={styles.label}>Patient Information</Text>
+							<Text style={styles.contentText}>
+								Name: {appointment.patient?.profiles?.full_name ?? "—"}
+							</Text>
+							<Text style={styles.contentText}>
+								Email: {appointment.patient?.profiles?.email ?? "—"}
+							</Text>
+							<Text style={styles.contentText}>
+								Phone: {appointment.patient?.profiles?.phone_number ?? "—"}
+							</Text>
+							<Text style={styles.contentText}>
+								Gender: {formatLabel(appointment.patient?.profiles?.gender) ?? "—"}
+							</Text>
+							<Text style={styles.contentText}>
+								Date of Birth:{" "}
+								{appointment.patient?.date_of_birth
+									? formatKL(appointment.patient.date_of_birth, "dd MMM yyyy")
+									: "—"}
+							</Text>
+						</View>
+					</>
+				)}
+
 				<Divider bold={true} style={styles.divider} />
 
 				{appointment.for_whom ? (
@@ -159,7 +187,7 @@ export default function AppointmentDetailCard({
 
 				{appointment.for_whom === "someone_else" && appointment.other_person ? (
 					<View style={styles.section}>
-						<Text style={styles.label}>Patient Details</Text>
+						<Text style={styles.label}>Other Person Details</Text>
 						<Text style={styles.contentText}>
 							Name: {appointment.other_person.name}
 						</Text>
@@ -224,7 +252,7 @@ export default function AppointmentDetailCard({
 							disabled={
 								displayStatus !== "pending" &&
 								displayStatus !== "scheduled" &&
-								displayStatus !== "rescheduling" && 
+								displayStatus !== "rescheduling" &&
 								displayStatus !== "rescheduled"
 							} // Only allow update details when the appointment is in these four status
 						>
@@ -246,33 +274,37 @@ export default function AppointmentDetailCard({
 
 				{/* Show no show and completed buttons only for accepted filter and scheduled/rescheduled status */}
 
-				{role === "nurse" && (appointment.status === "scheduled" || appointment.status === "rescheduled" || appointment.status === "completed" || appointment.status === "no_show") && (
-					<View style={styles.actionButtonRow}>
-						<Button
-							mode="contained"
-							onPress={() => handleUpdateAppointmentStatus("no_show")}
-							style={styles.uploadButton}
-							// style={{ marginBottom: 8 }}
-							// textColor={getStatusColor("no_show")}
-							textColor="white"
-							buttonColor={getStatusColor("no_show")}
-							disabled={appointment.status === "no_show"}
-						>
-							Mark as No Show
-						</Button>
-						<Button
-							mode="contained"
-							onPress={() => handleUpdateAppointmentStatus("completed")}
-							style={styles.uploadButton}
-							// textColor={getStatusColor("completed")}
-							textColor="white"
-							buttonColor={getStatusColor("completed")}
-							disabled={appointment.status === "completed"}
-						>
-							Mark as Completed
-						</Button>
-					</View>
-				)}
+				{role === "nurse" &&
+					(appointment.status === "scheduled" ||
+						appointment.status === "rescheduled" ||
+						appointment.status === "completed" ||
+						appointment.status === "no_show") && (
+						<View style={styles.actionButtonRow}>
+							<Button
+								mode="contained"
+								onPress={() => handleUpdateAppointmentStatus("no_show")}
+								style={styles.uploadButton}
+								// style={{ marginBottom: 8 }}
+								// textColor={getStatusColor("no_show")}
+								textColor="white"
+								buttonColor={getStatusColor("no_show")}
+								disabled={appointment.status === "no_show"}
+							>
+								Mark as No Show
+							</Button>
+							<Button
+								mode="contained"
+								onPress={() => handleUpdateAppointmentStatus("completed")}
+								style={styles.uploadButton}
+								// textColor={getStatusColor("completed")}
+								textColor="white"
+								buttonColor={getStatusColor("completed")}
+								disabled={appointment.status === "completed"}
+							>
+								Mark as Completed
+							</Button>
+						</View>
+					)}
 				{/* {role === "nurse" &&
 					statusFilter === "accepted" &&
 					item.status === "pending" && (
