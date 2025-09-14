@@ -10,7 +10,7 @@ import {
 	SelectedFileToUpload,
 } from "@/types/medicalRecord";
 import { Patient } from "@/types/user";
-import { parseDateToISO } from "@/utils/dateHelpers";
+import { formatKL, parseDateToISO } from "@/utils/dateHelpers";
 import {
 	ALLOWED_IMAGE_TYPES,
 	blobToBase64,
@@ -301,6 +301,10 @@ export default function UploadRecordModal({
 		setOcrData({});
 	};
 
+	const handleCancelEdit = () => {
+		onClose();
+	};
+
 	const handleNext = () => {
 		if (!session) {
 			console.error("User not authenticated!");
@@ -314,6 +318,19 @@ export default function UploadRecordModal({
 				"Record Title, Record Type, and Record Date cannot be empty!"
 			);
 			return;
+		}
+
+		if (ocrData.record_date) {
+			const recordDateStr = formatKL(ocrData.record_date, "yyyy-MM-dd");
+			const todayStr = formatKL(new Date(), "yyyy-MM-dd");
+
+			if (recordDateStr > todayStr) {
+				Alert.alert(
+					"Invalid Date",
+					"Record Date cannot be later than today’s date."
+				);
+				return;
+			}
 		}
 
 		if (mode === "new") {
@@ -709,6 +726,7 @@ export default function UploadRecordModal({
 						</View>
 					</>
 				)}
+				{/* Step 2 of upload */}
 				{step === "prefill" && (
 					<>
 						<ProgressBar
@@ -895,7 +913,7 @@ export default function UploadRecordModal({
 								mode="outlined"
 								onPress={() => {
 									if (mode === "edit") {
-										handleCancel();
+										handleCancelEdit();
 									} else {
 										setStep("upload");
 									}

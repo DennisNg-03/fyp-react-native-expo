@@ -494,7 +494,7 @@ export default function AppointmentBookingScreen() {
 							</Text>
 
 							<Searchbar
-								placeholder="Search provider..."
+								placeholder="Search healthcare provider..."
 								value={providerQuery}
 								onChangeText={setProviderQuery}
 								style={[styles.searchBar, { marginVertical: 8 }]}

@@ -743,7 +743,7 @@ const styles = StyleSheet.create({
 	// 	shadowRadius: 2,
 	// },
 	card: {
-		marginBottom: 12,
+		marginBottom: 20,
 		borderRadius: 12,
 		backgroundColor: "white",
 		elevation: 4,
