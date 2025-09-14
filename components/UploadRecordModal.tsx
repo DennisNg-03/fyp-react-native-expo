@@ -943,15 +943,14 @@ export default function UploadRecordModal({
 							{mode === "new" ? (
 								<>
 									<Text style={[styles.confirmationText, { marginBottom: 12 }]}>
-										The uploaded image(s), file(s) and form data will be saved
-										into your record.
+										The uploaded images, files and form data will be saved.
 									</Text>
 									<Text style={[styles.confirmationText, { marginBottom: 12 }]}>
-										You can still review and edit the extracted form details
+										You can still go back to review and edit the extracted form details
 										before continuing.
 									</Text>
 									<Text style={[styles.confirmationText, { marginBottom: 20 }]}>
-										However, uploaded image(s) and file(s) cannot be changed
+										However, uploaded images and files cannot be changed
 										once submitted, as doing so would affect the extracted
 										content.
 									</Text>

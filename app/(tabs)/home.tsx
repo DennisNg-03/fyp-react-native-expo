@@ -3,7 +3,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { Notification } from "@/types/notification";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Image, ScrollView, StyleSheet, View } from "react-native";
 import {
 	Avatar,
 	Badge,
@@ -20,38 +20,85 @@ export default function HomeScreen() {
 
 	const [notifications, setNotifications] = useState<Notification[]>([]);
 
+	// useEffect(() => {
+	// 	const fetchNotifications = async () => {
+	// 		const { data, error } = await supabase
+	// 			.from("notifications")
+	// 			.select("*")
+	// 			.eq("user_id", session?.user.id)
+	// 			.order("created_at", { ascending: false });
+
+	// 		if (error) console.error("Failed to fetch notifications:", error);
+	// 		else setNotifications(data ?? []);
+	// 	};
+
+	// 	if (session?.user.id) fetchNotifications();
+	// }, [session?.user.id]);
+
+	const fetchNotifications = async () => {
+		const { data, error } = await supabase
+			.from("notifications")
+			.select("*")
+			.eq("user_id", session?.user.id)
+			.order("created_at", { ascending: false });
+
+		if (error) console.error("Failed to fetch notifications:", error);
+		else setNotifications(data ?? []);
+	};
+
 	useEffect(() => {
-		const fetchNotifications = async () => {
-			const { data, error } = await supabase
-				.from("notifications")
-				.select("*")
-				.eq("user_id", session?.user.id)
-				.order("created_at", { ascending: false })
-				.limit(5);
+		if (!session?.user.id) return;
 
-			if (error) console.error("Failed to fetch notifications:", error);
-			else setNotifications(data ?? []);
+		const subscription = supabase
+			.channel("notifications")
+			.on(
+				"postgres_changes",
+				{
+					event: "*",
+					schema: "public",
+					table: "notifications",
+					filter: `user_id=eq.${session.user.id}`,
+				},
+				(payload) => {
+					fetchNotifications(); // re-fetch whenever change occurs
+				}
+			)
+			.subscribe();
+
+		return () => {
+			supabase.removeChannel(subscription);
 		};
-
-		if (session?.user.id) fetchNotifications();
 	}, [session?.user.id]);
+
+	const unreadCount = notifications.filter((n) => !n.read_at).length;
 
 	const AppHeader = ({ role }: { role: string | null }) => {
 		return (
-			<View
-				style={{
-					padding: 16,
-					borderRadius: 12,
-					marginBottom: 16,
-					backgroundColor: theme.colors.primary,
-					// position: "absolute",
-					// top: 0,
-					// left: 0,
-					// right: 0,
-					// margin: 16,
-				}}
-			>
-				<Text
+			<>
+				<Image
+					source={require("../../assets/images/fyp-logo-10.jpg")}
+					style={{
+						height: 150,
+						width: "100%",
+						marginBottom: 6,
+						resizeMode: "cover",
+						borderRadius: 12,
+					}}
+				/>
+				<View
+					style={{
+						padding: 16,
+						borderRadius: 12,
+						marginBottom: 16,
+						backgroundColor: theme.colors.primary,
+						// position: "absolute",
+						// top: 0,
+						// left: 0,
+						// right: 0,
+						// margin: 16,
+					}}
+				>
+					{/* <Text
 					style={{
 						color: theme.colors.onPrimary,
 						fontWeight: "800",
@@ -60,22 +107,33 @@ export default function HomeScreen() {
 					}}
 				>
 					MediNexis
-				</Text>
-				<Text
-					style={{
-						color: theme.colors.onPrimary,
-						fontWeight: "500",
-						fontSize: 14,
-					}}
-				>
-					Welcome,{" "}
-					{role === "doctor"
-						? "Doctor"
-						: role === "nurse"
-						? "Nurse"
-						: "Patient"}
-				</Text>
-			</View>
+				</Text> */}
+					{/* <Image
+						source={require("../../assets/images/fyp-logo-7.jpg")}
+						style={{
+							height: 150,
+							width: "100%",
+							marginBottom: 6,
+							resizeMode: "cover",
+							borderRadius: 12,
+						}}
+					/> */}
+					<Text
+						style={{
+							color: theme.colors.onPrimary,
+							fontWeight: "500",
+							fontSize: 14,
+						}}
+					>
+						Welcome,{" "}
+						{role === "doctor"
+							? "Doctor"
+							: role === "nurse"
+							? "Nurse"
+							: "Patient"}
+					</Text>
+				</View>
+			</>
 		);
 	};
 
@@ -87,7 +145,12 @@ export default function HomeScreen() {
 			>
 				<AppHeader role={role} />
 				<View style={styles.homePageContainer}>
-					{role === "patient" && <PatientHome notifications={notifications} />}
+					{role === "patient" && (
+						<PatientHome
+							notifications={notifications}
+							unreadCount={unreadCount}
+						/>
+					)}
 					{role === "doctor" && <DoctorHome />}
 					{role === "nurse" && <NurseHome />}
 				</View>
@@ -96,7 +159,13 @@ export default function HomeScreen() {
 	);
 }
 
-const PatientHome = ({ notifications }: { notifications: Notification[] }) => {
+const PatientHome = ({
+	notifications,
+	unreadCount,
+}: {
+	notifications: Notification[];
+	unreadCount: number;
+}) => {
 	// const upcomingAppointment = notifications.find((n) =>
 	// 	n.title.toLowerCase().includes("appointment")
 	// );
@@ -149,10 +218,14 @@ const PatientHome = ({ notifications }: { notifications: Notification[] }) => {
 						Notifications Summary
 					</Text>
 					<Text variant="bodyMedium" style={styles.subText}>
-						You have {notifications.length} new notification
-						{notifications.length !== 1 ? "s" : ""}.
+						You have {unreadCount} unread notification
+						{unreadCount !== 1 ? "s" : ""}.
 					</Text>
-					<Badge style={styles.badge}>{notifications.length}</Badge>
+					{unreadCount > 0 && (
+						<Badge style={styles.unreadDot}>
+							{unreadCount >= 10 ? "9+" : unreadCount}
+						</Badge>
+					)}
 					{/* {upcomingAppointment ? (
 						<View>
 							<Text variant="titleMedium" style={{ marginTop: 12 }}>
@@ -169,7 +242,7 @@ const PatientHome = ({ notifications }: { notifications: Notification[] }) => {
 					<Button
 						mode="text"
 						style={{ marginTop: 4, alignSelf: "center" }}
-						onPress={() => router.push("/profile/notification")}
+						onPress={() => router.replace("/profile/notification")}
 						contentStyle={{ margin: 0 }}
 						labelStyle={{ marginHorizontal: 15, marginVertical: 4 }}
 					>
@@ -308,7 +381,7 @@ const styles = StyleSheet.create({
 		// justifyContent: "flex-start",
 	},
 	homePageContainer: {
-		marginTop: 50,
+		// marginTop: 50,
 	},
 	// containerBody: {
 	// 	flex: 1,
@@ -378,11 +451,11 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		justifyContent: "space-between",
 	},
-	badge: {
+	unreadDot: {
 		position: "absolute",
 		top: 16,
 		right: 16,
-		backgroundColor: "red",
+		backgroundColor: "#D32F2F",
 		// color: "white",
 	},
 });

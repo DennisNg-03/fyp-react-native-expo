@@ -11,7 +11,7 @@ import { formatKL } from "@/utils/dateHelpers";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet } from "react-native";
-import { Button, TextInput, useTheme } from "react-native-paper";
+import { Button, Card, TextInput, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function EditProfileScreen() {
@@ -261,167 +261,180 @@ export default function EditProfileScreen() {
 		>
 			{saving && (
 				<ActivityIndicator
-					loadingMsg="Saving your profile details.." overlay={true} size="large"
+					loadingMsg="Saving your profile details.."
+					overlay={true}
+					size="large"
 				/>
 			)}
 			{loading && (
-				<ActivityIndicator
-					loadingMsg="" overlay={true} size="large" 
-				/>
+				<ActivityIndicator loadingMsg="" overlay={true} size="large" />
 			)}
+
 			<ScrollView
 				contentContainerStyle={{
-					padding: 20,
+					paddingHorizontal: 10,
 					paddingBottom: 65,
-					flexGrow: 1,
-					justifyContent: "center",
+					// flexGrow: 1,
+					// justifyContent: "center",
 				}}
+				keyboardShouldPersistTaps="handled"
 			>
-				{/* Common fields */}
-				<TextInput
-					label="Full Name"
-					value={fullName}
-					onChangeText={setFullName}
-					placeholder="E.g. John Doe"
-					mode="outlined"
-					autoComplete="off"
-					autoCorrect={false}
-					spellCheck={false}
-					maxLength={50}
-					style={styles.input}
-					contentStyle={{
-						textAlign: undefined, // To prevent ellipsis from not working
-					}}
-				/>
-				<TextInput
-					label="Email"
-					value={email}
-					onChangeText={setEmail}
-					mode="outlined"
-					autoCapitalize="none"
-					keyboardType="email-address"
-					autoComplete="off"
-					autoCorrect={false}
-					spellCheck={false}
-					maxLength={50}
-					style={styles.input}
-					contentStyle={{
-						textAlign: undefined, // To prevent ellipsis from not working
-					}}
-					disabled
-				/>
-				<TextInput
-					label="Phone Number"
-					value={phoneNumber}
-					onChangeText={setPhoneNumber}
-					placeholder="E.g. +60123456789"
-					mode="outlined"
-					keyboardType="phone-pad"
-					autoComplete="tel"
-					autoCorrect={false}
-					spellCheck={false}
-					maxLength={20}
-					style={styles.input}
-					contentStyle={{
-						textAlign: undefined, // To prevent ellipsis from not working
-					}}
-				/>
-				<GenderDropdown selectedGender={gender} setSelectedGender={setGender} />
+				<Card
+					style={styles.card}
+					elevation={2}
+					onStartShouldSetResponder={() => true}
+				>
+					<Card.Content>
+						{/* Common fields */}
+						<TextInput
+							label="Full Name"
+							value={fullName}
+							onChangeText={setFullName}
+							placeholder="E.g. John Doe"
+							mode="outlined"
+							autoComplete="off"
+							autoCorrect={false}
+							spellCheck={false}
+							maxLength={50}
+							style={styles.input}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
+						/>
+						<TextInput
+							label="Email"
+							value={email}
+							onChangeText={setEmail}
+							mode="outlined"
+							autoCapitalize="none"
+							keyboardType="email-address"
+							autoComplete="off"
+							autoCorrect={false}
+							spellCheck={false}
+							maxLength={50}
+							style={styles.input}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
+							disabled
+						/>
+						<TextInput
+							label="Phone Number"
+							value={phoneNumber}
+							onChangeText={setPhoneNumber}
+							placeholder="E.g. +60123456789"
+							mode="outlined"
+							keyboardType="phone-pad"
+							autoComplete="tel"
+							autoCorrect={false}
+							spellCheck={false}
+							maxLength={20}
+							style={styles.input}
+							contentStyle={{
+								textAlign: undefined, // To prevent ellipsis from not working
+							}}
+						/>
+						<GenderDropdown
+							selectedGender={gender}
+							setSelectedGender={setGender}
+						/>
 
-				{/* Patient fields */}
-				{profile?.role === "patient" && (
-					<>
-						<CustomDatePicker
-							label="Date of Birth"
-							value={dateOfBirth ? new Date(dateOfBirth) : undefined}
-							onChange={(date) => setDateOfBirth(formatKL(date, "yyyy-MM-dd"))} // If not store in KL timezone, error will occur
-							parent="form"
-							mode="dob"
-						/>
-						<TextInput
-							label="Blood Type"
-							value={bloodType}
-							onChangeText={setBloodType}
-							placeholder="E.g. A+"
-							mode="outlined"
-							style={styles.input}
-							autoComplete="off"
-							autoCorrect={false}
-							spellCheck={false}
-							maxLength={10}
-							contentStyle={{
-								textAlign: undefined, // To prevent ellipsis from not working
-							}}
-						/>
-						<TextInput
-							label="Allergies"
-							value={allergies}
-							onChangeText={setAllergies}
-							placeholder="E.g. Penicillin, Pollen"
-							mode="outlined"
-							style={styles.input}
-							autoComplete="off"
-							autoCorrect={false}
-							spellCheck={false}
-							maxLength={200}
-							contentStyle={{
-								textAlign: undefined, // To prevent ellipsis from not working
-							}}
-							multiline={true}
-							numberOfLines={3}
-						/>
-						<TextInput
-							label="Current Medications"
-							value={currentMedications}
-							onChangeText={setCurrentMedications}
-							placeholder="E.g. Metformin 500mg daily"
-							mode="outlined"
-							style={styles.input}
-							autoComplete="off"
-							autoCorrect={false}
-							spellCheck={false}
-							maxLength={200}
-							contentStyle={{
-								textAlign: undefined, // To prevent ellipsis from not working
-							}}
-							multiline={true}
-							numberOfLines={3}
-						/>
-						<TextInput
-							label="Chronic Conditions"
-							value={chronicConditions}
-							onChangeText={setChronicConditions}
-							placeholder="E.g. Hypertension, Diabetes"
-							mode="outlined"
-							style={styles.input}
-							autoComplete="off"
-							autoCorrect={false}
-							spellCheck={false}
-							maxLength={200}
-							contentStyle={{
-								textAlign: undefined, // To prevent ellipsis from not working
-							}}
-							multiline={true}
-							numberOfLines={3}
-						/>
-						<TextInput
-							label="Past Surgeries"
-							value={pastSurgeries}
-							onChangeText={setPastSurgeries}
-							placeholder="E.g. Appendectomy 2015"
-							mode="outlined"
-							style={styles.input}
-							autoComplete="off"
-							autoCorrect={false}
-							spellCheck={false}
-							maxLength={200}
-							contentStyle={{
-								textAlign: undefined, // To prevent ellipsis from not working
-							}}
-							multiline={true}
-							numberOfLines={3}
-						/>
-						{/* <TextInput
+						{/* Patient fields */}
+						{profile?.role === "patient" && (
+							<>
+								<CustomDatePicker
+									label="Date of Birth"
+									value={dateOfBirth ? new Date(dateOfBirth) : undefined}
+									onChange={(date) =>
+										setDateOfBirth(formatKL(date, "yyyy-MM-dd"))
+									} // If not store in KL timezone, error will occur
+									parent="form"
+									mode="dob"
+								/>
+								<TextInput
+									label="Blood Type"
+									value={bloodType}
+									onChangeText={setBloodType}
+									placeholder="E.g. A+"
+									mode="outlined"
+									style={styles.input}
+									autoComplete="off"
+									autoCorrect={false}
+									spellCheck={false}
+									maxLength={10}
+									contentStyle={{
+										textAlign: undefined, // To prevent ellipsis from not working
+									}}
+								/>
+								<TextInput
+									label="Allergies"
+									value={allergies}
+									onChangeText={setAllergies}
+									placeholder="E.g. Penicillin, Pollen"
+									mode="outlined"
+									style={styles.input}
+									autoComplete="off"
+									autoCorrect={false}
+									spellCheck={false}
+									maxLength={200}
+									contentStyle={{
+										textAlign: undefined, // To prevent ellipsis from not working
+									}}
+									multiline={true}
+									numberOfLines={3}
+								/>
+								<TextInput
+									label="Current Medications"
+									value={currentMedications}
+									onChangeText={setCurrentMedications}
+									placeholder="E.g. Metformin 500mg daily"
+									mode="outlined"
+									style={styles.input}
+									autoComplete="off"
+									autoCorrect={false}
+									spellCheck={false}
+									maxLength={200}
+									contentStyle={{
+										textAlign: undefined, // To prevent ellipsis from not working
+									}}
+									multiline={true}
+									numberOfLines={3}
+								/>
+								<TextInput
+									label="Chronic Conditions"
+									value={chronicConditions}
+									onChangeText={setChronicConditions}
+									placeholder="E.g. Hypertension, Diabetes"
+									mode="outlined"
+									style={styles.input}
+									autoComplete="off"
+									autoCorrect={false}
+									spellCheck={false}
+									maxLength={200}
+									contentStyle={{
+										textAlign: undefined, // To prevent ellipsis from not working
+									}}
+									multiline={true}
+									numberOfLines={3}
+								/>
+								<TextInput
+									label="Past Surgeries"
+									value={pastSurgeries}
+									onChangeText={setPastSurgeries}
+									placeholder="E.g. Appendectomy 2015"
+									mode="outlined"
+									style={styles.input}
+									autoComplete="off"
+									autoCorrect={false}
+									spellCheck={false}
+									maxLength={200}
+									contentStyle={{
+										textAlign: undefined, // To prevent ellipsis from not working
+									}}
+									multiline={true}
+									numberOfLines={3}
+								/>
+								{/* <TextInput
 							label="Insurance Info"
 							value={insuranceInfo}
 							onChangeText={setInsuranceInfo}
@@ -436,89 +449,103 @@ export default function EditProfileScreen() {
 								textAlign: undefined, // To prevent ellipsis from not working
 							}}
 						/> */}
-						{/* <TextInput
+								{/* <TextInput
 							label="Medical History"
 							value={medicalHistory}
 							onChangeText={setMedicalHistory}
 							mode="outlined"
 							style={styles.input}
 						/> */}
-						<TextInput
-							label="Emergency Contact"
-							value={emergencyContact}
-							onChangeText={setEmergencyContact}
-							placeholder="E.g. +60123456789"
-							mode="outlined"
-							style={styles.input}
-							keyboardType="phone-pad"
-							autoComplete="tel"
-							autoCorrect={false}
-							spellCheck={false}
-							maxLength={20}
-							contentStyle={{
-								textAlign: undefined, // To prevent ellipsis from not working
-							}}
-						/>
-					</>
-				)}
+								<TextInput
+									label="Emergency Contact"
+									value={emergencyContact}
+									onChangeText={setEmergencyContact}
+									placeholder="E.g. +60123456789"
+									mode="outlined"
+									style={styles.input}
+									keyboardType="phone-pad"
+									autoComplete="tel"
+									autoCorrect={false}
+									spellCheck={false}
+									maxLength={20}
+									contentStyle={{
+										textAlign: undefined, // To prevent ellipsis from not working
+									}}
+								/>
+							</>
+						)}
 
-				{(profile?.role === "doctor" || profile?.role === "nurse") && (
-					<HealthcareProviderDropdown
-						selectedProvider={healthcareProvider}
-						setSelectedProvider={setHealthcareProvider}
-						disabled={true}
-					/>
-				)}
-				{/* Doctor fields */}
-				{profile?.role === "doctor" && (
-					<>
-						<SpecialityDropdown
-							selectedSpeciality={speciality}
-							setSelectedSpeciality={setSpeciality}
-						/>
-						{/* <TextInput
+						{(profile?.role === "doctor" || profile?.role === "nurse") && (
+							<HealthcareProviderDropdown
+								selectedProvider={healthcareProvider}
+								setSelectedProvider={setHealthcareProvider}
+								disabled={true}
+							/>
+						)}
+						{/* Doctor fields */}
+						{profile?.role === "doctor" && (
+							<>
+								<SpecialityDropdown
+									selectedSpeciality={speciality}
+									setSelectedSpeciality={setSpeciality}
+								/>
+								{/* <TextInput
 							label="Availability"
 							value={availability}
 							onChangeText={setAvailability}
 							mode="outlined"
 							style={styles.input}
 						/> */}
-						<TextInput
-							label="Bio"
-							value={bio}
-							onChangeText={setBio}
-							mode="outlined"
-							style={styles.input}
-							autoComplete="off"
-							autoCorrect={false}
-							spellCheck={false}
-							maxLength={200}
-							contentStyle={{
-								textAlign: undefined, // To prevent ellipsis from not working
-							}}
-							multiline={true}
-							numberOfLines={3}
-						/>
-					</>
-				)}
+								<TextInput
+									label="Bio"
+									value={bio}
+									onChangeText={setBio}
+									mode="outlined"
+									style={styles.input}
+									autoComplete="off"
+									autoCorrect={false}
+									spellCheck={false}
+									maxLength={200}
+									contentStyle={{
+										textAlign: undefined, // To prevent ellipsis from not working
+									}}
+									multiline={true}
+									numberOfLines={3}
+								/>
+							</>
+						)}
 
-				{/* Nurse fields */}
-				{profile?.role === "nurse" && (
-					<DoctorDropdown
-						providerId={profile.provider_id}
-						selectedDoctorId={assignedDoctorId}
-						setSelectedDoctor={setAssignedDoctorId}
-					/>
-				)}
+						{/* Nurse fields */}
+						{profile?.role === "nurse" && (
+							<DoctorDropdown
+								providerId={profile.provider_id}
+								selectedDoctorId={assignedDoctorId}
+								setSelectedDoctor={setAssignedDoctorId}
+							/>
+						)}
 
-				<Button mode="contained" onPress={handleSave} style={{ marginTop: 16 }}>
-					Save Changes
-				</Button>
+						<Button
+							mode="contained"
+							onPress={handleSave}
+							style={{ marginTop: 16 }}
+						>
+							Save Changes
+						</Button>
+					</Card.Content>
+				</Card>
 			</ScrollView>
 		</SafeAreaView>
 	);
 }
 
 const styles = StyleSheet.create({
-	input: { marginBottom: 12 },
+	card: {
+		marginHorizontal: 16,
+		marginVertical: 12,
+		borderRadius: 12,
+		backgroundColor: "white",
+	},
+	input: {
+		marginBottom: 12,
+	},
 });

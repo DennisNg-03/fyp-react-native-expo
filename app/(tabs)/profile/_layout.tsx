@@ -17,6 +17,7 @@ export default function ProfileLayout() {
 					// fontWeight: "bold",
 					fontSize: 18,
 				},
+				// animation: "fade",
 			}}
 		>
 			<Stack.Screen

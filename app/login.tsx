@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import {
 	Alert,
+	Image,
 	Keyboard,
 	KeyboardAvoidingView,
 	Platform,
@@ -65,9 +66,7 @@ export default function LoginScreen() {
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-			<SafeAreaView
-				style={{ flex: 1, backgroundColor: theme.colors.primaryContainer }}
-			>
+			<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.tertiary }}>
 				<KeyboardAvoidingView
 					style={styles.container}
 					behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -75,13 +74,14 @@ export default function LoginScreen() {
 					{loading && <ActivityIndicator loadingMsg="" />}
 
 					<View style={styles.header}>
-						<Text variant="headlineMedium" style={styles.title}>
-							MediNexis
-						</Text>
-						<Text variant="labelLarge" style={styles.subtitle}>
-							Log in to continue your journey with us!
-						</Text>
+						<Image
+							source={require("../assets/images/fyp-logo-10.jpg")}
+							style={styles.headerImage}
+						/>
 					</View>
+					<Text variant="labelLarge" style={styles.subtitle}>
+						Log in to continue your journey with us!
+					</Text>
 
 					<View style={styles.form}>
 						<TextInput
@@ -127,7 +127,9 @@ export default function LoginScreen() {
 							/>
 							<View style={{ flex: 1 }}>
 								<Text variant="bodySmall">
-									I consent to my personal data being collected and stored securely in the cloud, and it will be used only to provide app services with strong security protections in place.
+									I consent to my personal data being collected and stored
+									securely in the cloud, and it will be used only to provide app
+									services with strong security protections in place.
 								</Text>
 							</View>
 						</View>
@@ -157,15 +159,26 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		justifyContent: "center",
+		justifyContent: "flex-start",
 		paddingHorizontal: 20,
 	},
 	form: {
 		width: "100%",
 	},
+	// header: {
+	// 	marginBottom: 24,
+	// 	alignItems: "center",
+	// },
 	header: {
-		marginBottom: 24,
-		alignItems: "center",
+		marginBottom: 6,
+		width: "100%", // take full width
+		borderRadius: 12,
+		overflow: "hidden", // makes rounded corners apply to the image
+	},
+	headerImage: {
+		width: "100%", // full width of screen
+		height: 160, // adjust for banner look
+		resizeMode: "cover", // covers the whole width, cropping if needed
 	},
 	title: {
 		textAlign: "center",
@@ -174,6 +187,9 @@ const styles = StyleSheet.create({
 	subtitle: {
 		textAlign: "center",
 		color: "#4d4c4cff",
+		marginTop: 50,
+		marginBottom: 20,
+		fontSize: 18,
 	},
 	input: {
 		marginBottom: 16,
