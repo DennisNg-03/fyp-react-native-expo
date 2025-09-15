@@ -68,6 +68,7 @@ export default function HomeScreen() {
 		return () => {
 			supabase.removeChannel(subscription);
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [session?.user.id]);
 
 	const unreadCount = notifications.filter((n) => !n.read_at).length;
@@ -75,52 +76,27 @@ export default function HomeScreen() {
 	const AppHeader = ({ role }: { role: string | null }) => {
 		return (
 			<>
-				<Image
-					source={require("../../assets/images/fyp-logo-10.jpg")}
-					style={{
-						height: 150,
-						width: "100%",
-						marginBottom: 6,
-						resizeMode: "cover",
-						borderRadius: 12,
-					}}
-				/>
 				<View
 					style={{
 						padding: 16,
 						borderRadius: 12,
-						marginBottom: 16,
-						backgroundColor: theme.colors.primary,
-						// position: "absolute",
-						// top: 0,
-						// left: 0,
-						// right: 0,
-						// margin: 16,
+						backgroundColor: theme.colors.surface,
+						alignItems: "center",
 					}}
 				>
-					{/* <Text
-					style={{
-						color: theme.colors.onPrimary,
-						fontWeight: "800",
-						fontSize: 24,
-						marginBottom: 6,
-					}}
-				>
-					MediNexis
-				</Text> */}
-					{/* <Image
-						source={require("../../assets/images/fyp-logo-7.jpg")}
+					<Image
+						source={require("../../assets/images/fyp-logo-1-removebg-preview.png")}
 						style={{
 							height: 150,
 							width: "100%",
-							marginBottom: 6,
+							// alignSelf: "center",
 							resizeMode: "cover",
-							borderRadius: 12,
+							// marginBottom: 8,
 						}}
-					/> */}
+					/>
 					<Text
 						style={{
-							color: theme.colors.onPrimary,
+							color: theme.colors.primary,
 							fontWeight: "500",
 							fontSize: 14,
 						}}
@@ -315,24 +291,6 @@ const NurseHome = () => {
 			<Text variant="titleLarge" style={styles.sectionHeader}>
 				Quick Actions
 			</Text>
-			{/* <View style={styles.quickActionsRow}>
-				<Card style={styles.quickCard} onPress={() => {}}>
-					<Card.Content style={styles.quickCardContent}>
-						<Avatar.Icon size={40} icon="clipboard-text-search" />
-						<Text variant="titleMedium" style={styles.cardTitle}>
-							View Patient Records
-						</Text>
-					</Card.Content>
-				</Card>
-				<Card style={styles.quickCard} onPress={() => {}}>
-					<Card.Content style={styles.quickCardContent}>
-						<Avatar.Icon size={40} icon="calendar-month-outline" />
-						<Text variant="titleMedium" style={styles.cardTitle}>
-							Monitor Appointments
-						</Text>
-					</Card.Content>
-				</Card>
-			</View> */}
 			<Card
 				style={[styles.fullCard, styles.card]}
 				onPress={() => router.push("/medical-record")}
@@ -388,7 +346,7 @@ const styles = StyleSheet.create({
 	// 	justifyContent: "center",
 	// },
 	sectionHeader: {
-		marginVertical: 16,
+		marginBottom: 16,
 		fontWeight: "600",
 		fontSize: 20,
 		textAlign: "center",
@@ -458,4 +416,10 @@ const styles = StyleSheet.create({
 		backgroundColor: "#D32F2F",
 		// color: "white",
 	},
+	// footerLogo: {
+	// 	height: 150,
+	// 	width: "100%",
+	// 	resizeMode: "contain",
+	// 	borderRadius: 12,
+	// },
 });

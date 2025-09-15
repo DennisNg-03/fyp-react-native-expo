@@ -15,6 +15,7 @@ import {
 	Avatar,
 	Button,
 	Card,
+	Checkbox,
 	Text,
 	TextInput,
 	useTheme,
@@ -43,6 +44,7 @@ export default function RegisterScreen() {
 		string | undefined
 	>(undefined);
 	const [loading, setLoading] = useState(false);
+	const [consentGiven, setConsentGiven] = useState(false);
 
 	const roles: {
 		key: UserRole;
@@ -103,6 +105,14 @@ export default function RegisterScreen() {
 			return;
 		}
 
+		if (!consentGiven) {
+			Alert.alert(
+				"Consent Required",
+				"You must consent to the collection and secure storage of your personal data for app services before signing up."
+			);
+			return;
+		}
+
 		try {
 			setLoading(true);
 
@@ -133,7 +143,7 @@ export default function RegisterScreen() {
 			} = await supabase.auth.getSession();
 
 			if (!error) {
-				await supabase.auth.signOut({ scope: 'local' })// Immediately log out so they are not auto-logged in upon app refresh
+				await supabase.auth.signOut({ scope: "local" }); // Immediately log out so they are not auto-logged in upon app refresh
 			}
 
 			const bodyData: Record<string, any> = {
@@ -185,7 +195,7 @@ export default function RegisterScreen() {
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
 			<SafeAreaView
-				style={{ flex: 1, backgroundColor: theme.colors.primaryContainer  }}
+				style={{ flex: 1, backgroundColor: theme.colors.primaryContainer }}
 			>
 				<KeyboardAvoidingView
 					style={styles.container}
@@ -194,7 +204,7 @@ export default function RegisterScreen() {
 					{loading && <ActivityIndicator loadingMsg="" />}
 					{!role ? (
 						<View style={styles.roleSelection}>
-							<Text variant="headlineMedium" style={styles.title}>
+							<Text variant="headlineMedium" style={styles.pageHeader}>
 								Sign Up for an Account
 							</Text>
 							<Text variant="labelLarge" style={styles.subtitle}>
@@ -209,12 +219,20 @@ export default function RegisterScreen() {
 										activeOpacity={0.8}
 										style={{ width: 300 }}
 									>
-										<Card style={[styles.roleCard, { backgroundColor: theme.colors.tertiary }]} elevation={2}>
+										<Card
+											style={[
+												styles.roleCard,
+												{ backgroundColor: theme.colors.surface },
+											]}
+											elevation={2}
+										>
 											<Card.Content style={styles.roleCardContent}>
 												<Avatar.Icon
 													size={48}
 													icon={r.icon}
-													style={{ backgroundColor: theme.colors.tertiaryContainer }}
+													style={{
+														backgroundColor: theme.colors.primary,
+													}}
 												/>
 												<Text variant="titleMedium" style={{ marginTop: 8 }}>
 													{r.label}
@@ -245,120 +263,154 @@ export default function RegisterScreen() {
 								justifyContent: "center",
 							}}
 						>
-							<Text variant="headlineMedium" style={styles.title}>
-								Create {role.charAt(0).toUpperCase() + role.slice(1)} Account
-							</Text>
-							<Text variant="labelLarge" style={styles.subtitle}>
-								Fill in your details to get started with MediNexis
-							</Text>
-
-							<TextInput
-								label="Full Name"
-								value={name}
-								onChangeText={setName}
-								mode="outlined"
-								autoComplete="off"
-								autoCorrect={false}
-								spellCheck={false}
-								maxLength={50}
-								style={styles.input}
-								contentStyle={{
-									textAlign: undefined, // To prevent ellipsis from not working
-								}}
-							/>
-							<TextInput
-								label="Email"
-								value={email}
-								onChangeText={setEmail}
-								mode="outlined"
-								autoCapitalize="none"
-								keyboardType="email-address"
-								autoComplete="off"
-								autoCorrect={false}
-								spellCheck={false}
-								maxLength={50}
-								style={styles.input}
-								contentStyle={{
-									textAlign: undefined, // To prevent ellipsis from not working
-								}}
-							/>
-							<TextInput
-								label="Phone Number"
-								value={phoneNumber}
-								onChangeText={setPhoneNumber}
-								mode="outlined"
-								keyboardType="phone-pad"
-								autoComplete="tel"
-								autoCorrect={false}
-								spellCheck={false}
-								maxLength={20}
-								style={styles.input}
-								contentStyle={{
-									textAlign: undefined, // To prevent ellipsis from not working
-								}}
-							/>
-							<GenderDropdown
-								selectedGender={gender}
-								setSelectedGender={setGender}
-							/>
-							<TextInput
-								label="Password"
-								value={password}
-								onChangeText={setPassword}
-								mode="outlined"
-								secureTextEntry
-								textContentType="oneTimeCode"
-								maxLength={30}
-								style={styles.input}
-								contentStyle={{
-									textAlign: undefined, // To prevent ellipsis from not working
-								}}
-							/>
-							<TextInput
-								label="Confirm Password"
-								value={confirmPassword}
-								onChangeText={setConfirmPassword}
-								mode="outlined"
-								secureTextEntry
-								textContentType="oneTimeCode"
-								maxLength={30}
-								style={styles.input}
-								contentStyle={{
-									textAlign: undefined, // To prevent ellipsis from not working
-								}}
-							/>
-
-							{(role === "doctor" || role === "nurse") && (
-								<HealthcareProviderDropdown
-									selectedProvider={healthcareProvider}
-									setSelectedProvider={setHealthcareProvider}
-								/>
-							)}
-							{role === "doctor" && (
-								<SpecialityDropdown
-									selectedSpeciality={speciality}
-									setSelectedSpeciality={setSpeciality}
-								/>
-							)}
-
-							<Button
-								mode="contained"
-								onPress={handleRegister}
-								style={styles.registerButton}
+							<Card
+								style={[
+									styles.card, 
+									{ backgroundColor: theme.colors.surface }
+								]}
+								elevation={2}
+								onStartShouldSetResponder={() => true}
 							>
-								Register
-							</Button>
+								<Card.Content>
+									<Text variant="headlineMedium" style={styles.pageHeader}>
+										Create {role.charAt(0).toUpperCase() + role.slice(1)}{" "}
+										Account
+									</Text>
+									<Text variant="labelLarge" style={styles.subtitle}>
+										Fill in your details to get started with MediNexis
+									</Text>
 
-							<Button
-								mode="text"
-								onPress={handleChooseDifferentRole}
-								style={{ marginBottom: 3 }}
-							>
-								Choose a different role
-							</Button>
-							<Button mode="text" onPress={() => router.replace("/login")}>
-								Already have an account? Login
-							</Button>
+									<TextInput
+										label="Full Name"
+										value={name}
+										onChangeText={setName}
+										mode="outlined"
+										autoComplete="off"
+										autoCorrect={false}
+										spellCheck={false}
+										maxLength={50}
+										style={styles.input}
+										contentStyle={{
+											textAlign: undefined, // To prevent ellipsis from not working
+										}}
+									/>
+									<TextInput
+										label="Email"
+										value={email}
+										onChangeText={setEmail}
+										mode="outlined"
+										autoCapitalize="none"
+										keyboardType="email-address"
+										autoComplete="off"
+										autoCorrect={false}
+										spellCheck={false}
+										maxLength={50}
+										style={styles.input}
+										contentStyle={{
+											textAlign: undefined, // To prevent ellipsis from not working
+										}}
+									/>
+									<TextInput
+										label="Phone Number"
+										value={phoneNumber}
+										onChangeText={setPhoneNumber}
+										mode="outlined"
+										keyboardType="phone-pad"
+										autoComplete="tel"
+										autoCorrect={false}
+										spellCheck={false}
+										maxLength={20}
+										style={styles.input}
+										contentStyle={{
+											textAlign: undefined, // To prevent ellipsis from not working
+										}}
+									/>
+									<GenderDropdown
+										selectedGender={gender}
+										setSelectedGender={setGender}
+									/>
+									<TextInput
+										label="Password"
+										value={password}
+										onChangeText={setPassword}
+										mode="outlined"
+										secureTextEntry
+										textContentType="oneTimeCode"
+										maxLength={30}
+										style={styles.input}
+										contentStyle={{
+											textAlign: undefined, // To prevent ellipsis from not working
+										}}
+									/>
+									<TextInput
+										label="Confirm Password"
+										value={confirmPassword}
+										onChangeText={setConfirmPassword}
+										mode="outlined"
+										secureTextEntry
+										textContentType="oneTimeCode"
+										maxLength={30}
+										style={styles.input}
+										contentStyle={{
+											textAlign: undefined, // To prevent ellipsis from not working
+										}}
+									/>
+
+									{(role === "doctor" || role === "nurse") && (
+										<HealthcareProviderDropdown
+											selectedProvider={healthcareProvider}
+											setSelectedProvider={setHealthcareProvider}
+										/>
+									)}
+									{role === "doctor" && (
+										<SpecialityDropdown
+											selectedSpeciality={speciality}
+											setSelectedSpeciality={setSpeciality}
+										/>
+									)}
+
+									{/* Consent Checkbox */}
+									<View
+										style={{
+											flexDirection: "row",
+											alignItems: "center",
+											marginBottom: 16,
+										}}
+									>
+										<Checkbox.Android
+											status={consentGiven ? "checked" : "unchecked"}
+											onPress={() => setConsentGiven(!consentGiven)}
+										/>
+										<View style={{ flex: 1, marginTop: 10 }}>
+											<Text variant="bodySmall">
+												I consent to my personal data being collected and stored
+												securely in the cloud, and it will be used only to
+												provide app services with strong security protections in
+												place.
+											</Text>
+										</View>
+									</View>
+
+									<Button
+										mode="contained"
+										onPress={handleRegister}
+										style={styles.registerButton}
+									>
+										Register
+									</Button>
+
+									<Button
+										mode="text"
+										onPress={handleChooseDifferentRole}
+										style={{ marginBottom: 3 }}
+									>
+										Choose a different role
+									</Button>
+									<Button mode="text" onPress={() => router.replace("/login")}>
+										Already have an account? Login
+									</Button>
+								</Card.Content>
+							</Card>
 						</ScrollView>
 					)}
 				</KeyboardAvoidingView>
@@ -371,12 +423,19 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		justifyContent: "center",
-		paddingHorizontal: 24,
+		// paddingHorizontal: 24,
+	},
+	card: {
+		marginHorizontal: 16,
+		marginVertical: 12,
+		borderRadius: 12,
+		// backgroundColor: "white",
 	},
 	roleSelection: {
 		width: "100%",
 		justifyContent: "center",
 		alignItems: "center",
+		paddingHorizontal: 30,
 	},
 	roleCardsContainer: {
 		flexDirection: "column",
@@ -420,7 +479,13 @@ const styles = StyleSheet.create({
 		width: "100%",
 	},
 	registerButton: {
-		marginVertical: 16,
+		marginVertical: 10,
 		width: "100%",
+	},
+	pageHeader: {
+		fontWeight: "700",
+		fontSize: 24,
+		textAlign: "center",
+		color: "rgba(0, 0, 0, 0.7)",
 	},
 });
