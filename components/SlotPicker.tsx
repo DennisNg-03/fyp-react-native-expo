@@ -36,7 +36,7 @@ export function SlotPicker({ slots, selectedSlot, onSelect }: SlotPickerProps) {
               paddingVertical: 8,
               alignItems: "center",
 							width: "32.5%",
-              backgroundColor: selected ? "#eee" : "white",
+              backgroundColor: selected ? "#f2e7ff" : "white",
             }}
           >
             <Text style={{ fontSize: 12 }}>{`${startLocal} – ${endLocal}`}</Text>

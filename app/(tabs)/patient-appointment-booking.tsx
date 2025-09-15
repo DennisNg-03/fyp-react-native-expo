@@ -187,7 +187,7 @@ export default function AppointmentBookingScreen() {
 			const { data, error } = await supabase.rpc("get_available_slots", {
 				p_doctor_id: selectedDoctor.id,
 				p_date: dateISO,
-				p_slot_mins: selectedDoctor.slot_minutes ?? 15,
+				p_slot_mins: selectedDoctor.slot_minutes ?? 30,
 			});
 
 			console.log("RPC Get available slots data:", data);
@@ -521,7 +521,7 @@ export default function AppointmentBookingScreen() {
 													paddingVertical: 10,
 													borderRadius: 10,
 													borderWidth: active ? 2 : 1,
-													borderColor: active ? "#6200ee" : "#ddd",
+													borderColor: active ? theme.colors.primary : "#ccc",
 													backgroundColor: active ? "#f2e7ff" : "#fff",
 												}}
 											>
@@ -563,8 +563,8 @@ export default function AppointmentBookingScreen() {
 														paddingVertical: 10,
 														borderRadius: 10,
 														borderWidth: active ? 2 : 1,
-														borderColor: active ? "#6200ee" : "#ddd",
-														backgroundColor: active ? "#f2e7ff" : "#fff",
+														borderColor: active ? theme.colors.primary : "#ccc",
+													backgroundColor: active ? "#f2e7ff" : "#fff",
 													}}
 												>
 													<Text style={{ fontWeight: "600" }}>

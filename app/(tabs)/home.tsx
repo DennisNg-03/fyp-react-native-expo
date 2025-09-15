@@ -20,21 +20,6 @@ export default function HomeScreen() {
 
 	const [notifications, setNotifications] = useState<Notification[]>([]);
 
-	// useEffect(() => {
-	// 	const fetchNotifications = async () => {
-	// 		const { data, error } = await supabase
-	// 			.from("notifications")
-	// 			.select("*")
-	// 			.eq("user_id", session?.user.id)
-	// 			.order("created_at", { ascending: false });
-
-	// 		if (error) console.error("Failed to fetch notifications:", error);
-	// 		else setNotifications(data ?? []);
-	// 	};
-
-	// 	if (session?.user.id) fetchNotifications();
-	// }, [session?.user.id]);
-
 	const fetchNotifications = async () => {
 		const { data, error } = await supabase
 			.from("notifications")
@@ -78,7 +63,8 @@ export default function HomeScreen() {
 			<>
 				<View
 					style={{
-						padding: 16,
+						paddingHorizontal: 16,
+						paddingBottom: 16,
 						borderRadius: 12,
 						backgroundColor: theme.colors.surface,
 						alignItems: "center",
@@ -142,9 +128,6 @@ const PatientHome = ({
 	notifications: Notification[];
 	unreadCount: number;
 }) => {
-	// const upcomingAppointment = notifications.find((n) =>
-	// 	n.title.toLowerCase().includes("appointment")
-	// );
 
 	return (
 		<>
@@ -202,19 +185,6 @@ const PatientHome = ({
 							{unreadCount >= 10 ? "9+" : unreadCount}
 						</Badge>
 					)}
-					{/* {upcomingAppointment ? (
-						<View>
-							<Text variant="titleMedium" style={{ marginTop: 12 }}>
-								Next Appointment Notification
-							</Text>
-							<Text variant="bodyMedium" style={styles.subText}>
-								{upcomingAppointment.title}
-							</Text>
-							<Text variant="bodySmall" style={{ color: "gray" }}>
-								{upcomingAppointment.body}
-							</Text>
-						</View>
-					) : null} */}
 					<Button
 						mode="text"
 						style={{ marginTop: 4, alignSelf: "center" }}
@@ -271,16 +241,6 @@ const DoctorHome = () => {
 					</Text>
 				</Card.Content>
 			</Card>
-
-			{/* <Card style={styles.fullCard}>
-				<Card.Content>
-					<Text variant="titleMedium" style={styles.notificationHeader}>Notifications Summary</Text>
-					<Text variant="bodyMedium" style={styles.subText}>
-						You have 2 new appointment requests.
-					</Text>
-					<Badge style={styles.badge}>2</Badge>
-				</Card.Content>
-			</Card> */}
 		</>
 	);
 };
@@ -313,16 +273,6 @@ const NurseHome = () => {
 					</Text>
 				</Card.Content>
 			</Card>
-
-			{/* <Card style={styles.fullCard}>
-				<Card.Content>
-					<Text variant="titleMedium" style={styles.notificationHeader}>Notifications Summary</Text>
-					<Text variant="bodyMedium" style={styles.subText}>
-						1 urgent appointment requires attention.
-					</Text>
-					<Badge style={styles.badge}>1</Badge>
-				</Card.Content>
-			</Card> */}
 		</>
 	);
 };
@@ -341,12 +291,9 @@ const styles = StyleSheet.create({
 	homePageContainer: {
 		// marginTop: 50,
 	},
-	// containerBody: {
-	// 	flex: 1,
-	// 	justifyContent: "center",
-	// },
 	sectionHeader: {
-		marginBottom: 16,
+		marginTop: 8,
+		marginBottom: 8,
 		fontWeight: "600",
 		fontSize: 20,
 		textAlign: "center",
@@ -416,10 +363,4 @@ const styles = StyleSheet.create({
 		backgroundColor: "#D32F2F",
 		// color: "white",
 	},
-	// footerLogo: {
-	// 	height: 150,
-	// 	width: "100%",
-	// 	resizeMode: "contain",
-	// 	borderRadius: 12,
-	// },
 });

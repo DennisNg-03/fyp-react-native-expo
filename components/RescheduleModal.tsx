@@ -55,7 +55,7 @@ export default function RescheduleModal({
 			const { data, error } = await supabase.rpc("get_available_slots", {
 				p_doctor_id: doctorId,
 				p_date: dateISO,
-				p_slot_mins: appointment.doctor?.slot_minutes ?? 15,
+				p_slot_mins: appointment.doctor?.slot_minutes ?? 30,
 			});
 
 			if (error) {
