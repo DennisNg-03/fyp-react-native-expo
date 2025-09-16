@@ -30,7 +30,7 @@ export default function PatientAppointmentsScreen() {
 
 	const [upcoming, setUpcoming] = useState<Appointment[]>([]);
 	const [past, setPast] = useState<Appointment[]>([]);
-	const [loading, setLoading] = useState(false);
+	// const [loading, setLoading] = useState(false);
 	const [refreshing, setRefreshing] = useState(false);
 	const [showUpcoming, setShowUpcoming] = useState(true);
 	const [showPast, setShowPast] = useState(false);
@@ -287,7 +287,7 @@ export default function PatientAppointmentsScreen() {
 
 	return (
 		<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.tertiary }}>
-			{loading && !refreshing ? (
+			{!refreshing ? (
 				<ActivityIndicator loadingMsg="" size="large" />
 			) : (
 				<ScrollView

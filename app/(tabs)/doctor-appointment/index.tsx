@@ -28,7 +28,7 @@ export default function DoctorAppointmentScreen() {
 
 	const [upcoming, setUpcoming] = useState<DoctorAppointment[]>([]);
 	const [past, setPast] = useState<DoctorAppointment[]>([]);
-	const [loading, setLoading] = useState(false);
+	// const [loading, setLoading] = useState(false);
 	const [refreshing, setRefreshing] = useState(false);
 
 	const [showUpcoming, setShowUpcoming] = useState(true);

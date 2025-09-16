@@ -11,7 +11,7 @@ export default function PrivacySettingsScreen() {
 	const { session } = useAuth();
 	const userId = session?.user.id;
 	const theme = useTheme();
-	const [loading, setLoading] = useState(true);
+	// const [loading, setLoading] = useState(true);
 	const [selectedProvider, setSelectedProvider] = useState<string | undefined>(
 		undefined
 	);
@@ -26,7 +26,7 @@ export default function PrivacySettingsScreen() {
 
 	const loadDoctorsAccess = async (providerId: string) => {
 		if (!session) return;
-		setLoading(true);
+		// setLoading(true);
 
 		try {
 			const { data: doctorsData, error: doctorsError } = await supabase
@@ -67,19 +67,12 @@ export default function PrivacySettingsScreen() {
 				a.doctor_name.localeCompare(b.doctor_name)
 			);
 
-			// Combine doctor info with access status
-			// const combined = (doctorsData ?? []).map((doc: any) => ({
-			// 	doctor_id: doc.id,
-			// 	doctor_name: doc.profiles?.full_name ?? "Unknown",
-			// 	granted: latestAccessMap[doc.id]?.grant_status ?? false, // default to false if no record
-			// }));
-
 			setDoctorAccessList(combinedDoctors);
 		} catch (err) {
 			console.error(err);
 			Alert.alert("Error", "Failed to load doctor access.");
 		} finally {
-			setLoading(false);
+			// setLoading(false);
 		}
 	};
 

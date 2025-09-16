@@ -1,3 +1,4 @@
+import { ActivityIndicator } from "@/components/ActivityIndicator";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
@@ -56,7 +57,7 @@ export default function ProfileScreen() {
 			console.log("userId:", userId);
 			console.log("role:", role);
 		}
-		setLoading(true);
+		// setLoading(true);
 
 		try {
 			// First fetch the base profile row from the `profiles` table. This avoids relying on
@@ -157,7 +158,7 @@ export default function ProfileScreen() {
 			console.error("Error loading profile:", err);
 			setProfile(null);
 		} finally {
-			setLoading(false);
+			// setLoading(false);
 		}
 	}, [userId, role]);
 
@@ -441,26 +442,6 @@ export default function ProfileScreen() {
 							}
 							left={(props) => <List.Icon {...props} icon="hospital" />}
 						/>
-						{/* <List.Item
-							title="Insurance Info"
-							description={
-								typeof profile.insurance_info === "string" && profile.insurance_info !== ""
-									? profile.insurance_info
-									: "Not provided"
-							}
-							left={(props) => (
-								<List.Icon {...props} icon="card-account-details" />
-							)}
-						/> */}
-						{/* <List.Item
-							title="Medical History"
-							description={
-								typeof profile.medical_history === "string"
-									? profile.medical_history
-									: "Not provided"
-							}
-							left={(props) => <List.Icon {...props} icon="history" />}
-						/> */}
 						{/* Emergency info */}
 						<List.Item
 							title="Emergency Contact"
@@ -482,6 +463,9 @@ export default function ProfileScreen() {
 	return (
 		<SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.tertiary }}>
 			<ScrollView style={{ backgroundColor: theme.colors.tertiary }}>
+				{loading && (
+					<ActivityIndicator loadingMsg="" size="large" overlay={true} />
+				)}
 				<View style={styles.header}>
 					<View style={{ position: "relative", alignItems: "center" }}>
 						<Avatar.Image
