@@ -1,6 +1,7 @@
 import type { Appointment, AppointmentStatus, DoctorAppointment } from "@/types/appointment";
 import { differenceInHours } from "date-fns";
 
+// Allow reschedule only if the current time is at least 24 hours before the appointment start time
 export function canReschedule(startsAtISO: string, now: Date = new Date()) {
   const hoursUntilStart = differenceInHours(new Date(startsAtISO), now);
 	console.log("startAsISO:", startsAtISO);

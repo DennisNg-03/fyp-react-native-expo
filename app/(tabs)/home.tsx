@@ -34,6 +34,8 @@ export default function HomeScreen() {
 	useEffect(() => {
 		if (!session?.user.id) return;
 
+		fetchNotifications();
+
 		const subscription = supabase
 			.channel("notifications")
 			.on(

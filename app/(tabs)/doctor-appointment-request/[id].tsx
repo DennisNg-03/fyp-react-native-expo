@@ -31,33 +31,40 @@ export default function PatientAppointmentDetailScreen() {
 				.from("appointments")
 				.select(
 					`
-					id,
-					doctor_id,
-					patient_id,
-					starts_at,
-					ends_at,
-					status,
-					reason,
-					notes,
-					for_whom,
-					other_person,
-					grant_doctor_access,
-					supporting_documents,
-					doctor:doctor_id (
-						speciality,
-						slot_minutes,
-						profiles(full_name, email, phone_number),
-						provider:provider_id (
-							name,
-							provider_type,
-							address,
-							phone_number
-							)
+						id,
+						doctor_id,
+						patient_id,
+						starts_at,
+						ends_at,
+						status,
+						reason,
+						notes,
+						for_whom,
+						other_person,
+						grant_doctor_access,
+						supporting_documents,
+						doctor:doctor_id (
+							speciality,
+							slot_minutes,
+							profiles(full_name, email, phone_number),
+							provider:provider_id (
+								name,
+								provider_type,
+								address,
+								phone_number
+								)
+							),
+						patient:patient_id (
+							date_of_birth,
+							profiles(full_name, email, phone_number, gender)
 						),
-					patient:patient_id (
-						date_of_birth,
-						profiles(full_name, email, phone_number, gender)
-					)
+						reschedule_requests:appointment_reschedule_requests!reschedule_requests_appointment_id_fkey  (
+							id,
+							status,
+							new_starts_at,
+							new_ends_at,
+							created_at
+						)
 					`
 				)
 				.eq("id", id)
@@ -100,6 +107,18 @@ export default function PatientAppointmentDetailScreen() {
 				result = {
 					...data,
 					supporting_documents: supportingDocsWithUrls,
+				};
+			}
+
+			const acceptedRescheduleRequest = data.reschedule_requests?.find(
+				(r: any) => r.status === "accepted"
+			);
+
+			if (acceptedRescheduleRequest) {
+				result = {
+					...data,
+					starts_at: acceptedRescheduleRequest.new_starts_at,
+					ends_at: acceptedRescheduleRequest.new_ends_at,
 				};
 			}
 

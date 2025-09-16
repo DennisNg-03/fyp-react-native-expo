@@ -46,8 +46,8 @@ Deno.serve(async (req) => {
 		if (status === "accepted") {
 			updateData = {
 				status: "rescheduled",
-				starts_at: new_starts_at,
-				ends_at: new_ends_at,
+				// starts_at: new_starts_at,
+				// ends_at: new_ends_at,
 			};
 		} else if (status === "rejected") {
 			updateData = { status: "cancelled" }; // if reject, change appointment.status to cancelled

@@ -273,7 +273,6 @@ export default function AppointmentDetailCard({
 				)}
 
 				{/* Show no show and completed buttons only for accepted filter and scheduled/rescheduled status */}
-
 				{role === "nurse" &&
 					(appointment.status === "scheduled" ||
 						appointment.status === "rescheduled" ||

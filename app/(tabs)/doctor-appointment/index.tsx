@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
-import { DoctorAppointment } from "@/types/appointment";
+import { AppointmentRescheduleRequest, DoctorAppointment } from "@/types/appointment";
 import { getDisplayStatus } from "@/utils/appointmentRules";
 import { formatKL } from "@/utils/dateHelpers";
 import {
@@ -9,7 +9,7 @@ import {
 	getStatusColor,
 } from "@/utils/labelHelpers";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import {
 	Card,
@@ -47,8 +47,23 @@ export default function DoctorAppointmentScreen() {
 			const patientProfile = patient.profiles ?? {}; // "profiles" is table name
 			const doctorProfile = patient.profiles ?? {}; // "profiles" is table name
 
+			// Look for the accepted reschedule requests
+			const acceptedRescheduleRequest = (appt.reschedule_requests as AppointmentRescheduleRequest[] ?? [])
+      .find((r) => r.status === "accepted");
+
+			const starts_at = acceptedRescheduleRequest?.new_starts_at ?? appt.starts_at;
+			const ends_at = acceptedRescheduleRequest?.new_ends_at ?? appt.ends_at;
+
+			// console.log("Appointment id:", appt.id);
+			// console.log("  original starts_at:", appt.starts_at, "ends_at:", appt.ends_at);
+			// console.log("  reschedule_requests:", JSON.stringify(appt.reschedule_requests ?? [], null, 2));
+			// console.log("  acceptedRescheduleRequest:", acceptedRescheduleRequest ? JSON.stringify(acceptedRescheduleRequest, null, 2) : "none");
+			// console.log("  effective starts_at:", starts_at, "ends_at:", ends_at);
+
 			return {
 				...appt,
+				starts_at,
+				ends_at,
 				patient: {
 					date_of_birth: patient.date_of_birth ?? "",
 					full_name: patientProfile.full_name ?? "",
@@ -89,15 +104,22 @@ export default function DoctorAppointmentScreen() {
 							profiles (
 								full_name
 							)
+						),
+						reschedule_requests:appointment_reschedule_requests!reschedule_requests_appointment_id_fkey  (
+							id,
+							status,
+							new_starts_at,
+							new_ends_at,
+							created_at
 						)
 					`
 				)
 				.eq("doctor_id", userId)
-				.in("status", ["completed", "scheduled", "no_show", "rescheduled"])
+				.in("status", ["completed", "scheduled", "no_show", "rescheduled"]) // Only display appointments with these statuses
 				.gte("ends_at", now)
 				.order("starts_at", { ascending: true });
 
-			console.log("Upcoming raw data:", upcomingData);
+			// console.log("Upcoming raw data:", upcomingData);
 			setUpcoming(flattenDoctorAppointments(upcomingData ?? []));
 
 			const { data: pastData } = await supabase
@@ -118,6 +140,13 @@ export default function DoctorAppointmentScreen() {
 							profiles (
 								full_name
 							)
+						),
+						reschedule_requests:appointment_reschedule_requests!reschedule_requests_appointment_id_fkey (
+							id,
+							status,
+							new_starts_at,
+							new_ends_at,
+							created_at
 						)
 					`
 				)
@@ -126,8 +155,10 @@ export default function DoctorAppointmentScreen() {
 				.lt("ends_at", now)
 				.order("starts_at", { ascending: false });
 
-			console.log("Past raw data:", pastData);
+			// console.log("Past raw data:", pastData);
 			setPast(flattenDoctorAppointments(pastData ?? []));
+
+			// console.log("appointments sample:", JSON.stringify((pastData || []).slice(0, 5), null, 2));
 		} catch (err) {
 			console.error("Error loading appointments:", err);
 		} finally {
@@ -150,9 +181,9 @@ export default function DoctorAppointmentScreen() {
 		}, [loadAppointments])
 	);
 
-	useEffect(() => {
-		console.log("Past data:", past);
-	}, [past]);
+	// useEffect(() => {
+	// 	console.log("Past data:", past);
+	// }, [past]);
 
 	const sortedUpcoming = [...upcoming].sort((a, b) => {
 		if (upcomingSortOrder === "asc") {
@@ -209,12 +240,12 @@ export default function DoctorAppointmentScreen() {
 							</Text>
 						</Text>
 
-						{item.reason && (
-							<Text style={styles.reasonText}>Reason: {item.reason}</Text>
-						)}
-						{item.notes && (
-							<Text style={styles.notesText}>Notes: {item.notes}</Text>
-						)}
+						<Text style={styles.reasonText}>
+							Reason: {item?.reason || "Not provided"}
+						</Text>
+						<Text style={styles.notesText}>
+							Notes: {item?.notes || "Not provided"}
+						</Text>
 					</View>
 				</View>
 			</Card>

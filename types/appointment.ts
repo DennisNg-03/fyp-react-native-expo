@@ -108,7 +108,7 @@ export type RequestStatus = "pending" | "accepted" | "rejected";
 export type AppointmentRescheduleRequest = {
 	id: string;
 	appointment_id: string;
-	requested_by: string; // patient.id
+	requested_by?: string; // patient.id
 	new_starts_at: string; // timestamptz
 	new_ends_at: string; // timestamptz
 	status?: RequestStatus; // Make it optional since it is not needed when inserting

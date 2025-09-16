@@ -53,7 +53,14 @@ export default function PatientAppointmentDetailScreen() {
 							address,
 							phone_number
 							)
-						)
+						),
+					reschedule_requests:appointment_reschedule_requests!reschedule_requests_appointment_id_fkey  (
+						id,
+						status,
+						new_starts_at,
+						new_ends_at,
+						created_at
+					)
 					`
 				)
 				.eq("id", id)
@@ -96,6 +103,18 @@ export default function PatientAppointmentDetailScreen() {
 				result = {
 					...data,
 					supporting_documents: supportingDocsWithUrls,
+				};
+			}
+
+			const acceptedRescheduleRequest = data.reschedule_requests?.find(
+				(r: any) => r.status === "accepted"
+			);
+
+			if (acceptedRescheduleRequest) {
+				result = {
+					...data,
+					starts_at: acceptedRescheduleRequest.new_starts_at,
+					ends_at: acceptedRescheduleRequest.new_ends_at,
 				};
 			}
 
