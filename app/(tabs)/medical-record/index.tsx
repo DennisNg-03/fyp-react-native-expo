@@ -88,7 +88,7 @@ export default function MedicalRecordScreen() {
 		console.log("sortField:", sortField);
 		console.log("sortOrder:", sortOrder);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [searchQuery, fromDate, toDate, sortField, sortOrder]);
+	}, [searchQuery, sortField, sortOrder]);
 
 	const fetchRecords = async (pageNumber = 1, ignoreHasMore = false) => {
 		if (!userId || (!hasMore && !ignoreHasMore)) return;
@@ -215,10 +215,16 @@ export default function MedicalRecordScreen() {
 
 				if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
 				if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-				return 0;
+
+				const aUpdated = a.updated_at ? new Date(a.updated_at).getTime() : 0;
+				const bUpdated = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+
+				return bUpdated - aUpdated;
+				// return 0;
 			});
 
 			setFilteredRecords(filteredCopy);
+			setFilterModalVisible(false);
 		} finally {
 			// setFetching(false);
 		}
@@ -384,7 +390,7 @@ export default function MedicalRecordScreen() {
 						</Text>
 					</Text>
 					<Text variant="labelLarge" style={styles.cardInfoRow}>
-						Provider:{" "}
+						Healthcare Provider:{" "}
 						<Text variant="bodyMedium" style={styles.cardInfoValue}>
 							{item.healthcare_provider_name || "Not provided"}
 						</Text>
@@ -684,7 +690,6 @@ export default function MedicalRecordScreen() {
 											style={{ width: "100%", marginTop: 16 }}
 											onPress={() => {
 												applyFiltersAndSorting();
-												setFilterModalVisible(false);
 											}}
 										>
 											Apply
@@ -699,24 +704,6 @@ export default function MedicalRecordScreen() {
 										</Button>
 									</View>
 								</Card.Content>
-								{/* <Card.Actions style={{ justifyContent: "space-between", paddingHorizontal: 10 }}>
-									<Button
-										onPress={() => {
-											setFilterModalVisible(false);
-										}}
-									>
-										Cancel
-									</Button>
-									<Button
-										mode="contained"
-										onPress={() => {
-											applyFiltersAndSorting();
-											setFilterModalVisible(false);
-										}}
-									>
-										Apply
-									</Button>
-								</Card.Actions> */}
 							</Card>
 						</View>
 					)}
@@ -733,16 +720,6 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 		color: "rgba(0, 0, 0, 0.7)",
 	},
-	// card: {
-	// 	marginBottom: 15,
-	// 	padding: 5,
-	// 	borderRadius: 10,
-	// 	backgroundColor: "#fff",
-	// 	shadowColor: "#000",
-	// 	shadowOffset: { width: 0, height: 1 },
-	// 	shadowOpacity: 0.08,
-	// 	shadowRadius: 2,
-	// },
 	card: {
 		marginBottom: 20,
 		borderRadius: 12,
@@ -779,7 +756,7 @@ const styles = StyleSheet.create({
 		// fontSize: 14,
 	},
 	cardSectionLabel: {
-		marginTop: 8,
+		marginTop: 4,
 		fontWeight: "600",
 		// fontSize: 15,
 		color: "#263238",
@@ -789,7 +766,6 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		color: "#111",
 		fontWeight: "400",
-		marginBottom: 2,
 		lineHeight: 20,
 		backgroundColor: "#f7f7f7",
 		borderRadius: 6,

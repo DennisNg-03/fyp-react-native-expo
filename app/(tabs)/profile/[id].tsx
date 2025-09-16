@@ -272,7 +272,7 @@ export default function EditProfileScreen() {
 
 			<ScrollView
 				contentContainerStyle={{
-					paddingHorizontal: 10,
+					// paddingHorizontal: 10,
 					paddingBottom: 65,
 					// flexGrow: 1,
 					// justifyContent: "center",
@@ -541,7 +541,7 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
 	card: {
 		marginHorizontal: 16,
-		marginVertical: 12,
+		marginVertical: 20,
 		borderRadius: 12,
 		backgroundColor: "white",
 	},
