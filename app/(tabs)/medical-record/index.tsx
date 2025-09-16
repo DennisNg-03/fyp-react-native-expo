@@ -407,21 +407,22 @@ export default function MedicalRecordScreen() {
 					<Text variant="bodyMedium" style={styles.cardSectionBlock}>
 						{medicationsStr}
 					</Text>
-					<Text variant="labelLarge" style={styles.cardContentRowSecondary}>
-						Date of Admission:{" "}
-						<Text variant="bodyMedium">
-							{item.date_of_admission
-								? formatKL(item.date_of_admission, "dd MMM yyyy")
-								: "Not provided"}
-						</Text>
+					<Text variant="labelLarge" style={styles.cardSectionLabel}>
+						Date of Admission
 					</Text>
-					<Text variant="labelLarge" style={styles.cardContentRowSecondary}>
-						Date of Discharge:{" "}
-						<Text variant="bodyMedium">
-							{item.date_of_discharge
-								? formatKL(item.date_of_discharge, "dd MMM yyyy")
-								: "Not provided"}
-						</Text>
+					<Text variant="bodyMedium" style={styles.cardSectionBlock}>
+						{item.date_of_admission
+							? formatKL(item.date_of_admission, "dd MMM yyyy")
+							: "Not provided"}
+					</Text>
+
+					<Text variant="labelLarge" style={styles.cardSectionLabel}>
+						Date of Discharge
+					</Text>
+					<Text variant="bodyMedium" style={styles.cardSectionBlock}>
+						{item.date_of_discharge
+							? formatKL(item.date_of_discharge, "dd MMM yyyy")
+							: "Not provided"}
 					</Text>
 					<Text variant="labelLarge" style={styles.cardSectionLabel}>
 						Clinical Notes
@@ -689,7 +690,7 @@ export default function MedicalRecordScreen() {
 											Apply
 										</Button>
 										<Button
-										style={{ width: "100%", marginTop: 4 }}
+											style={{ width: "100%", marginTop: 4 }}
 											onPress={() => {
 												setFilterModalVisible(false);
 											}}
