@@ -52,29 +52,27 @@ export default function ProfileScreen() {
 		};
 	};
 
-	const fetchProfile = useCallback(async () => {
+	const fetchProfile = useCallback(async (cancelRef: { current: boolean }) => {
+		// let cancelRef.current = false;
 		if (!userId || !role) {
-			console.log("userId:", userId);
-			console.log("role:", role);
+			return;
 		}
-		// setLoading(true);
 
 		try {
-			// First fetch the base profile row from the `profiles` table. This avoids relying on
-			// cross-table foreign key naming/relationships in a single select and is more robust.
+			setLoading(true);
 			const { data: baseProfile, error: baseError } = await supabase
 				.from("profiles")
 				.select("id, full_name, email, phone_number, gender, avatar_url")
 				.eq("id", userId)
 				.maybeSingle();
+			if (cancelRef.current) return;
 
 			if (baseError) throw baseError;
 			if (!baseProfile) {
-				setProfile(null);
+				if (!cancelRef.current) setProfile(null);
 				return;
 			}
 
-			// Then query role-specific table and merge
 			if (role === "patient") {
 				const { data: patientData, error: patientError } = await supabase
 					.from("patients")
@@ -83,12 +81,15 @@ export default function ProfileScreen() {
 					)
 					.eq("id", userId)
 					.maybeSingle();
+				if (cancelRef.current) return;
 				if (patientError) throw patientError;
-				setProfile({
-					role: "patient",
-					...baseProfile,
-					...(patientData ?? {}),
-				});
+				if (!cancelRef.current) {
+					setProfile({
+						role: "patient",
+						...baseProfile,
+						...(patientData ?? {}),
+					});
+				}
 				return;
 			}
 
@@ -108,17 +109,19 @@ export default function ProfileScreen() {
 					)
 					.eq("id", userId)
 					.maybeSingle();
+				if (cancelRef.current) return;
 
 				if (doctorError) throw doctorError;
 
 				const flattenedDoctorProfile = flattenDoctorData(doctorData);
 
-				setProfile({
-					role: "doctor",
-					...baseProfile, // has id, full_name, email, phone_number, gender, avatar_url
-					...flattenedDoctorProfile,
-				} as DoctorProfile & { role: "doctor" });
-
+				if (!cancelRef.current) {
+					setProfile({
+						role: "doctor",
+						...baseProfile, // has id, full_name, email, phone_number, gender, avatar_url
+						...flattenedDoctorProfile,
+					} as DoctorProfile & { role: "doctor" });
+				}
 				return;
 			}
 
@@ -141,25 +144,30 @@ export default function ProfileScreen() {
 					)
 					.eq("id", userId)
 					.maybeSingle();
+				if (cancelRef.current) return;
 				if (nurseError) throw nurseError;
 
 				const flattenedNurseProfile = flattenNurseData(nurseData);
 				console.log("flattenedNurseProfile:", flattenedNurseProfile);
 
-				setProfile({
-					role: "nurse",
-					...baseProfile, // has id, full_name, email, phone_number, gender, avatar_url
-					...flattenedNurseProfile,
-				} as NurseProfile & { role: "nurse" });
-
+				if (!cancelRef.current) {
+					setProfile({
+						role: "nurse",
+						...baseProfile, // has id, full_name, email, phone_number, gender, avatar_url
+						...flattenedNurseProfile,
+					} as NurseProfile & { role: "nurse" });
+				}
 				return;
 			}
 		} catch (err) {
 			console.error("Error loading profile:", err);
-			setProfile(null);
+			if (!cancelRef.current) setProfile(null);
 		} finally {
-			// setLoading(false);
+			if (!cancelRef.current) setLoading(false);
 		}
+		return () => {
+			cancelRef.current = true;
+		};
 	}, [userId, role]);
 
 	useEffect(() => {
@@ -168,8 +176,12 @@ export default function ProfileScreen() {
 
 	useFocusEffect(
 		useCallback(() => {
-			fetchProfile();
-			console.log("Executed fetchProfile through useFocusEffect!");
+			const cancelRef = { current: false };
+			fetchProfile(cancelRef);
+
+			return () => {
+				cancelRef.current = true;
+			};
 		}, [fetchProfile])
 	);
 

@@ -108,10 +108,12 @@ export type RequestStatus = "pending" | "accepted" | "rejected";
 export type AppointmentRescheduleRequest = {
 	id: string;
 	appointment_id: string;
-	requested_by?: string; // patient.id
+	requested_by?: string;
+	old_starts_at: string; // timestamptz
+	old_ends_at: string; // timestamptz
 	new_starts_at: string; // timestamptz
 	new_ends_at: string; // timestamptz
-	status?: RequestStatus; // Make it optional since it is not needed when inserting
+	status?: RequestStatus; // optional since it is not needed when inserting
 	type?: string;
 	created_at?: string;
 	updated_at?: string;
@@ -162,6 +164,8 @@ export type DoctorRescheduleRequest = {
 		};
 		grant_doctor_access?: boolean;
   };
+	old_starts_at: string;
+	old_ends_at: string;
   new_starts_at: string;
   new_ends_at: string;
   status: RequestStatus; // "pending" | "accepted" | "rejected"

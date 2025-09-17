@@ -110,9 +110,9 @@ export default function AppointmentBookingScreen() {
 			setShowDoctorsLoading(true);
 
 			// Always hide spinner after certain amount of time for lazy loading
-			setTimeout(() => {
-				setShowDoctorsLoading(false);
-			}, 200);
+			// setTimeout(() => {
+			// 	setShowDoctorsLoading(false);
+			// }, 200);
 
 			try {
 				const { data, error } = await (providerId
@@ -154,6 +154,8 @@ export default function AppointmentBookingScreen() {
 				// }
 			} catch (e) {
 				console.warn(e);
+			} finally {
+				setShowDoctorsLoading(false);
 			}
 		},
 		[selectedDoctor]
@@ -178,9 +180,9 @@ export default function AppointmentBookingScreen() {
 				selectedDate
 			);
 
-			setTimeout(() => {
-				setShowSlotsLoading(false);
-			}, 200);
+			// setTimeout(() => {
+			// 	setShowSlotsLoading(false);
+			// }, 300);
 
 			const dateISO = formatKL(selectedDate, "yyyy-MM-dd");
 			console.log("Passing dateISO to backend:", dateISO);
@@ -207,6 +209,8 @@ export default function AppointmentBookingScreen() {
 		} catch (e: any) {
 			console.warn(e);
 			setSlots([]);
+		} finally {
+			setShowSlotsLoading(false);
 		}
 	}, [selectedDoctor, selectedDate]);
 
@@ -217,7 +221,7 @@ export default function AppointmentBookingScreen() {
 		if (selectedProvider) {
 			setDoctors([]); // clear old doctors
 			setSelectedDoctor(null); // clear old selection
-			setSlots([]); // clear slots too
+			setSlots([]);
 			loadDoctors(selectedProvider.id);
 		} else {
 			setDoctors([]);
@@ -227,6 +231,7 @@ export default function AppointmentBookingScreen() {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedProvider]);
+
 	useEffect(() => {
 		console.log("useEffect triggered because dependencies changed:", {
 			doctor: selectedDoctor?.id,
@@ -238,18 +243,52 @@ export default function AppointmentBookingScreen() {
 			return;
 		}
 		loadSlots();
-	}, [selectedDoctor, selectedDate, loadSlots]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedDoctor, selectedDate]);
 
 	useEffect(() => {
 		console.log("Selected Slot:", selectedSlot);
 	}, [selectedSlot]);
 
-	// Ensure the form resets every time the screen gains focus:
+	// Ensure these fields and the form resets every time the screen gains focus. (to prevent unexpected slot selection due to late updates)
 	useFocusEffect(
 		useCallback(() => {
+			setSelectedDoctor(null);
+			setSlots([]);
 			refreshFormFields();
 		}, [])
 	);
+
+	useEffect(() => {
+	if (!selectedDoctor || !selectedDate) return;
+
+	// Create subscription to appointments changes
+	const channel = supabase
+		.channel("appointments-realtime")
+		.on(
+			"postgres_changes",
+			{
+				event: "*", // "INSERT", "UPDATE", "DELETE"
+				schema: "public",
+				table: "appointments",
+				filter: `doctor_id=eq.${selectedDoctor.id}`, // only for this doctor
+			},
+			(payload) => {
+				console.log("Realtime change on appointments:", payload);
+
+				// If there are slots reload them
+				if (slots.length > 0) {
+					console.log("Reloading slots because of realtime change");
+					loadSlots();
+				}
+			}
+		)
+		.subscribe();
+
+	return () => {
+		supabase.removeChannel(channel);
+	};
+}, [selectedDoctor, selectedDate, slots, loadSlots]);
 
 	const filteredProviders = useMemo(() => {
 		const q = providerQuery.trim().toLowerCase();
@@ -490,7 +529,7 @@ export default function AppointmentBookingScreen() {
 									},
 								]}
 							>
-								Appointment Booking 
+								Appointment Booking
 							</Text>
 
 							<Searchbar
@@ -514,7 +553,11 @@ export default function AppointmentBookingScreen() {
 										const active = selectedProvider?.id === item.id;
 										return (
 											<TouchableOpacity
-												onPress={() => setSelectedProvider(item)}
+												onPress={() => {
+													if (selectedProvider?.id !== item.id) {
+														setSelectedProvider(item);
+													}
+												}}
 												style={{
 													marginRight: 8,
 													paddingHorizontal: 12,
@@ -543,8 +586,13 @@ export default function AppointmentBookingScreen() {
 									inputStyle={styles.searchBarInputStyle}
 								/>
 								{showDoctorsLoading ? (
-									// <ActivityIndicator />
-									<View style={{ height: 94 }}></View>
+									<View style={{ height: 94 }}>
+										<ActivityIndicator
+											loadingMsg=""
+											size="small"
+											overlay={false}
+										/>
+									</View>
 								) : (
 									<FlatList
 										horizontal
@@ -556,7 +604,11 @@ export default function AppointmentBookingScreen() {
 											const active = selectedDoctor?.id === item.id;
 											return (
 												<TouchableOpacity
-													onPress={() => setSelectedDoctor(item)}
+													onPress={() => {
+														if (selectedDoctor?.id !== item.id) {
+															setSelectedDoctor(item);
+														}
+													}}
 													style={{
 														marginRight: 8,
 														paddingHorizontal: 12,
@@ -564,7 +616,7 @@ export default function AppointmentBookingScreen() {
 														borderRadius: 10,
 														borderWidth: active ? 2 : 1,
 														borderColor: active ? theme.colors.primary : "#ccc",
-													backgroundColor: active ? "#f2e7ff" : "#fff",
+														backgroundColor: active ? "#f2e7ff" : "#fff",
 													}}
 												>
 													<Text style={{ fontWeight: "600" }}>
@@ -610,7 +662,13 @@ export default function AppointmentBookingScreen() {
 							</Text>
 
 							{showSlotsLoading ? (
-								<ActivityIndicator loadingMsg="" size="small" overlay={false} />
+								<View style={{ height: 94 }}>
+									<ActivityIndicator
+										loadingMsg=""
+										size="small"
+										overlay={false}
+									/>
+								</View>
 							) : slots.length > 0 ? (
 								<SlotPicker
 									slots={slots}
@@ -892,7 +950,9 @@ export default function AppointmentBookingScreen() {
 				<ConfirmationDialog
 					visible={confirmVisible}
 					title="Confirm Action"
-					messagePrimary={"Are you sure you want to make this appointment booking request?"}
+					messagePrimary={
+						"Are you sure you want to make this appointment booking request?"
+					}
 					onConfirm={handleBooking}
 					onCancel={() => setConfirmVisible(false)}
 				/>

@@ -57,13 +57,6 @@ export default function PatientAppointmentDetailScreen() {
 						patient:patient_id (
 							date_of_birth,
 							profiles(full_name, email, phone_number, gender)
-						),
-						reschedule_requests:appointment_reschedule_requests!reschedule_requests_appointment_id_fkey  (
-							id,
-							status,
-							new_starts_at,
-							new_ends_at,
-							created_at
 						)
 					`
 				)
@@ -110,17 +103,17 @@ export default function PatientAppointmentDetailScreen() {
 				};
 			}
 
-			const acceptedRescheduleRequest = data.reschedule_requests?.find(
-				(r: any) => r.status === "accepted"
-			);
+			// const acceptedRescheduleRequest = data.reschedule_requests?.find(
+			// 	(r: any) => r.status === "accepted"
+			// );
 
-			if (acceptedRescheduleRequest) {
-				result = {
-					...data,
-					starts_at: acceptedRescheduleRequest.new_starts_at,
-					ends_at: acceptedRescheduleRequest.new_ends_at,
-				};
-			}
+			// if (acceptedRescheduleRequest) {
+			// 	result = {
+			// 		...data,
+			// 		starts_at: acceptedRescheduleRequest.new_starts_at,
+			// 		ends_at: acceptedRescheduleRequest.new_ends_at,
+			// 	};
+			// }
 
 			setAppointment(result);
 		} catch (e) {

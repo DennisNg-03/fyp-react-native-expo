@@ -1,7 +1,7 @@
 import { ActivityIndicator } from "@/components/ActivityIndicator";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
-import { Appointment, AppointmentRescheduleRequest } from "@/types/appointment";
+import { Appointment } from "@/types/appointment";
 import { getDisplayStatus } from "@/utils/appointmentRules";
 import { formatKL } from "@/utils/dateHelpers";
 import {
@@ -54,16 +54,16 @@ export default function PatientAppointmentsScreen() {
 			const doctorProvider = doc?.provider ?? {};
 
 			// Look for the accepted reschedule requests
-			const acceptedRescheduleRequest = (appointment.reschedule_requests as AppointmentRescheduleRequest[] ?? [])
-			.find((r) => r.status === "accepted");
+			// const acceptedRescheduleRequest = (appointment.reschedule_requests as AppointmentRescheduleRequest[] ?? [])
+			// .find((r) => r.status === "accepted");
 
-			const starts_at = acceptedRescheduleRequest?.new_starts_at ?? appointment.starts_at;
-			const ends_at = acceptedRescheduleRequest?.new_ends_at ?? appointment.ends_at;
+			// const starts_at = acceptedRescheduleRequest?.new_starts_at ?? appointment.starts_at;
+			// const ends_at = acceptedRescheduleRequest?.new_ends_at ?? appointment.ends_at;
 
 			return {
 				...appointment,
-				starts_at,
-				ends_at,
+				// starts_at,
+				// ends_at,
 				doctor: {
 					speciality: doc?.speciality ?? "",
 					full_name: doctorProfile.full_name ?? "",
@@ -109,14 +109,7 @@ export default function PatientAppointmentsScreen() {
 								address,
 								phone_number
 								)
-							),
-						reschedule_requests:appointment_reschedule_requests!reschedule_requests_appointment_id_fkey  (
-							id,
-							status,
-							new_starts_at,
-							new_ends_at,
-							created_at
-						)
+							)
 					`
 				)
 				.eq("patient_id", userId)
@@ -124,6 +117,7 @@ export default function PatientAppointmentsScreen() {
 				.order("starts_at", { ascending: true });
 
 			setUpcoming(flattenAppointments(upcomingData ?? []));
+			console.log("Upcoming appointments object:", flattenAppointments(upcomingData ?? []));
 
 			const { data: pastData } = await supabase
 				.from("appointments")

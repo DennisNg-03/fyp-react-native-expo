@@ -153,8 +153,6 @@ export default function DoctorAppointmentRequestsScreen() {
 					`
 					*,
 					appointment:appointment_id (
-						starts_at,
-						ends_at,
 						patient_id,
 						doctor_id,
 						reason,
@@ -434,9 +432,9 @@ export default function DoctorAppointmentRequestsScreen() {
 	};
 
 	const renderRescheduleCard = (req: DoctorRescheduleRequest) => {
-		const originalDate = formatKL(req.appointment.starts_at, "dd MMM yyyy");
-		const originalStartTime = formatKL(req.appointment.starts_at, "HH:mm");
-		const originalEndTime = formatKL(req.appointment.ends_at, "HH:mm");
+		const originalDate = formatKL(req.old_starts_at, "dd MMM yyyy");
+		const originalStartTime = formatKL(req.old_starts_at, "HH:mm");
+		const originalEndTime = formatKL(req.old_ends_at, "HH:mm");
 
 		const newDate = formatKL(req.new_starts_at, "dd MMM yyyy");
 		const newStartTime = formatKL(req.new_starts_at, "HH:mm");
@@ -559,12 +557,12 @@ export default function DoctorAppointmentRequestsScreen() {
 				: rescheduleRequests.filter((req) => {
 						if (statusFilter === "overdue") {
 							return (
-								req.status === "pending" && isPast(req.appointment.starts_at)
+								req.status === "pending" && isPast(req.old_starts_at)
 							);
 						}
 						if (statusFilter === "pending") {
 							return (
-								req.status === "pending" && !isPast(req.appointment.starts_at)
+								req.status === "pending" && !isPast(req.old_starts_at)
 							);
 						}
 						if (statusFilter === "accepted") {
@@ -581,13 +579,13 @@ export default function DoctorAppointmentRequestsScreen() {
 				activeTab === "booking"
 					? new Date((a as DoctorAppointment).starts_at).getTime()
 					: new Date(
-							(a as DoctorRescheduleRequest).appointment.starts_at
+							(a as DoctorRescheduleRequest).old_starts_at
 					  ).getTime();
 			const bTime =
 				activeTab === "booking"
 					? new Date((b as DoctorAppointment).starts_at).getTime()
 					: new Date(
-							(b as DoctorRescheduleRequest).appointment.starts_at
+							(b as DoctorRescheduleRequest).old_starts_at
 					  ).getTime();
 
 			return sortOrder === "asc" ? aTime - bTime : bTime - aTime;

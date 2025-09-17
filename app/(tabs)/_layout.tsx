@@ -30,7 +30,7 @@ export default function TabLayout() {
 			const pushToken = tokenData;
 
 			if (!pushToken) return;
-			console.log("Expo push token:", pushToken);
+			// console.log("Expo push token:", pushToken);
 
 			// Save / update token in Supabase
 			await supabase.from("user_device_tokens").upsert({

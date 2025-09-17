@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/AuthProvider";
-import { AppointmentRescheduleRequest, DoctorAppointment } from "@/types/appointment";
+import { DoctorAppointment } from "@/types/appointment";
 import { getDisplayStatus } from "@/utils/appointmentRules";
 import { formatKL } from "@/utils/dateHelpers";
 import {
@@ -48,11 +48,11 @@ export default function DoctorAppointmentScreen() {
 			const doctorProfile = patient.profiles ?? {}; // "profiles" is table name
 
 			// Look for the accepted reschedule requests
-			const acceptedRescheduleRequest = (appt.reschedule_requests as AppointmentRescheduleRequest[] ?? [])
-      .find((r) => r.status === "accepted");
+			// const acceptedRescheduleRequest = (appt.reschedule_requests as AppointmentRescheduleRequest[] ?? [])
+      // .find((r) => r.status === "accepted");
 
-			const starts_at = acceptedRescheduleRequest?.new_starts_at ?? appt.starts_at;
-			const ends_at = acceptedRescheduleRequest?.new_ends_at ?? appt.ends_at;
+			// const starts_at = acceptedRescheduleRequest?.new_starts_at ?? appt.starts_at;
+			// const ends_at = acceptedRescheduleRequest?.new_ends_at ?? appt.ends_at;
 
 			// console.log("Appointment id:", appt.id);
 			// console.log("  original starts_at:", appt.starts_at, "ends_at:", appt.ends_at);
@@ -62,8 +62,8 @@ export default function DoctorAppointmentScreen() {
 
 			return {
 				...appt,
-				starts_at,
-				ends_at,
+				// starts_at,
+				// ends_at,
 				patient: {
 					date_of_birth: patient.date_of_birth ?? "",
 					full_name: patientProfile.full_name ?? "",
@@ -104,13 +104,6 @@ export default function DoctorAppointmentScreen() {
 							profiles (
 								full_name
 							)
-						),
-						reschedule_requests:appointment_reschedule_requests!reschedule_requests_appointment_id_fkey  (
-							id,
-							status,
-							new_starts_at,
-							new_ends_at,
-							created_at
 						)
 					`
 				)
@@ -140,13 +133,6 @@ export default function DoctorAppointmentScreen() {
 							profiles (
 								full_name
 							)
-						),
-						reschedule_requests:appointment_reschedule_requests!reschedule_requests_appointment_id_fkey (
-							id,
-							status,
-							new_starts_at,
-							new_ends_at,
-							created_at
 						)
 					`
 				)

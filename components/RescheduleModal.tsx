@@ -111,6 +111,8 @@ export default function RescheduleModal({
 					body: JSON.stringify({
 						appointment_id: appointment.id,
 						requested_by: appointment.patient_id,
+						old_starts_at: appointment.starts_at,
+						old_ends_at: appointment.ends_at,
 						new_starts_at: selectedSlot.slot_start,
 						new_ends_at: selectedSlot.slot_end,
 					}),

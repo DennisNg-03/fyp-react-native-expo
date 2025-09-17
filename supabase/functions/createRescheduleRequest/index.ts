@@ -14,12 +14,20 @@ Deno.serve(async (req) => {
 			}
 		);
 
-		const { appointment_id, requested_by, new_starts_at, new_ends_at } =
-			(await req.json()) as AppointmentRescheduleRequest;
+		const {
+			appointment_id,
+			requested_by,
+			old_starts_at,
+			old_ends_at,
+			new_starts_at,
+			new_ends_at,
+		} = (await req.json()) as AppointmentRescheduleRequest;
 
 		console.log("Parsed request body:", {
 			appointment_id,
 			requested_by,
+			old_starts_at,
+			old_ends_at,
 			new_starts_at,
 			new_ends_at,
 		});
@@ -39,6 +47,8 @@ Deno.serve(async (req) => {
 				{
 					appointment_id,
 					requested_by,
+					old_starts_at,
+					old_ends_at,
 					new_starts_at,
 					new_ends_at,
 				},
@@ -55,7 +65,7 @@ Deno.serve(async (req) => {
 		return new Response(JSON.stringify({ data }), {
 			headers: { "Content-Type": "application/json" },
 		});
-	// deno-lint-ignore no-explicit-any
+		// deno-lint-ignore no-explicit-any
 	} catch (err: any) {
 		console.error("Error booking appointment:", err);
 		return new Response(
