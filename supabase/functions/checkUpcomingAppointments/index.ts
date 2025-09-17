@@ -11,7 +11,7 @@ Deno.serve(async () => {
 		const tz = "Asia/Kuala_Lumpur";
 
 		const nowKL = new Date(
-			new Date().toLocaleString("en-US", { timeZone: tz }) // Use en-US to parse date correctly (month and days will be inverted when using en-MY)
+			new Date().toLocaleString("en-US", { timeZone: tz })
 		);
 
 		const todayStartUTC = new Date(
@@ -37,10 +37,6 @@ Deno.serve(async () => {
 				999
 			)
 		);
-
-		console.log("nowKL (KL local):", nowKL.toString());
-		// console.log("todayStartUTC (ISO):", todayStartUTC.toISOString());
-		// console.log("twoDaysLaterEndUTC (ISO):", twoDaysLaterUTC.toISOString());
 
 		const todayLocalString = nowKL.toLocaleDateString("en-MY", {
 			timeZone: tz,

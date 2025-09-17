@@ -29,7 +29,7 @@ export default function ProfileScreen() {
 	const { session, role } = useAuth();
 	const userId = session?.user.id;
 	const [profile, setProfile] = useState<FlattenedUser | null>(null);
-	const [loading, setLoading] = useState(true);
+	const [loading, setLoading] = useState(false);
 	const [dialogVisible, setDialogVisible] = useState(false);
 	const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
 	const [pendingAvatarFile, setPendingAvatarFile] = useState<

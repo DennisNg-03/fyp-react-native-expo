@@ -345,8 +345,6 @@ export default function UploadRecordModal({
 	};
 
 	const handleOcr = async () => {
-		console.log("OCR selectedPatient:", selectedPatient);
-
 		if (!session) {
 			console.error("User not authenticated!");
 			return;
@@ -393,13 +391,13 @@ export default function UploadRecordModal({
 					body: JSON.stringify({
 						files: filesToUpload,
 						title: recordTitle,
-						record_type: recordType, // No need to format as label when calling OCR
+						record_type: recordType,
 					}),
 				}
 			);
 
 			if (!ocrRes.ok) {
-				const errorBody = await ocrRes.text(); // or res.json()
+				const errorBody = await ocrRes.text();
 				console.error(
 					"OCR Edge function failed:",
 					ocrRes.status,

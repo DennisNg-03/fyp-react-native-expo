@@ -22,7 +22,7 @@ export default function EditProfileScreen() {
 	const userId = id ?? session?.user.id;
 
 	const [profile, setProfile] = useState<FlattenedUser | null>(null);
-	const [loading, setLoading] = useState(true);
+	const [loading, setLoading] = useState(false);
 	const [saving, setSaving] = useState(false);
 
 	// Common editable fields
