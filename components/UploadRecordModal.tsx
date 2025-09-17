@@ -397,14 +397,6 @@ export default function UploadRecordModal({
 			);
 
 			if (!ocrRes.ok) {
-				// const errorBody = await ocrRes.text();
-				// // console.error(
-				// // 	"OCR Edge function failed:",
-				// // 	ocrRes.status,
-				// // 	ocrRes.statusText,
-				// // 	errorBody
-				// // );
-
 				let message = "Failed to process your files. Please try again.";
 				if (ocrRes.status === 503) {
 					message =
