@@ -117,7 +117,7 @@ export default function PatientAppointmentsScreen() {
 				.order("starts_at", { ascending: true });
 
 			setUpcoming(flattenAppointments(upcomingData ?? []));
-			console.log("Upcoming appointments object:", flattenAppointments(upcomingData ?? []));
+			// console.log("Upcoming appointments object:", flattenAppointments(upcomingData ?? []));
 
 			const { data: pastData } = await supabase
 				.from("appointments")

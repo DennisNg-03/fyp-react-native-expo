@@ -65,8 +65,17 @@ export default function TabLayout() {
 		);
 		const { appointment_id, type } = response.notification.request.content.data;
 
-		if (type === "appointment_accepted" || type === "appointment_rejected" || "appointment_reminder_today" || type === "appointment_reminder_2days") {
-			router.replace(`/(tabs)/patient-appointment/${appointment_id}`);
+		if (typeof appointment_id === "string") {
+			if (
+				type === "appointment_accepted" ||
+				type === "appointment_rejected" ||
+				type === "appointment_reminder_today" ||
+				type === "appointment_reminder_2days"
+			) {
+				router.push(`/(tabs)/patient-appointment/${appointment_id}`);
+			}
+		} else {
+			console.warn("Invalid appointment_id:", appointment_id);
 		}
 	});
 
@@ -196,7 +205,11 @@ export default function TabLayout() {
 					title: role === "patient" ? "My Records" : "Past Records",
 					tabBarIcon: ({ color }) => (
 						<MaterialCommunityIcons
-							name={role === "patient" ? "clipboard-text-outline" : "clipboard-text-search-outline"}
+							name={
+								role === "patient"
+									? "clipboard-text-outline"
+									: "clipboard-text-search-outline"
+							}
 							size={28}
 							color={color}
 						/>

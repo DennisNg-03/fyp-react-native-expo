@@ -35,6 +35,7 @@ export default function ProfileScreen() {
 	const [pendingAvatarFile, setPendingAvatarFile] = useState<
 		ImagePicker.ImagePickerAsset | undefined
 	>(undefined);
+	const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
 	const flattenDoctorData = (doctorData: any): DoctorProfile => {
 		return {
@@ -52,52 +53,53 @@ export default function ProfileScreen() {
 		};
 	};
 
-	const fetchProfile = useCallback(async (cancelRef: { current: boolean }) => {
-		// let cancelRef.current = false;
-		if (!userId || !role) {
-			return;
-		}
-
-		try {
-			setLoading(true);
-			const { data: baseProfile, error: baseError } = await supabase
-				.from("profiles")
-				.select("id, full_name, email, phone_number, gender, avatar_url")
-				.eq("id", userId)
-				.maybeSingle();
-			if (cancelRef.current) return;
-
-			if (baseError) throw baseError;
-			if (!baseProfile) {
-				if (!cancelRef.current) setProfile(null);
+	const fetchProfile = useCallback(
+		async (cancelRef: { current: boolean }) => {
+			// let cancelRef.current = false;
+			if (!userId || !role) {
 				return;
 			}
 
-			if (role === "patient") {
-				const { data: patientData, error: patientError } = await supabase
-					.from("patients")
-					.select(
-						"date_of_birth, blood_type, allergies, current_medications, chronic_conditions, past_surgeries, emergency_contact"
-					)
+			try {
+				setLoading(true);
+				const { data: baseProfile, error: baseError } = await supabase
+					.from("profiles")
+					.select("id, full_name, email, phone_number, gender, avatar_url")
 					.eq("id", userId)
 					.maybeSingle();
 				if (cancelRef.current) return;
-				if (patientError) throw patientError;
-				if (!cancelRef.current) {
-					setProfile({
-						role: "patient",
-						...baseProfile,
-						...(patientData ?? {}),
-					});
-				}
-				return;
-			}
 
-			if (role === "doctor") {
-				const { data: doctorData, error: doctorError } = await supabase
-					.from("doctors")
-					.select(
-						`
+				if (baseError) throw baseError;
+				if (!baseProfile) {
+					if (!cancelRef.current) setProfile(null);
+					return;
+				}
+
+				if (role === "patient") {
+					const { data: patientData, error: patientError } = await supabase
+						.from("patients")
+						.select(
+							"date_of_birth, blood_type, allergies, current_medications, chronic_conditions, past_surgeries, emergency_contact"
+						)
+						.eq("id", userId)
+						.maybeSingle();
+					if (cancelRef.current) return;
+					if (patientError) throw patientError;
+					if (!cancelRef.current) {
+						setProfile({
+							role: "patient",
+							...baseProfile,
+							...(patientData ?? {}),
+						});
+					}
+					return;
+				}
+
+				if (role === "doctor") {
+					const { data: doctorData, error: doctorError } = await supabase
+						.from("doctors")
+						.select(
+							`
 							speciality,
 							slot_minutes,
 							bio,
@@ -106,30 +108,30 @@ export default function ProfileScreen() {
 								name
 							)
 						`
-					)
-					.eq("id", userId)
-					.maybeSingle();
-				if (cancelRef.current) return;
+						)
+						.eq("id", userId)
+						.maybeSingle();
+					if (cancelRef.current) return;
 
-				if (doctorError) throw doctorError;
+					if (doctorError) throw doctorError;
 
-				const flattenedDoctorProfile = flattenDoctorData(doctorData);
+					const flattenedDoctorProfile = flattenDoctorData(doctorData);
 
-				if (!cancelRef.current) {
-					setProfile({
-						role: "doctor",
-						...baseProfile, // has id, full_name, email, phone_number, gender, avatar_url
-						...flattenedDoctorProfile,
-					} as DoctorProfile & { role: "doctor" });
+					if (!cancelRef.current) {
+						setProfile({
+							role: "doctor",
+							...baseProfile, // has id, full_name, email, phone_number, gender, avatar_url
+							...flattenedDoctorProfile,
+						} as DoctorProfile & { role: "doctor" });
+					}
+					return;
 				}
-				return;
-			}
 
-			if (role === "nurse") {
-				const { data: nurseData, error: nurseError } = await supabase
-					.from("nurses")
-					.select(
-						`
+				if (role === "nurse") {
+					const { data: nurseData, error: nurseError } = await supabase
+						.from("nurses")
+						.select(
+							`
 							assigned_doctor_id,
 							provider_id,
 							assigned_doctor:assigned_doctor_id (
@@ -141,37 +143,40 @@ export default function ProfileScreen() {
 								name
 							)
 						`
-					)
-					.eq("id", userId)
-					.maybeSingle();
-				if (cancelRef.current) return;
-				if (nurseError) throw nurseError;
+						)
+						.eq("id", userId)
+						.maybeSingle();
+					if (cancelRef.current) return;
+					if (nurseError) throw nurseError;
 
-				const flattenedNurseProfile = flattenNurseData(nurseData);
-				console.log("flattenedNurseProfile:", flattenedNurseProfile);
+					const flattenedNurseProfile = flattenNurseData(nurseData);
+					console.log("flattenedNurseProfile:", flattenedNurseProfile);
 
-				if (!cancelRef.current) {
-					setProfile({
-						role: "nurse",
-						...baseProfile, // has id, full_name, email, phone_number, gender, avatar_url
-						...flattenedNurseProfile,
-					} as NurseProfile & { role: "nurse" });
+					if (!cancelRef.current) {
+						setProfile({
+							role: "nurse",
+							...baseProfile, // has id, full_name, email, phone_number, gender, avatar_url
+							...flattenedNurseProfile,
+						} as NurseProfile & { role: "nurse" });
+					}
+					return;
 				}
-				return;
+			} catch (err) {
+				console.error("Error loading profile:", err);
+				if (!cancelRef.current) setProfile(null);
+			} finally {
+				if (!cancelRef.current) setLoading(false);
 			}
-		} catch (err) {
-			console.error("Error loading profile:", err);
-			if (!cancelRef.current) setProfile(null);
-		} finally {
-			if (!cancelRef.current) setLoading(false);
-		}
-		return () => {
-			cancelRef.current = true;
-		};
-	}, [userId, role]);
+			return () => {
+				cancelRef.current = true;
+			};
+		},
+		[userId, role]
+	);
 
 	useEffect(() => {
 		console.log("Fetched profile:", profile);
+		console.log("Rendering Avatar with:", profile?.avatar_url);
 	}, [profile]);
 
 	useFocusEffect(
@@ -184,6 +189,13 @@ export default function ProfileScreen() {
 			};
 		}, [fetchProfile])
 	);
+
+	useEffect(() => {
+  if (profile?.avatar_url) {
+    // Add cache-busting query param to ensure RN reloads the image
+    setAvatarUrl(`${profile.avatar_url}?t=${Date.now()}`);
+  }
+}, [profile?.avatar_url]);
 
 	const handleAttachAvatar = async () => {
 		console.log("handleAttachAvatar pressed!");
@@ -279,7 +291,15 @@ export default function ProfileScreen() {
 			const { avatar_url } = await res.json();
 			console.log("Updated New Avatar URL:", avatar_url);
 
-			setProfile((prev) => prev && { ...prev, avatar_url });
+			// setProfile((prev) => prev && { ...prev, avatar_url });
+			setProfile((prev) =>
+				prev
+					? {
+							...prev,
+							avatar_url,
+					  }
+					: null
+			);
 		} catch (err) {
 			console.error("Error uploading avatar:", err);
 			Alert.alert(
@@ -293,6 +313,7 @@ export default function ProfileScreen() {
 
 	const handleLogout = async () => {
 		try {
+			setLoading(true);
 			if (session?.user.id) {
 				const { data: tokenData } = await Notifications.getExpoPushTokenAsync();
 				const pushToken = tokenData;
@@ -315,9 +336,22 @@ export default function ProfileScreen() {
 		} catch (err) {
 			console.error("Error logging out", err);
 		} finally {
+			setLoading(false);
 			setDeleteDialogVisible(false);
 		}
 	};
+
+	// 	useEffect(() => {
+	//   if (profile) {
+	//     console.log("Fetched profile:", {
+	//       id: profile.id,
+	//       full_name: profile.full_name,
+	//       email: profile.email,
+	//       avatar_url: profile.avatar_url,
+	//       role: profile.role,
+	//     });
+	//   }
+	// }, [fetchProfile, profile]);
 
 	const renderRoleSpecificFields = () => {
 		if (!profile) return null;
@@ -483,8 +517,8 @@ export default function ProfileScreen() {
 						<Avatar.Image
 							size={100}
 							source={
-								profile?.avatar_url
-									? { uri: profile?.avatar_url }
+								avatarUrl
+									? { uri: avatarUrl }
 									: require("@/assets/images/default-profile-pic.png")
 							}
 						/>

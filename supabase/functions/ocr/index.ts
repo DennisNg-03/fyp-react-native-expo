@@ -48,7 +48,7 @@ Rules:
 			model: "gemini-2.5-pro",
 			config: {
 				temperature: 0,
-				maxOutputTokens: 3000,
+				maxOutputTokens: 5000,
 			},
 			contents: [
 				{

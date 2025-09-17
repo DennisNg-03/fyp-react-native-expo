@@ -174,7 +174,7 @@ export default function DoctorAppointmentRequestsScreen() {
 				.eq("appointment.doctor_id", targetDoctorId)
 				.order("created_at", { ascending: true });
 
-			console.log("rescheduleData:", rescheduleData);
+			// console.log("rescheduleData:", rescheduleData);
 
 			setRescheduleRequests(flattenRescheduleRequests(rescheduleData ?? []));
 		} catch (err) {

@@ -397,13 +397,13 @@ export default function UploadRecordModal({
 			);
 
 			if (!ocrRes.ok) {
-				const errorBody = await ocrRes.text();
-				console.error(
-					"OCR Edge function failed:",
-					ocrRes.status,
-					ocrRes.statusText,
-					errorBody
-				);
+				// const errorBody = await ocrRes.text();
+				// // console.error(
+				// // 	"OCR Edge function failed:",
+				// // 	ocrRes.status,
+				// // 	ocrRes.statusText,
+				// // 	errorBody
+				// // );
 
 				let message = "Failed to process your files. Please try again.";
 				if (ocrRes.status === 503) {
@@ -411,7 +411,7 @@ export default function UploadRecordModal({
 						"Our OCR service is currently busy. Please try again in a few moments.";
 				} else if (ocrRes.status >= 500) {
 					message =
-						"Something went wrong on the server. Please try again later.";
+						"Our document scanning service is temporarily unavailable. Please try again later, or you can fill in the form manually if it's urgent.";
 				} else if (ocrRes.status === 400) {
 					message =
 						"There seems to be an issue with the file format or data provided. Please check and try again.";
@@ -425,8 +425,19 @@ export default function UploadRecordModal({
 			console.log("OCR Extracted Data:", data?.extracted_data);
 
 			setOcrData(data?.extracted_data ?? {});
-		} catch (err) {
-			console.error("Error saving record:", err);
+		} catch (err: unknown) {
+			console.warn("OCR request failed:", err);
+			let message = "An unknown error occurred.";
+
+			if (err instanceof Error) {
+				message = err.message;
+			} else if (typeof err === "string") {
+				message = err;
+			} else if (err && typeof err === "object" && "toString" in err) {
+				message = (err as any).toString();
+			}
+
+			Alert.alert("OCR Error", message);
 		} finally {
 			setSaving(false);
 			setStep("prefill");
@@ -944,13 +955,12 @@ export default function UploadRecordModal({
 										The uploaded images, files and form data will be saved.
 									</Text>
 									<Text style={[styles.confirmationText, { marginBottom: 12 }]}>
-										You can still go back to review and edit the extracted form details
-										before continuing.
+										You can still go back to review and edit the extracted form
+										details before continuing.
 									</Text>
 									<Text style={[styles.confirmationText, { marginBottom: 20 }]}>
-										However, uploaded images and files cannot be changed
-										once submitted, as doing so would affect the extracted
-										content.
+										However, uploaded images and files cannot be changed once
+										submitted, as doing so would affect the extracted content.
 									</Text>
 								</>
 							) : (
