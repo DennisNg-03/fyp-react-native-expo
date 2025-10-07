@@ -17,6 +17,7 @@ Deno.serve(async (req) => {
 
 		// Generate signed URLs for each doc
 		const docsWithUrls = await Promise.all(
+			// deno-lint-ignore no-explicit-any
 			supporting_documents.map(async (doc: any) => {
 				try {
 					console.log("doc.uri:", doc.uri);
@@ -40,6 +41,7 @@ Deno.serve(async (req) => {
 		return new Response(JSON.stringify({ supporting_documents: docsWithUrls }), {
 			headers: { "Content-Type": "application/json" },
 		});
+		// deno-lint-ignore no-explicit-any
 	} catch (err: any) {
 		console.error("Error in getAppointmentDocSignedUrl Edge Function:", err);
 		return new Response("Error: " + err.message, { status: 500 });
