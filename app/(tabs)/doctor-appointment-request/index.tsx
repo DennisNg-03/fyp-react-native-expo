@@ -103,6 +103,7 @@ export default function DoctorAppointmentRequestsScreen() {
 
 		try {
 			let targetDoctorId = userId;
+			console.log("TargetDoctorId:", targetDoctorId);
 
 			// Nurse logic
 			if (role === "nurse") {
@@ -142,7 +143,7 @@ export default function DoctorAppointmentRequestsScreen() {
 				.eq("doctor_id", targetDoctorId)
 				.order("created_at", { ascending: true });
 
-			console.log("Past schedule data:", scheduleData);
+			// console.log("Past schedule data:", scheduleData);
 
 			setBookingRequests(flattenDoctorAppointments(scheduleData ?? []));
 
@@ -171,7 +172,7 @@ export default function DoctorAppointmentRequestsScreen() {
 					)
 				`
 				)
-				.eq("appointment.doctor_id", targetDoctorId)
+				.eq("appointments.doctor_id", targetDoctorId)
 				.order("created_at", { ascending: true });
 
 			// console.log("rescheduleData:", rescheduleData);
