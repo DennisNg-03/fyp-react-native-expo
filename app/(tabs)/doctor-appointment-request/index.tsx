@@ -78,10 +78,14 @@ export default function DoctorAppointmentRequestsScreen() {
 	): DoctorRescheduleRequest[] =>
 		(requests ?? []).map((req) => {
 			const appointment = req.appointment ?? {};
+			// console.log("appointment:", appointment);
 			// const patient = appointment.patient ?? {};
-			const doctorProfile = appointment.doctors?.profiles ?? {};
+			// const doctorProfile = appointment.doctors?.profiles ?? {};
+			const doctorProfile =
+				appointment.doctor?.profiles ?? appointment.doctor ?? {};
+			// console.log("Flattening request:", JSON.stringify(req, null, 2));
 
-			return {
+			const flattened = {
 				...req,
 				appointment: {
 					...appointment,
@@ -96,6 +100,10 @@ export default function DoctorAppointmentRequestsScreen() {
 					gender: req.requested_by?.gender ?? "",
 				},
 			};
+
+			// console.log("Flattened request:", JSON.stringify(flattened, null, 2));
+			// console.log("Role:", role);
+			return flattened;
 		});
 
 	const loadRequests = useCallback(async () => {
@@ -148,36 +156,70 @@ export default function DoctorAppointmentRequestsScreen() {
 			setBookingRequests(flattenDoctorAppointments(scheduleData ?? []));
 
 			// Reschedule requests
-			const { data: rescheduleData } = await supabase
-				.from("appointment_reschedule_requests")
-				.select(
-					`
-					*,
-					appointment:appointment_id (
-						patient_id,
-						doctor_id,
-						reason,
-						notes,
-						doctors (
-							profiles(
-								full_name
+			// 1) get appointments (ids) for this doctor
+			const { data: appts, error: apptErr } = await supabase
+				.from("appointments")
+				.select("id")
+				.eq("doctor_id", targetDoctorId);
+
+			if (apptErr) throw apptErr;
+
+			const appointmentIds = (appts ?? []).map((a: any) => a.id);
+			// console.log("appointmentIds:", appointmentIds);
+
+			let rescheduleData = [];
+			if (appointmentIds.length > 0) {
+				const res = await supabase
+					.from("appointment_reschedule_requests")
+					.select(
+						`
+							*,
+							appointment:appointment_id (
+								id,
+								patient_id,
+								doctor_id,
+								reason,
+								notes,
+								doctor:doctor_id (
+									profiles (
+										full_name
+									)
+								)
+							),
+							requested_by (
+								full_name,
+								email,
+								phone_number,
+								gender
 							)
-						)
-					),
-					requested_by (
-						full_name,
-						email,
-						phone_number,
-						gender
+						`
 					)
-				`
-				)
-				.eq("appointments.doctor_id", targetDoctorId)
-				.order("created_at", { ascending: true });
+					// .in("appointment_id", appointmentIds)
+					.order("created_at", { ascending: true });
 
-			// console.log("rescheduleData:", rescheduleData);
+				if (res.error) throw res.error;
+				rescheduleData = res.data;
+			} else {
+				// no appointments for this doctor — empty result
+				rescheduleData = [];
+			}
 
-			setRescheduleRequests(flattenRescheduleRequests(rescheduleData ?? []));
+			const filteredRescheduleData = (rescheduleData ?? []).filter(
+				(r) => r.appointment?.doctor_id === targetDoctorId
+			);
+
+			// console.log("targetDoctorId:", targetDoctorId);
+			// console.log("appointments (first 10):", (appts ?? []).slice(0, 10));
+			// console.log("appointmentIds:", appointmentIds);
+			// console.log(
+			// 	"raw rescheduleData (first 10):",
+			// 	(rescheduleData ?? []).slice(0, 10)
+			// );
+			// console.log("filteredRescheduleData:", filteredRescheduleData);
+
+			setRescheduleRequests(
+				flattenRescheduleRequests(filteredRescheduleData ?? [])
+			);
 		} catch (err) {
 			console.error(err);
 		} finally {
@@ -363,7 +405,7 @@ export default function DoctorAppointmentRequestsScreen() {
 		const patientName = `${genderPrefix} ${
 			item.patient?.full_name ?? "Patient"
 		}`;
-		console.log("Booking item:", item);
+		// console.log("Booking item:", item);
 
 		return (
 			<Card
@@ -384,7 +426,7 @@ export default function DoctorAppointmentRequestsScreen() {
 						{/* Show Assigned Doctor only for nurses */}
 						{role === "nurse" && item.doctor?.full_name && (
 							<Text style={styles.doctorInfo}>
-								Assigned Doctor: Dr {item.doctor.full_name}
+								Assigned Doctor: Dr {item.doctor?.full_name}
 							</Text>
 						)}
 
@@ -480,9 +522,9 @@ export default function DoctorAppointmentRequestsScreen() {
 						</View>
 
 						{/* Show Assigned Doctor only for nurses */}
-						{role === "nurse" && req.appointment.doctor?.full_name && (
+						{role === "nurse" && req.appointment?.doctor?.full_name && (
 							<Text style={styles.doctorInfo}>
-								Assigned Doctor: Dr {req.appointment.doctor?.full_name}
+								Assigned Doctor: Dr {req.appointment?.doctor?.full_name}
 							</Text>
 						)}
 
@@ -557,14 +599,10 @@ export default function DoctorAppointmentRequestsScreen() {
 				  })
 				: rescheduleRequests.filter((req) => {
 						if (statusFilter === "overdue") {
-							return (
-								req.status === "pending" && isPast(req.old_starts_at)
-							);
+							return req.status === "pending" && isPast(req.old_starts_at);
 						}
 						if (statusFilter === "pending") {
-							return (
-								req.status === "pending" && !isPast(req.old_starts_at)
-							);
+							return req.status === "pending" && !isPast(req.old_starts_at);
 						}
 						if (statusFilter === "accepted") {
 							return req.status === "accepted";
@@ -579,15 +617,11 @@ export default function DoctorAppointmentRequestsScreen() {
 			const aTime =
 				activeTab === "booking"
 					? new Date((a as DoctorAppointment).starts_at).getTime()
-					: new Date(
-							(a as DoctorRescheduleRequest).old_starts_at
-					  ).getTime();
+					: new Date((a as DoctorRescheduleRequest).old_starts_at).getTime();
 			const bTime =
 				activeTab === "booking"
 					? new Date((b as DoctorAppointment).starts_at).getTime()
-					: new Date(
-							(b as DoctorRescheduleRequest).old_starts_at
-					  ).getTime();
+					: new Date((b as DoctorRescheduleRequest).old_starts_at).getTime();
 
 			return sortOrder === "asc" ? aTime - bTime : bTime - aTime;
 		});
