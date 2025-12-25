@@ -1,50 +1,57 @@
-# Welcome to your Expo app 👋
+# Patient Record Management Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A mobile application for digitising and managing patient records, built with **React Native** and **Expo**.  
+This app supports features such as OCR-based document scanning, digital appointment management, and secure storage of patient information.
 
-## Get started
+## Features
+- Scan and digitise patient medical records
+- Quick retrieval of patient medical records
+- Make appointment booking and rescheduling
+- Send automated appointment reminders
+- Secure cloud storage for patient data
+- Cross-platform: Android and iOS
 
-1. Install dependencies
+## Prerequisites
+- Node.js v18+ installed
+- npm or yarn
+- Expo CLI installed globally (optional, `npm install -g expo-cli`)
+- Android Studio / Xcode simulator (optional, for emulators)
 
+## Project Structure
+- `app/` - Main app source code
+
+## Setup and Running the App
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/DennisNg-03/fyp-react-native-expo.git
+   cd fyp-react-native-expo
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. Start the app
-
+3. **Start the development server**
    ```bash
    npx expo start
    ```
+   This will open the **Expo Dev Tools** in your browser.
 
-In the output, you'll find options to open the app in a
+4. **Run on your device or emulator**
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   - **Expo Go on a physical device**  
+     1. Install **Expo Go** from the App Store (iOS) or Play Store (Android)  
+     2. Scan the QR code shown in Expo Dev Tools  
+     3. The app will open on your device
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+   - **Android emulator**  
+     1. Open **Android Studio** and start an emulator  
+     2. In Expo Dev Tools, click **Run on Android device/emulator** or press `a` in the terminal  
 
-## Get a fresh project
+   - **iOS simulator (Mac only)**  
+     1. Open **Xcode** and start a simulator  
+     2. In Expo Dev Tools, click **Run on iOS simulator** or press `i` in the terminal  
 
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+   **Note:** Make sure your computer and device are on the **same network** if using Expo Go.
