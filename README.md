@@ -9,7 +9,6 @@ This app supports features such as OCR-based document scanning, digital appointm
 - Make appointment booking and rescheduling
 - Send automated appointment reminders
 - Secure cloud storage for patient data
-- Cross-platform: Android and iOS
 
 ## Prerequisites
 - Node.js v18+ installed
