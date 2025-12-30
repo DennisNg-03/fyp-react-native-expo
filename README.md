@@ -1,19 +1,21 @@
 # Patient Record Management Mobile App
 
-A mobile application for digitising and managing patient records, built with **React Native** and **Expo**.  
-This app supports features such as OCR-based document scanning, digital appointment management, and secure storage of patient information.
+This is a mobile application developed for digitising and managing patient records, built with **React Native** and **Expo**.
 
 ## Features
-- Scan and digitise patient medical records
+- Scan and digitise patient medical records by taking pictures, uploading images or documents
 - Search patient medical records
 - Make appointment booking and rescheduling
 - Send automated appointment reminders
 - Grant doctor permissions to access past medical records
 
+## User Roles
+- Patient, Doctor, Nurse
+
 ## Prerequisites
-- Node.js v18+ installed
+- Node.js v18+
 - npm or yarn
-- Expo CLI installed globally (optional, `npm install -g expo-cli`)
+- Expo CLI
 - Android Studio / Xcode simulator (optional, for emulators)
 
 ## Project Structure
