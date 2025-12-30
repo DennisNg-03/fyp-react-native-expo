@@ -5,10 +5,10 @@ This app supports features such as OCR-based document scanning, digital appointm
 
 ## Features
 - Scan and digitise patient medical records
-- Quick retrieval of patient medical records
+- Search patient medical records
 - Make appointment booking and rescheduling
 - Send automated appointment reminders
-- Secure cloud storage for patient data
+- Grant doctor permissions to access past medical records
 
 ## Prerequisites
 - Node.js v18+ installed
